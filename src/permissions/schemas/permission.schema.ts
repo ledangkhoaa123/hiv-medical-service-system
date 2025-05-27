@@ -1,36 +1,25 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>;
+export type PermissionDocument = HydratedDocument<Permission>;
 
 @Schema({ timestamps: true })
-export class User {
-  @Prop({ require: true, unique: true })
-  email: string;
-  @Prop({ required: true })
-  password: string;
-
-  @Prop()
+export class Permission {
+  @Prop({required: true})
   name: string;
-  @Prop()
-  gender: string;
-  @Prop()
-  dob: Date;
-  @Prop()
-  phone: string;
-  @Prop()
-  address: string;
-  @Prop()
-  avatarURL: string;
 
-  @Prop()
-  role: mongoose.Schema.Types.ObjectId;
+  @Prop({required: true})
+  apiPath: string;
 
-  @Prop()
-  medicalRecords: mongoose.Schema.Types.ObjectId[];
+  @Prop({required: true})
+  method: string;
 
-  @Prop()
-  refreshToken: string;
+  @Prop({required: true})
+  module: string;
+
+
 
   @Prop({ type: Object })
   createdBy: {
@@ -63,4 +52,4 @@ export class User {
   deletedAt: Date;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const PermissionSchema = SchemaFactory.createForClass(Permission);

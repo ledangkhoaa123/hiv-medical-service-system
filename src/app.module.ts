@@ -1,3 +1,4 @@
+import { PermissionsModule } from './permissions/permissions.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,6 +9,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { RolesModule } from './roles/roles.module';
+
 
 @Module({
   imports: [
@@ -26,7 +29,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
       isGlobal: true,
       // envFilePath: '.env',
     }),
-    UsersModule, AuthModule],
+    UsersModule, AuthModule, RolesModule, PermissionsModule],
   controllers: [AppController],
   providers: [AppService, 
     {
