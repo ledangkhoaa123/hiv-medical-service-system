@@ -5,10 +5,12 @@ import { AuthService } from './auth.service';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { UsersService } from 'src/users/users.service';
 import { RolesService } from 'src/roles/roles.service';
-import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { RegisterUserDto, UserLoginDto } from 'src/users/dto/create-user.dto';
 import { IUser } from 'src/users/user.interface';
 import { log } from 'console';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
+@ApiTags("auth")
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -20,6 +22,7 @@ export class AuthController {
   @Public()
   @Post('/login')
   @ResponseMessage('Login by user')
+  @ApiBody({ type: UserLoginDto, })
   @UseGuards(LocalAuthGuard)
   login(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.signIn(req.user, res);
