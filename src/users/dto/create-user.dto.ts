@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsDate, IsEmail, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
 import mongoose from 'mongoose';
 
@@ -14,7 +15,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   gender: string;
   @IsNotEmpty()
-  @IsDate()
   dob: Date;
   @IsNotEmpty({ message: 'Address không được trống' })
   address: string;
