@@ -22,21 +22,30 @@ export class UsersService {
     const { email, password, dob, gender, name, phone, address } =
       createUserDto;
     const hashPassword = this.getHashPassword(password);
-    const user = await this.userModel.create({
-      email,
-      password: hashPassword,
-      dob,
-      gender,
-      name,
-      phone,
-      address,
-    });
-    return {
-      user: {
-        _id: user._id,
-        _name: user.name,
-      },
-    };
+    try {
+      const user = await this.userModel.create({
+        email,
+        password: hashPassword,
+        name,
+        gender,
+        dob,
+        phone,
+        address,
+      });
+      return {
+        user: {
+          _id: user._id,
+          name: user.name,
+          createAt: user.createdAt,
+        },
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(
+        `${email} đã tồn tại, vui lòng sử dụng email khác`,
+      );
+      }
+    }
   }
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
@@ -59,20 +68,29 @@ export class UsersService {
       );
     }
     // const userRole = await this.roleModel.findOne({ name: USER_ROLE });
-    const user = await this.userModel.create({
-      email,
-      password: hashPassword,
-      name,
-      gender,
-      dob,
-      phone,
-      address,
-    });
-    return {
-      user: {
-        _id: user._id,
-        name: user.name,
-        createAt: user.createdAt 
+
+    try {
+      const user = await this.userModel.create({
+        email,
+        password: hashPassword,
+        name,
+        gender,
+        dob,
+        phone,
+        address,
+      });
+      return {
+        user: {
+          _id: user._id,
+          name: user.name,
+          createAt: user.createdAt,
+        },
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(
+        `${email} đã tồn tại, vui lòng sử dụng email khác`,
+      );
       }
     }
   }

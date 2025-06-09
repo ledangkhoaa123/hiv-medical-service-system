@@ -10,6 +10,8 @@ import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
+import { PatientsModule } from './patients/patients.module';
+import { DoctorsModule } from './doctors/doctors.module';
 
 
 @Module({
@@ -29,7 +31,7 @@ import { RolesModule } from './roles/roles.module';
       isGlobal: true,
       // envFilePath: '.env',
     }),
-    UsersModule, AuthModule, RolesModule, PermissionsModule],
+    UsersModule, AuthModule, RolesModule, PermissionsModule, PatientsModule, DoctorsModule],
   controllers: [AppController],
   providers: [AppService, 
     {
