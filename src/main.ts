@@ -35,6 +35,13 @@ async function bootstrap() {
         )
         .addSecurityRequirements('token')
     .build();
+
+    app.enableCors({
+    "origin": true,
+    "methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    "preflightContinue": false,
+    credentials: true
+  });
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory, {
     swaggerOptions: {
