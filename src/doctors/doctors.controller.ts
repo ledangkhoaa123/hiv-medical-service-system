@@ -4,8 +4,10 @@ import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('doctors')
+@ApiTags("doctors")
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) { }
   @Public()
