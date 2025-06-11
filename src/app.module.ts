@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
+import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-appointments.module';
 
 
 @Module({
@@ -31,7 +32,7 @@ import { DoctorsModule } from './doctors/doctors.module';
       isGlobal: true,
       // envFilePath: '.env',
     }),
-    UsersModule, AuthModule, RolesModule, PermissionsModule, PatientsModule, DoctorsModule],
+    UsersModule, AuthModule, RolesModule, PermissionsModule, PatientsModule, DoctorsModule, AnonymousAppointmentsModule],
   controllers: [AppController],
   providers: [AppService, 
     {
