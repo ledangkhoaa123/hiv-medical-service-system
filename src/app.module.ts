@@ -12,7 +12,13 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
-
+import { ArvDrug } from './arv_drugs/schemas/arv_drug.schema';
+import { ArvDrugsModule } from './arv_drugs/arv_drugs.module';
+import { ArvRegimentsModule } from './arv_regiments/arv_regiments.module';
+import { MedicalRecordsModule } from './medical-records/medical-records.module';
+import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
+import { TestResultsModule } from './test-results/test-results.module';
+import { TreatmentsModule } from './treatments/treatments.module';
 
 @Module({
   imports: [
@@ -23,7 +29,7 @@ import { DoctorsModule } from './doctors/doctors.module';
         connectionFactory: (connection) => {
           connection.plugin(softDeletePlugin);
           return connection;
-        }
+        },
       }),
       inject: [ConfigService],
     }),
@@ -31,13 +37,26 @@ import { DoctorsModule } from './doctors/doctors.module';
       isGlobal: true,
       // envFilePath: '.env',
     }),
-    UsersModule, AuthModule, RolesModule, PermissionsModule, PatientsModule, DoctorsModule],
+    UsersModule,
+    AuthModule,
+    RolesModule,
+    PermissionsModule,
+    PatientsModule,
+    DoctorsModule,
+    ArvDrugsModule,
+    ArvRegimentsModule,
+    MedicalRecordsModule,
+    PrescribedRegimentsModule,
+    TestResultsModule,
+    TreatmentsModule,
+  ],
   controllers: [AppController],
-  providers: [AppService, 
+  providers: [
+    AppService,
     {
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  },
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
