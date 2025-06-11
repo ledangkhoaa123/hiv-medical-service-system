@@ -20,8 +20,7 @@ export class AuthService {
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
-    const isMatch = await this.usersService.isValidPassword(pass, user.password);
-    if (user && isMatch) {
+    if (user && await this.usersService.isValidPassword(pass, user.password)) {
       const { password, ...result } = user.toObject(); // Chuyển từ momgoose document obj sang obj
       return result;
     }
