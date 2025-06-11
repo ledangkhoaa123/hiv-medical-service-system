@@ -74,7 +74,7 @@ export class PermissionsService {
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Không tìm thấy company, kiểm tra lại ID');
+      throw new BadRequestException('Không tìm thấy permission, kiểm tra lại ID');
     }
     return this.permissionModel.findOne({ _id: id });
   }
@@ -111,6 +111,11 @@ export class PermissionsService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(
+        'Không tìm thấy permission, kiểm tra lại ID',
+      );
+    }
     await this.permissionModel.updateOne(
       {
         _id: id,

@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
 import { ArvRegiment } from 'src/arv_regiments/schemas/arv_regiment.schema';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
-import { Treatment } from 'src/treatments/schemas/treatment.schema';
 
 @Schema({ timestamps: true })
 export class PrescribedRegiment extends Document {

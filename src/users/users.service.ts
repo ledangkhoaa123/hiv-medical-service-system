@@ -7,15 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument, UserSchema } from './schemas/user.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
-import { log, profile } from 'console';
-import { isMongoId } from 'class-validator';
 import mongoose from 'mongoose';
 import { IUser } from './user.interface';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
   ) {}
   async create(createUserDto: CreateUserDto, user: IUser) {
     const isExist = await this.userModel.findOne({
@@ -24,7 +24,7 @@ export class UsersService {
     if (isExist) {
       throw new BadRequestException('Email đã tồn tại!');
     }
-    const { email, password, dob, gender, name, phone, address } =
+    const { email, password, dob, gender, name, phone, address, role } =
       createUserDto;
     const hashPassword = this.getHashPassword(password);
     const createdBy = pick(user, ["email","name"]);
@@ -37,7 +37,8 @@ export class UsersService {
         dob,
         phone,
         address,
-        createdBy
+        createdBy,
+        role
       });
       return {
         user: {
@@ -74,7 +75,8 @@ export class UsersService {
         `${email} đã tồn tại, vui lòng sử dụng email khác`,
       );
     }
-    // const userRole = await this.roleModel.findOne({ name: USER_ROLE });
+    //Hard CODE
+     const userRole = await this.roleModel.findOne({ name: "USER_ROLE" });
 
     try {
       const user = await this.userModel.create({
@@ -85,6 +87,7 @@ export class UsersService {
         dob,
         phone,
         address,
+        role: userRole
       });
       return {
         user: {
@@ -99,10 +102,16 @@ export class UsersService {
           `${email} đã tồn tại, vui lòng sử dụng email khác`,
         );
       }
+      if(!userRole){
+        throw new BadRequestException("Không tìm thấy role")
+      }
     }
   }
   findAll() {
-    return this.userModel.find();
+    return this.userModel.find().select("-password").populate({
+      path: 'role',
+      select: { name: 1 },
+    });
   }
 
   findOne(id: string) {
@@ -110,9 +119,9 @@ export class UsersService {
       throw new BadRequestException('ID người dùng không tồn tại');
     }
     return this.userModel
-      .findOne({ id })
+      .findOne({ _id: id })
       .select('-password')
-      //.populate({ path: 'role', select: { name: 1, _id: 1 } });
+      .populate({ path: 'role', select: { name: 1, _id: 1 } });
   }
 
   async findOneByUsername(username: string) {
@@ -131,6 +140,10 @@ export class UsersService {
      if (!this.findOne(id)) {
         throw new BadRequestException('ID người dùng không tồn tại');
      }
+     if(this.findByEmail(updateUserDto.email)){
+      throw new BadRequestException(`${updateUserDto.email} đã tồn tại, vui lòng sử dụng email khác`)
+     }
+      
      return this.userModel.updateOne(
       {_id: id},
       {...updateUserDto, updatedBy}
@@ -154,7 +167,10 @@ export class UsersService {
     });
   }
   async findByEmail(email: string) {
-    return await this.userModel.findOne({ email: email });
+    return await this.userModel.findOne({ email: email }).populate({
+      path: 'role',
+      select: { name: 1 },
+    });
   }
 
   updateUserRefreshToken = async (refreshToken: string, _id: string) => {
@@ -162,10 +178,10 @@ export class UsersService {
   };
 
   findUserByRefreshToken = async (refreshToken: string) => {
-    return await this.userModel.findOne({ refreshToken });
-    // .populate({
-    //   path: 'role',
-    //   select: { name: 1 },
-    // });
+    return await this.userModel.findOne({ refreshToken })
+    .populate({
+      path: 'role',
+      select: { name: 1 },
+    });
   };
 }

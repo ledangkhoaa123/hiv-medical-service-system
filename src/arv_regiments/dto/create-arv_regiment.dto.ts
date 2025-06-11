@@ -11,7 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
 
-class DrugDto {
+export class DrugRegimen {
   @IsMongoId()
   _id: mongoose.Schema.Types.ObjectId;
 
@@ -47,8 +47,8 @@ export class CreateArvRegimentDto {
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => DrugDto)
-  drugs?: DrugDto[];
+  @Type(() => DrugRegimen)
+  drugs?: DrugRegimen[];
 
   @IsOptional()
   @IsBoolean()

@@ -22,7 +22,7 @@ export class Doctor {
     specializations: string;
 
     @Prop({ default: true })
-    isActive?: boolean;
+    isActive: boolean;
     
     @Prop({ type: Object })
       createdBy: {

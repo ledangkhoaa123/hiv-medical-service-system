@@ -40,7 +40,7 @@ export class PermissionsController {
   // }
 
   @Get()
-  @ResponseMessage('Fetch permissions without paginate')
+  @ResponseMessage('Fetch permissions')
   findAll() {
     return this.permissionsService.findAll();
   }

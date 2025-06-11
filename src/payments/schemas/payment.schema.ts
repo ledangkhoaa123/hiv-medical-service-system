@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
+import { AnonymousAppointment } from 'src/anonymous-appointments/schemas/anonymous-appointment.schema';
 import { Appointment } from 'src/appointments/schemas/appointment.schema';
 import { Patient } from 'src/patients/schemas/patient.schema';
 
@@ -10,7 +11,7 @@ export class Payment {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Appointment.name, unique: true, required: true })
     appointmentID: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'AnonymousAppointment' })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: AnonymousAppointment.name })
     anonymousAppointmentID?: mongoose.Schema.Types.ObjectId;
 
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Patient.name })

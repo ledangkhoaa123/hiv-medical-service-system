@@ -7,21 +7,28 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { ConfigService } from '@nestjs/config';
 import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
+import { log } from 'console';
+import { Permission, PermissionDocument } from 'src/permissions/schemas/permission.schema';
 
 @Injectable()
 export class RolesService {
   constructor(
     @InjectModel(Role.name)
     private roleModel: SoftDeleteModel<RoleDocument>,
-
-    private configService: ConfigService
+    @InjectModel(Permission.name)
+    private permissionModel: SoftDeleteModel<PermissionDocument>,
+    private configService: ConfigService,
   ) {}
   async create(createRoleDto: CreateRoleDto, user: IUser) {
     const IsExist = await this.roleModel.findOne({
-      name: createRoleDto.name,
+      name: createRoleDto.name.toUpperCase(),
     });
     if (IsExist) {
       throw new BadRequestException('Tên Role đã tồn tại');
+    }
+    const invalidPermissions = this.permissionModel.findOne({_id: {$in: createRoleDto.permissions}, isDeleted: true});
+    if (invalidPermissions) {
+      throw new BadRequestException("Permission không khả dụng");
     }
     const createdBy = {
       _id: user._id,
@@ -36,9 +43,12 @@ export class RolesService {
       createdAt: role.createdAt,
     };
   }
-    findAll(){
-      return this.roleModel.find();
-    }
+  findAll() {
+    return this.roleModel.find().populate({
+      path: 'permissions',
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
+    });
+  }
   // async findAll(currentPage: number, limit: number, qs: string) {
   //   const { filter, sort, population } = aqp(qs);
   //   delete filter.current;
@@ -73,12 +83,14 @@ export class RolesService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Không tìm thấy role, kiểm tra lại ID');
     }
-    return (await this.roleModel
-      .findOne({ _id: id }))
-      .populate({
-        path: 'permissions',
-        select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
-      });
+    const role = await this.roleModel.findOne({ _id: id, isDeleted: false}).populate({
+      path: 'permissions',
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
+    });
+    if (!role) {
+      throw new BadRequestException('Role không khả dụng');
+    }
+    return role;
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
@@ -104,10 +116,14 @@ export class RolesService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Không tìm thấy Role, kiểm tra lại ID');
+    }
     const foundRole = await this.roleModel.findById(id);
-    // if (foundRole.name === ADMIN_ROLE) {
-    //   throw new BadRequestException(`Không thể xóa role ADMIN`);
-    // }
+    //Tam thoi HARDCODE
+     if (foundRole.name === "ADMIN_ROLE") {
+       throw new BadRequestException(`Không thể xóa role ADMIN`);
+     }
     await this.roleModel.updateOne(
       {
         _id: id,

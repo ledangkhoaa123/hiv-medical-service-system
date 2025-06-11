@@ -8,12 +8,17 @@ import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
 import { pick } from 'lodash';
 import path from 'path';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class DoctorsService {
-  constructor(@InjectModel(Doctor.name)
-  private doctorModel: SoftDeleteModel<DoctorDocument>,
-  ) { }
+  constructor(
+    @InjectModel(Doctor.name)
+    private doctorModel: SoftDeleteModel<DoctorDocument>,
+
+    @InjectModel(User.name)
+    private userModel: SoftDeleteModel<UserDocument>,
+  ) {}
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
     const IsExist = await this.doctorModel.findOne({
       userID: createdoctorDto.userID,
@@ -27,35 +32,32 @@ export class DoctorsService {
       createdBy: {
         // _id: user._id,
         // email: user.email,
-      }
+      },
     });
     return {
       createdBy: {
         // _id: user._id,
         // email: user.email,
       },
-      createdAt: doctor.createdAt
+      createdAt: doctor.createdAt,
     };
   }
 
-
   findAll() {
-    return this.doctorModel.find()
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  });
+    return this.doctorModel.find().populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Doctor with id=${id}`);
     }
-    return this.doctorModel.findOne({ _id: id })
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  })
+    return this.doctorModel.findOne({ _id: id }).populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
@@ -75,7 +77,7 @@ export class DoctorsService {
           // email: user.email,
         },
       },
-      { new: true }
+      { new: true },
     );
   }
 
