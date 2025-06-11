@@ -13,6 +13,19 @@ import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-appointments.module';
+import { ArvDrug } from './arv_drugs/schemas/arv_drug.schema';
+import { ArvDrugsModule } from './arv_drugs/arv_drugs.module';
+import { ArvRegimentsModule } from './arv_regiments/arv_regiments.module';
+import { MedicalRecordsModule } from './medical-records/medical-records.module';
+import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
+import { TestResultsModule } from './test-results/test-results.module';
+import { TreatmentsModule } from './treatments/treatments.module';
+import { Service } from './services/schemas/service.schema';
+import { ServicesModule } from './services/services.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
+import { Payment } from './payments/schemas/payment.schema';
+import { PaymentsModule } from './payments/payments.module';
 
 
 @Module({
@@ -24,7 +37,7 @@ import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-
         connectionFactory: (connection) => {
           connection.plugin(softDeletePlugin);
           return connection;
-        }
+        },
       }),
       inject: [ConfigService],
     }),
@@ -32,13 +45,32 @@ import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-
       isGlobal: true,
       // envFilePath: '.env',
     }),
-    UsersModule, AuthModule, RolesModule, PermissionsModule, PatientsModule, DoctorsModule, AnonymousAppointmentsModule],
+    AppointmentsModule,
+    AnonymousAppointmentsModule,
+    DoctorSlotsModule,
+    PaymentsModule,
+    ServicesModule,
+    UsersModule,
+    AuthModule,
+    RolesModule,
+    PermissionsModule,
+    PatientsModule,
+    DoctorsModule,
+    ArvDrugsModule,
+    ArvRegimentsModule,
+    MedicalRecordsModule,
+    PrescribedRegimentsModule,
+    TestResultsModule,
+    TreatmentsModule,
+  ],
+
   controllers: [AppController],
-  providers: [AppService, 
+  providers: [
+    AppService,
     {
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  },
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,7 +1,6 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
-import { Appointment } from 'src/appointments/schemas/appointment.schema';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
 export type DoctorSlotDocument = DoctorSlot & Document;
 
@@ -27,8 +26,7 @@ export class DoctorSlot {
     })
     status: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Appointment.name, required: true })
-    appointmentID: mongoose.Schema.Types.ObjectId;
+
     @Prop({ type: Object })
     createdBy: {
         _id: mongoose.Schema.Types.ObjectId;
@@ -46,12 +44,18 @@ export class DoctorSlot {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
     };
+
     @Prop()
     createdAt: Date;
+
     @Prop()
     updatedAt: Date;
+
     @Prop()
     isDeleted: boolean;
+
+    @Prop()
+    deletedAt: Date;
 }
 
 export const DoctorSlotSchema = SchemaFactory.createForClass(DoctorSlot);
