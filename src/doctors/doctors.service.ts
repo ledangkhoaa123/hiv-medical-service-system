@@ -61,23 +61,19 @@ export class DoctorsService {
   }
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
-    const fieldsToUpdate = pick(updateDoctorDto, [
-      'room',
-      'experiences',
-      'degrees',
-      'specializations',
-    ]);
+    if(!(await this.findOne(id))){
+      throw new BadRequestException(`Not found Doctor with id=${id}`)
+    }
 
-    return this.doctorModel.findOneAndUpdate(
+    return await this.doctorModel.updateOne(
       { _id: id },
       {
-        ...fieldsToUpdate,
+        ...updateDoctorDto,
         updatedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
-      { new: true },
     );
   }
 
@@ -88,8 +84,8 @@ export class DoctorsService {
       },
       {
         deletedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
     );

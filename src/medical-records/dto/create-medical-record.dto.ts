@@ -1,17 +1,10 @@
 import { IsNotEmpty, IsString, IsOptional, IsMongoId } from 'class-validator';
+import mongoose from 'mongoose';
 
 export class CreateMedicalRecordDto {
   @IsNotEmpty()
   @IsMongoId({ message: 'patientID phải là ObjectId hợp lệ' })
-  patientID: string;
-
-  @IsOptional()
-  @IsMongoId({ message: 'guestID phải là ObjectId hợp lệ' })
-  guestID?: string;
-
-  @IsNotEmpty()
-  @IsMongoId({ message: 'doctorID phải là ObjectId hợp lệ' })
-  doctorID: string;
+  patientID: mongoose.Schema.Types.ObjectId;
 
   @IsOptional()
   @IsString()

@@ -26,7 +26,7 @@ export class RolesService {
     if (IsExist) {
       throw new BadRequestException('Tên Role đã tồn tại');
     }
-    const invalidPermissions = this.permissionModel.findOne({_id: {$in: createRoleDto.permissions}, isDeleted: true});
+    const invalidPermissions = await this.permissionModel.findOne({_id: {$in: createRoleDto.permissions}, isDeleted: true});
     if (invalidPermissions) {
       throw new BadRequestException("Permission không khả dụng");
     }
