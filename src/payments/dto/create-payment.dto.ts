@@ -28,9 +28,7 @@ export class CreatePaymentDto {
     @IsString()
     transactionID: string;
 
-    @IsNotEmpty({ message: 'Status không được để trống' })
-    @IsString()
-    status: string = 'pending';
+    
 
     @IsDateString()
     @IsNotEmpty({ message: 'PaymentDate không được để trống' })

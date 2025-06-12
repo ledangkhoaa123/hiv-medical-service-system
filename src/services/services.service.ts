@@ -5,7 +5,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Service, ServiceDocument } from './schemas/service.schema';
 import mongoose, { Model } from 'mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { pick } from 'lodash';
 import { IUser } from 'src/users/user.interface';
 
 @Injectable()
@@ -13,59 +12,80 @@ export class ServicesService {
   constructor(
     @InjectModel(Service.name) private readonly serviceModel: SoftDeleteModel<ServiceDocument>,
   ) { }
-  async create(createServiceDto: CreateServiceDto, user) {
-
-    const IsExist = await this.serviceModel.findOne({
-      name: createServiceDto.name,
-    });
-    if (IsExist) {
-      throw new BadRequestException('Service đã tồn tại');
+  async create(createServiceDto: CreateServiceDto, user: IUser) {
+    try {
+      const IsExist = await this.serviceModel.findOne({ name: createServiceDto.name });
+      if (IsExist) {
+        throw new BadRequestException('Tên dịch vụ đã tồn tại');
+      }
+      const service = await this.serviceModel.create({
+        ...createServiceDto,
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      });
+      return service;
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException('Tên dịch vụ đã tồn tại');
+      }
+      throw error;
     }
-    const service = await this.serviceModel.create({
-      ...createServiceDto
-    });
-    return {
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      },
-      createdAt: service.createdAt
-    };
   }
 
   findAll() {
-    this.serviceModel.find();
+    return this.serviceModel.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException(`Not found service with id=${id}`);
+      throw new BadRequestException(`Sai định dạng id`);
     }
-    return this.serviceModel.findOne({ _id: id });
+    const service = await this.serviceModel.findOne({ _id: id });
+    if (!service) {
+      throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
+    }
+    return service;
   }
 
-  update(id: string, updateserviceDto: UpdateServiceDto, user: IUser) {
-    const fieldsToUpdate = pick(updateserviceDto, [
-      'name',
-      'description',
-      'price',
-      'durationMinutes',
-      'isActive',
-    ]);
+  async update(id: string, updateserviceDto: UpdateServiceDto, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Sai định dạng id`);
+    }
 
-    return this.serviceModel.findOneAndUpdate(
-      { _id: id },
-      {
-        ...fieldsToUpdate,
-        updatedBy: {
-          // _id: user._id,
-          // email: user.email,
+    if (updateserviceDto.name) {
+      const existed = await this.serviceModel.findOne({
+        name: updateserviceDto.name,
+        _id: { $ne: id }
+      });
+      if (existed) {
+        throw new BadRequestException('Tên dịch vụ đã tồn tại');
+      }
+    }
+    try {
+      const updated = await this.serviceModel.findOneAndUpdate(
+        { _id: id },
+        {
+          ...updateserviceDto,
+          updatedBy: {
+            _id: user._id,
+            email: user.email,
+          },
         },
-      },
-      { new: true }
-    );
+        { new: true }
+      );
+      if (!updated) {
+        throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
+      }
+      return updated;
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException('Tên dịch vụ đã tồn tại');
+      }
+      throw error;
+    }
   }
-
   async remove(id: string, user: IUser) {
     await this.serviceModel.updateOne(
       {
@@ -73,8 +93,8 @@ export class ServicesService {
       },
       {
         deletedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
     );

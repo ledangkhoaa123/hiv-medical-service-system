@@ -34,14 +34,34 @@ export class PaymentsService {
   }
 
   findAll() {
-    return this.paymentModel.find();
+    return this.paymentModel.find().populate([{
+      path: 'appointmentID',
+      select: { _id: 1, patientId: 1, doctorID: 1, serviceID: 1, doctorSlotId: 1 },
+    }, {
+      path: 'anonymousAppointmentID',
+      select: { status: 1 },
+    }, {
+      path: 'patientId',
+      select: { _id: 1, userID: 1, wallet: 1, contactPhones: 1, contactEmails: 1 },
+    }
+    ])
   }
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found payment with id=${id}`);
     }
-    return this.paymentModel.findOne({ _id: id });
+    return this.paymentModel.findOne({ _id: id }).populate([{
+      path: 'appointmentID',
+      select: { _id: 1, patientId: 1, doctorID: 1, serviceID: 1, doctorSlotId: 1 },
+    }, {
+      path: 'anonymousAppointmentID',
+      select: { status: 1 },
+    }, {
+      path: 'patientId',
+      select: { _id: 1, userID: 1, wallet: 1, contactPhones: 1, contactEmails: 1 },
+    }
+    ]);
   }
 
   update(id: string, updatepaymentDto: UpdatePaymentDto, user: IUser) {
