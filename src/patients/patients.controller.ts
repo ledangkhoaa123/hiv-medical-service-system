@@ -12,14 +12,14 @@ import { CreateGuestPatientDto, CreatePatientDto } from './dto/create-patient.dt
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('patients')
 @ApiTags('patients')
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-
+  @ApiOperation({ summary: 'Tạo bệnh nhân mới (khách)' })
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
   createByGuest(@Body() createPatientDto: CreateGuestPatientDto, @User() user: IUser) {
@@ -27,16 +27,22 @@ export class PatientsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Lấy danh sách bệnh nhân' })
+  @ResponseMessage('Get all patients')
   findAll() {
     return this.patientsService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo ID' })
+  @ResponseMessage('Get patient by ID')
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Cập nhật thông tin bệnh nhân theo ID' })
+  @ResponseMessage('Update patient by ID')
   update(
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
@@ -46,6 +52,8 @@ export class PatientsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Vô hiệu hóa bệnh nhân theo ID' })
+  @ResponseMessage('Delete patient by ID')
   remove(@Param('id') id: string,@User() user: IUser) {
     return this.patientsService.remove(id, user);
   }
