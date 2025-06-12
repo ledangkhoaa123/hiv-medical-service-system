@@ -6,26 +6,29 @@ import {
   IsEmail,
   IsMongoId,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import mongoose from 'mongoose';
 
 export class CreateUserDto {
-  @IsNotEmpty()
-  @IsEmail()
+  @IsNotEmpty({ message: 'Email không được trống' })
+  @IsEmail({}, { message: 'Email không hợp lệ' })
   email: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Password không được trống' })
   password: string;
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Name không được trống' })
   name: string;
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Gender không được trống' })
   gender: string;
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Ngày sinh không được trống' })
+  @IsDateString({}, { message: 'Định dạng ngày tháng không hợp lệ' })
   dob: Date;
   @IsNotEmpty({ message: 'Address không được trống' })
   address: string;
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Phone không được trống' })
   phone: string;
   @IsNotEmpty({ message: 'Role không được trống' })
   @IsMongoId({ message: 'Role có định dạng là MongoID' })
@@ -39,7 +42,11 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'Email không được trống' })
   email: string;
 
-  @IsNotEmpty({ message: 'Password không đưuọc trống' })
+  @IsNotEmpty({ message: 'Personal ID không được trống' })
+  @Matches(/^[0-9A-Z]{8,20}$/, { message: 'personalID không hợp lệ' })
+  personalID: string;
+
+  @IsNotEmpty({ message: 'Password không được trống' })
   password: string;
 
   @IsNotEmpty({ message: 'Age không được trống' })
@@ -49,10 +56,10 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'gender không được trống' })
   gender: string;
 
-  @IsNotEmpty({ message: 'Address không được trống' })
+  @IsOptional()
   address: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   phone: string;
 }
 export class UserLoginDto {
@@ -68,4 +75,23 @@ export class UserLoginDto {
     description: 'password',
   })
   readonly password: string;
+}
+export class UpgradeUserDto {
+  @IsNotEmpty({ message: 'Name không đưọc trống' })
+  name: string;
+
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  @IsNotEmpty({ message: 'Email không được trống' })
+  email: string;
+
+  @IsNotEmpty({ message: 'Password không được trống' })
+  password: string;
+
+  @IsNotEmpty({ message: 'Age không được trống' })
+  @IsDateString({}, { message: 'Định dạng ngày tháng không hợp lệ' })
+  dob: Date;
+
+  @IsNotEmpty({ message: 'gender không được trống' })
+  gender: string;
+
 }

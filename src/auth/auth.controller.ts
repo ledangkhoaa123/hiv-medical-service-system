@@ -9,6 +9,7 @@ import { RegisterUserDto, UserLoginDto } from 'src/users/dto/create-user.dto';
 import { IUser } from 'src/users/user.interface';
 import { log } from 'console';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { UpgradeFromGuestDto } from 'src/patients/dto/create-patient.dto';
 
 @ApiTags("auth")
 @Controller('auth')
@@ -32,6 +33,12 @@ export class AuthController {
   @Post('/register')
   handleRegister(@Body() registerUserDTO: RegisterUserDto) {
     return this.usersService.register(registerUserDTO);
+  }
+  @Public()
+  @ResponseMessage('Register a new user')
+  @Post('/upgrade')
+  upgradeToUser(@Body() upgradeFromGuestDTO: UpgradeFromGuestDto) {
+    return this.usersService.upgradeFromGuest(upgradeFromGuestDTO);
   }
   @Get('/account')
   @ResponseMessage('Get user information')
