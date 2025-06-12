@@ -20,27 +20,32 @@ export class DoctorsService {
     private userModel: SoftDeleteModel<UserDocument>,
   ) {}
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const IsExist = await this.doctorModel.findOne({
-      userID: createdoctorDto.userID,
+    const IsExist = await this.userModel.findOne({
+      _id: createdoctorDto.userID,
     });
-    if (IsExist) {
-      throw new BadRequestException('DoctorId đã tồn tại');
+    if (!IsExist) {
+      throw new BadRequestException('UserID không hợp lệ');
     }
-
-    const doctor = await this.doctorModel.create({
-      ...createdoctorDto,
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      },
-    });
-    return {
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      },
-      createdAt: doctor.createdAt,
-    };
+    try {
+      const doctor = await this.doctorModel.create({
+        ...createdoctorDto,
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      });
+      return {
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+        createdAt: doctor.createdAt,
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(`UserID đã tồn tại`);
+      }
+    }
   }
 
   findAll() {
@@ -61,8 +66,8 @@ export class DoctorsService {
   }
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
-    if(!(await this.findOne(id))){
-      throw new BadRequestException(`Not found Doctor with id=${id}`)
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
     }
 
     return await this.doctorModel.updateOne(
@@ -78,6 +83,9 @@ export class DoctorsService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
     await this.doctorModel.updateOne(
       {
         _id: id,

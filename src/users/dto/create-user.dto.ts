@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDate, IsEmail, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsDateString,
+  IsEmail,
+  IsMongoId,
+  IsNotEmpty,
+  IsString,
+} from 'class-validator';
 import mongoose from 'mongoose';
 
 export class CreateUserDto {
@@ -36,6 +43,7 @@ export class RegisterUserDto {
   password: string;
 
   @IsNotEmpty({ message: 'Age không được trống' })
+  @IsDateString({}, { message: 'Định dạng ngày tháng không hợp lệ' })
   dob: Date;
 
   @IsNotEmpty({ message: 'gender không được trống' })
@@ -48,18 +56,16 @@ export class RegisterUserDto {
   phone: string;
 }
 export class UserLoginDto {
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty({ example: 'test1@gmail.com', description: 'email' })
-    readonly email: string;
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'test1@gmail.com', description: 'email' })
+  readonly email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty({
-        example: '123456',
-        description: 'password',
-    })
-    readonly password: string;
-
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '123456',
+    description: 'password',
+  })
+  readonly password: string;
 }
-
