@@ -8,86 +8,100 @@ import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
 import { pick } from 'lodash';
 import path from 'path';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class DoctorsService {
-  constructor(@InjectModel(Doctor.name)
-  private doctorModel: SoftDeleteModel<DoctorDocument>,
+  constructor(
+    @InjectModel(Doctor.name)
+    private doctorModel: SoftDeleteModel<DoctorDocument>,
+
+    @InjectModel(User.name)
+    private userModel: SoftDeleteModel<UserDocument>,
   ) { }
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const IsExist = await this.doctorModel.findOne({
-      userID: createdoctorDto.userID,
+    const IsExist = await this.userModel.findOne({
+      _id: createdoctorDto.userID,
     });
-    if (IsExist) {
-      throw new BadRequestException('DoctorId đã tồn tại');
+    if (!IsExist) {
+      throw new BadRequestException('UserID không hợp lệ');
     }
-
-    const doctor = await this.doctorModel.create({
-      ...createdoctorDto,
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
+    try {
+      const doctor = await this.doctorModel.create({
+        ...createdoctorDto,
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      });
+      return {
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+        createdAt: doctor.createdAt,
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(`UserID đã tồn tại`);
       }
-    });
-    return {
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      },
-      createdAt: doctor.createdAt
-    };
+    }
   }
-
 
   findAll() {
-    return this.doctorModel.find()
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  });
+    return this.doctorModel.find().populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Doctor with id=${id}`);
     }
-    return this.doctorModel.findOne({ _id: id })
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  })
+    return await this.doctorModel.findOne({ _id: id }).populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
-    const fieldsToUpdate = pick(updateDoctorDto, [
-      'room',
-      'experiences',
-      'degrees',
-      'specializations',
-    ]);
-
-    return this.doctorModel.findOneAndUpdate(
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
+    if (updateDoctorDto.userID) {
+      const existing = await this.doctorModel.findOne({
+        userID: updateDoctorDto.userID,
+        _id: { $ne: id }, // Exclude current patient
+      });
+      if (existing) {
+        throw new BadRequestException('UserID đã tồn tại');
+      }
+    }
+    return await this.doctorModel.updateOne(
       { _id: id },
       {
-        ...fieldsToUpdate,
+        ...updateDoctorDto,
         updatedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
-      { new: true }
     );
   }
 
   async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
     await this.doctorModel.updateOne(
       {
         _id: id,
       },
       {
         deletedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
     );

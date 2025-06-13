@@ -30,8 +30,12 @@ export class Appointment {
     })
     status: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Service.name, required: true })
-    serviceID: mongoose.Schema.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Service.name,
+    required: true,
+  })
+  serviceID: mongoose.Schema.Types.ObjectId;
 
     // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: '' })
     // medicalRecord: mongoose.Schema.Types.ObjectId;

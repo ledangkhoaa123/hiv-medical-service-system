@@ -3,21 +3,39 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
-import { MedicalRecord } from './schemas/medical-record.schema';
+import { MedicalRecord, MedicalRecordDocument } from './schemas/medical-record.schema';
+import { IUser } from 'src/users/user.interface';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
+import { PatientsService } from 'src/patients/patients.service';
 
 @Injectable()
 export class MedicalRecordsService {
   constructor(
     @InjectModel(MedicalRecord.name)
-    private medicalRecordModel: Model<MedicalRecord>,
+    private medicalRecordModel: SoftDeleteModel<MedicalRecordDocument>,
+    
+    private patientsService: PatientsService
   ) {}
 
   async create(
     createMedicalRecordDto: CreateMedicalRecordDto,
-  ): Promise<MedicalRecord> {
-    const createdRecord = new this.medicalRecordModel(createMedicalRecordDto);
-    return createdRecord.save();
+    user: IUser
+  ) {
+    const patient = await this.patientsService.findOne(createMedicalRecordDto.patientID.toString());
+    if (!patient) {
+      throw new NotFoundException(`Patient  ID ${createMedicalRecordDto.patientID} không tồn tại`);
+    }
+    const medicalRecord = this.medicalRecordModel.create({
+      ...createMedicalRecordDto,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+      },
+    });
+   
   }
+
   async findAll(): Promise<MedicalRecord[]> {
     return (
       this.medicalRecordModel

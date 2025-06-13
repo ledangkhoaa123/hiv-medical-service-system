@@ -9,7 +9,7 @@ import { Treatment } from './schemas/treatment.schema';
 export class TreatmentsService {
   constructor(
     @InjectModel(Treatment.name) private treatmentModel: Model<Treatment>,
-  ) {}
+  ) { }
 
   async create(createTreatmentDto: CreateTreatmentDto): Promise<Treatment> {
     const createdTreatment = new this.treatmentModel(createTreatmentDto);
@@ -20,16 +20,16 @@ export class TreatmentsService {
       this.treatmentModel
         .find()
         .populate('medicalRecordID')
-        //.populate('doctorID')
-        .exec()
+      //.populate('doctorID')
+      // .exec()
     );
   }
   async findOne(id: string): Promise<Treatment> {
     const treatment = await this.treatmentModel
       .findById(id)
       .populate('medicalRecordID')
-      //.populate('doctorID')
-      .exec();
+    //.populate('doctorID')
+    // .exec();
 
     if (!treatment) {
       throw new NotFoundException(`Treatment with ID ${id} not found`);

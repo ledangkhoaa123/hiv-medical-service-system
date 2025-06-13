@@ -4,45 +4,51 @@ import mongoose, { Document } from 'mongoose';
 export type AnonymousAppointmentDocument = AnonymousAppointment & Document;
 @Schema({ timestamps: true }) // createdAt, updatedAt
 export class AnonymousAppointment {
-    @Prop({ required: true })
-    gender: string;
+  @Prop({ required: true })
+  gender: string;
 
-    @Prop({ required: true })
-    dob: Date;
+  @Prop({ required: true })
+  dob: Date;
 
-    @Prop({ required: true })
-    date: Date;
+  @Prop({ required: true })
+  date: Date;
 
-    @Prop()
+  @Prop()
+  email: string;
+
+  @Prop({ required: true })
+  status: string;
+
+  @Prop({ type: Object })
+  createdBy: {
+    _id: mongoose.Schema.Types.ObjectId;
     email: string;
+  };
 
-    @Prop({ required: true })
-    status: string;
+  @Prop({ type: Object })
+  updatedBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
 
-    @Prop({ type: Object })
-    createdBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
+  @Prop({ type: Object })
+  deletedBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
 
-    @Prop({ type: Object })
-    updatedBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
+  @Prop()
+  createdAt: Date;
 
-    @Prop({ type: Object })
-    deletedBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
-    @Prop()
-    createdAt: Date;
-    @Prop()
-    updatedAt: Date;
-    @Prop()
-    isDeleted: boolean;
+  @Prop()
+  updatedAt: Date;
 
+  @Prop()
+  isDeleted: boolean;
+
+  @Prop()
+  deletedAt: Date;
 }
 
-export const AnonymousAppointmentSchema = SchemaFactory.createForClass(AnonymousAppointment);
+export const AnonymousAppointmentSchema =
+  SchemaFactory.createForClass(AnonymousAppointment);

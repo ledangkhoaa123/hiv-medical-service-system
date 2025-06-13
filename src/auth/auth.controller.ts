@@ -36,8 +36,8 @@ export class AuthController {
   @Get('/account')
   @ResponseMessage('Get user information')
   async getProfile(@User() user: IUser) {
-    // const temp = (await this.rolesService.findOne(user.role._id)) as any;
-    // user.permissions = temp.permissions;
+    const temp = await this.rolesService.findOne(user.role._id) as any;
+    user.permissions = temp.permissions;
     return { user };
   }
 

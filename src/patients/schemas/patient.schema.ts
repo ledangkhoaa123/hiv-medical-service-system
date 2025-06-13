@@ -10,6 +10,7 @@ export class Patient {
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: MedicalRecord.name,
+    default: [],
   })
   medicalRecordID: mongoose.Schema.Types.ObjectId[];
 

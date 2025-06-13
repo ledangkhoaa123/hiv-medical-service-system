@@ -11,6 +11,8 @@ import { MedicalRecordsService } from './medical-records.service';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import { MedicalRecord } from './schemas/medical-record.schema';
+import { User } from 'src/decorator/customize';
+import { IUser } from 'src/users/user.interface';
 
 @Controller('medicalrecords')
 export class MedicalRecordsController {
@@ -19,8 +21,9 @@ export class MedicalRecordsController {
   @Post()
   async create(
     @Body() createMedicalRecordDto: CreateMedicalRecordDto,
-  ): Promise<MedicalRecord> {
-    return this.medicalRecordsService.create(createMedicalRecordDto);
+    @User() user: IUser
+  ) {
+    return this.medicalRecordsService.create(createMedicalRecordDto, user);
   }
 
   @Get()

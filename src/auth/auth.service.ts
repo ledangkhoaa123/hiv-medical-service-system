@@ -21,20 +21,27 @@ export class AuthService {
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
     if (user && await this.usersService.isValidPassword(pass, user.password)) {
-      const { password, ...result } = user.toObject(); // Chuyển từ momgoose document obj sang obj
-      return result;
+      const userRole = user.role as unknown as { _id: string; name: string };
+      const tempRole = await this.rolesService.findOne(userRole._id);
+
+      const objUser = {
+        ...user.toObject(),
+        permissions: tempRole?.permissions ?? [],
+      };
+      return objUser;
     }
     return null;
   }
 
-  async signIn(user: any, res: Response) {
-    const { _id, email, name } = user;
+  async signIn(user: IUser, res: Response) {
+    const { _id, email, name, role, permissions } = user;
     const payload = {
       iss: 'Form Server',
       sub: 'Token Login',
       _id,
       name,
       email,
+      role
     };
     const refreshToken = this.createRefreshToken({ name: name });
     //Update refreshToken in DB
@@ -50,6 +57,8 @@ export class AuthService {
         _id,
         email,
         name,
+        role,
+        permissions,
       },
     };
   }
