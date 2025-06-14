@@ -1,13 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, HydratedDocument } from 'mongoose';
+import { ArvDrug } from 'src/arv_drugs/schemas/arv_drug.schema';
+import { RegimenType, TestType } from 'src/enums/all_enums';
+
+export type ArvRegimentDocument = HydratedDocument<ArvRegiment>;
 
 @Schema({ timestamps: true })
 export class ArvRegiment extends Document {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   name: string;
 
-  @Prop({ type: String, required: true })
-  regimenType: string;
+  @Prop({ type: String, enum: RegimenType, required: true })
+  regimenType: RegimenType;
 
   @Prop({ type: String })
   description: string;
@@ -15,12 +19,24 @@ export class ArvRegiment extends Document {
   @Prop({ type: String })
   sideEffects: string;
 
-  @Prop({ type: Object })
-  criteria: Record<string, any>;
+ @Prop({ type: [{
+      test_type: { type: String, enum: TestType, required: true },
+      operator: { type: String, enum: ['<', '<=', '=', '>=', '>', '!='], required: true },
+      value: { type: mongoose.Schema.Types.Mixed, required: true },
+    }], default: [] })
+  criteria: {
+    test_type: TestType;
+    operator: string; // '<', '>', '=', '<=', '>='
+    value: number | string; 
+  }[];
 
-  @Prop()
+  @Prop([{
+  drugId: { type: mongoose.Schema.Types.ObjectId, ref: () => ArvDrug.name, required: true },
+  dosage: { type: String, required: true },
+  frequency: { type: [String], required: true },
+}])
   drugs: {
-    _id: mongoose.Schema.Types.ObjectId;
+    drugId: mongoose.Schema.Types.ObjectId;
     dosage: string;
     frequency: string[];
   }[];

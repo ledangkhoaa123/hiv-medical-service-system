@@ -1,4 +1,3 @@
-import { UpdateMedicalRecordDto } from './../medical-records/dto/update-medical-record.dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CreateGuestPatientDto,
@@ -10,7 +9,6 @@ import { Patient, PatientDocument } from './schemas/patient.schema';
 import mongoose from 'mongoose';
 import { IUser } from 'src/users/user.interface';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { pick } from 'lodash';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 @Injectable()
 export class PatientsService {
@@ -63,20 +61,32 @@ export class PatientsService {
   }
 
   findAll() {
-    return this.patientModel.find().populate({
+    return this.patientModel.find().populate([
+      {
       path: 'userID',
       select: 'name phone',
-    });
+    },
+    {
+      path: 'medicalRecordID',
+      select: 'diagnosis symptoms clinicalNotes',
+    },
+  ]);
   }
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Patient with id=${id}`);
     }
-    return await this.patientModel.findOne({ _id: id }).populate({
+    return await this.patientModel.findOne({ _id: id }).populate([
+      {
       path: 'userID',
       select: 'name phone',
-    });
+    },
+    {
+      path: 'medicalRecordID',
+      select: 'diagnosis symptoms clinicalNotes',
+    },
+  ]);
   }
 
   findOneByPersonalID = async (personalID: string) => {

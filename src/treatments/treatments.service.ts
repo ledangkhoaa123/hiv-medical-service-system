@@ -1,58 +1,133 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { IsMongoId } from 'class-validator';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model, mongo } from 'mongoose';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { UpdateTreatmentDto } from './dto/update-treatment.dto';
-import { Treatment } from './schemas/treatment.schema';
+import { Treatment, TreatmentDocument } from './schemas/treatment.schema';
+import { IUser } from 'src/users/user.interface';
+
+import { MedicalRecordsService } from 'src/medical-records/medical-records.service';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
 @Injectable()
 export class TreatmentsService {
   constructor(
-    @InjectModel(Treatment.name) private treatmentModel: Model<Treatment>,
+    @InjectModel(Treatment.name)
+    private treatmentModel: SoftDeleteModel<TreatmentDocument>,
+    private medicalRecordsService: MedicalRecordsService,
   ) {}
 
-  async create(createTreatmentDto: CreateTreatmentDto): Promise<Treatment> {
-    const createdTreatment = new this.treatmentModel(createTreatmentDto);
-    return createdTreatment.save();
-  }
-  async findAll(): Promise<Treatment[]> {
-    return (
-      this.treatmentModel
-        .find()
-        .populate('medicalRecordID')
-        //.populate('doctorID')
-        .exec()
+  async create(createTreatmentDto: CreateTreatmentDto, user: IUser) {
+    const medicalRecord = await this.medicalRecordsService.findOne(
+      createTreatmentDto.medicalRecordID.toString(),
     );
-  }
-  async findOne(id: string): Promise<Treatment> {
-    const treatment = await this.treatmentModel
-      .findById(id)
-      .populate('medicalRecordID')
-      //.populate('doctorID')
-      .exec();
-
-    if (!treatment) {
-      throw new NotFoundException(`Treatment with ID ${id} not found`);
+    if (!medicalRecord) {
+      throw new BadRequestException(
+        `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
+      );
     }
+    const treatment = await this.treatmentModel.create({
+      ...createTreatmentDto,
+      createdBy: { _id: user._id, email: user.email },
+    });
+    this.medicalRecordsService.updateTreatmentId(
+      createTreatmentDto.medicalRecordID,
+      treatment._id as any,
+    );
+    return treatment;
+  }
+  async findAll() {
+    return this.treatmentModel.find().populate([
+      {
+        path: 'testResultID',
+        select: { _id: 1, test_type: 1, test_results: 1, test_date: 1 },
+      },
+      { path: 'prescribedRegimentID', select: '_id' },
+      { path: 'previousTreatmentID', select: '_id' },
+      { path: 'doctorID', select: '_id' },
+    ]);
+  }
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+    }
+    const treatment = await this.treatmentModel.findOne({ _id: id }).populate([
+      {
+        path: 'testResultID',
+        select: '_id, test_type, test_results, test_date',
+      },
+      { path: 'prescribedRegimentID', select: '_id' },
+      { path: 'previousTreatmentID', select: '_id' },
+      { path: 'doctorID', select: '_id' },
+    ]);
     return treatment;
   }
   async update(
     id: string,
     updateTreatmentDto: UpdateTreatmentDto,
-  ): Promise<Treatment> {
-    const updatedTreatment = await this.treatmentModel
-      .findByIdAndUpdate(id, updateTreatmentDto, { new: true })
-      .exec();
+    user: IUser,
+  ) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+    }
 
-    if (!updatedTreatment) {
-      throw new NotFoundException(`Treatment with ID ${id} not found`);
-    }
-    return updatedTreatment;
+    return this.treatmentModel.updateOne(
+      { _id: id },
+      {
+        ...updateTreatmentDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
   }
-  async delete(id: string): Promise<void> {
-    const result = await this.treatmentModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`Treatment with ID ${id} not found`);
+  async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
     }
+    await this.treatmentModel.updateOne(
+      {
+        _id: id,
+      },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
+    return this.treatmentModel.softDelete({
+      _id: id,
+    });
   }
+  updateTestResultId = async (
+    treatmentId: mongoose.Schema.Types.ObjectId,
+    testResultId: mongoose.Schema.Types.ObjectId,
+  ) => {
+    const record = await this.findOne(treatmentId as any);
+    if (record) {
+      return await this.treatmentModel.updateOne(
+        { _id: record._id },
+        { $addToSet: { testResultID: testResultId } },
+      );
+    }
+  };
+  updatePrescribedRegimentID = async (
+    treatmentId: mongoose.Schema.Types.ObjectId,
+    prescribedId: mongoose.Schema.Types.ObjectId,
+  ) => {
+    const record = await this.findOne(treatmentId as any);
+    if (record) {
+      return await this.treatmentModel.updateOne(
+        { _id: record._id },
+        { prescribedRegimentID: prescribedId },
+      );
+    }
+  };
 }

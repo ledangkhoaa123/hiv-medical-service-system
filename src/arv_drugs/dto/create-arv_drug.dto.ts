@@ -1,15 +1,17 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { DrugGroup } from 'src/enums/all_enums';
 
 export class CreateArvDrugDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Tên thuốc không được để trống' })
   @IsString()
-  drug_code: string;
+  genericName: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Nhà cung cấp không được để trống' })
   @IsString()
-  name: string;
+  manufacturer: string;
 
-  @IsNotEmpty()
-  @IsString({ each: true })
-  group: string[];
+  @IsArray({ message: 'Group phải là một mảng' })
+  @ArrayNotEmpty({ message: 'Group không được để trống' })
+  @IsEnum(DrugGroup, { each: true, message: 'Group chỉ nhận các giá trị hợp lệ' })
+  group: DrugGroup[];
 }

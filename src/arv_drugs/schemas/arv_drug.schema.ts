@@ -1,16 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, HydratedDocument } from 'mongoose';
+import { DrugGroup } from 'src/enums/all_enums';
+
+export type ArvDrugDocument = HydratedDocument<ArvDrug>;
 
 @Schema({ timestamps: true })
 export class ArvDrug extends Document {
   @Prop({ type: String, required: true, unique: true })
-  drug_code: string;
+  genericName: string;
 
-  @Prop({ type: String, required: true, unique: true })
-  name: string;
+  @Prop({ type: String, required: true })
+  manufacturer: string;
 
-  @Prop({ type: [String], required: true })
-  group: string[];
+  @Prop({
+    type: [String],
+    enum: DrugGroup,
+    required: true,
+  })
+  group: DrugGroup[];
 
   @Prop({ type: Object })
   createdBy: {
