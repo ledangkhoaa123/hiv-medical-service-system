@@ -23,6 +23,7 @@ export class DoctorSlotsController {
   findOne(@Param('id') id: string) {
     return this.doctorSlotsService.findOne(id);
   }
+  
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDoctorSlotDto: UpdateDoctorSlotDto, @User() user: IUser) {

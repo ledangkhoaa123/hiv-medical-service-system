@@ -9,6 +9,8 @@ import mongoose from 'mongoose';
 import { pick } from 'lodash';
 import path from 'path';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { DoctorSchedulesService } from 'src/doctor_schedules/doctor_schedules.service';
+import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 
 @Injectable()
 export class DoctorsService {
@@ -18,6 +20,8 @@ export class DoctorsService {
 
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
+    private readonly doctorScheduleService: DoctorSchedulesService,
+    private readonly doctorSlotService: DoctorSlotsService,
   ) { }
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
     const IsExist = await this.userModel.findOne({
@@ -48,6 +52,7 @@ export class DoctorsService {
     }
   }
 
+
   findAll() {
     return this.doctorModel.find().populate({
       path: 'userID',
@@ -57,7 +62,7 @@ export class DoctorsService {
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException(`Not found Doctor with id=${id}`);
+      throw new BadRequestException(`Sai dinh dang Id`);
     }
     return await this.doctorModel.findOne({ _id: id }).populate({
       path: 'userID',

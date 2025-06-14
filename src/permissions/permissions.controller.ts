@@ -13,7 +13,7 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('permissions')
 @Controller('permissions')
@@ -21,6 +21,7 @@ export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Tạo quyền mới' })
   @ResponseMessage('Create a new permission')
   create(
     @Body() createPermissionDto: CreatePermissionDto,
@@ -40,19 +41,22 @@ export class PermissionsController {
   // }
 
   @Get()
+  @ApiOperation({ summary: 'Lấy danh sách quyền' })
   @ResponseMessage('Fetch permissions')
   findAll() {
     return this.permissionsService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Lấy quyền theo ID' })
   @ResponseMessage('Fetch a permission by id')
   findOne(@Param('id') id: string) {
     return this.permissionsService.findOne(id);
   }
 
   @Patch(':id')
-  @ResponseMessage('Update a permission')
+  @ApiOperation({ summary: 'Cập nhật quyền theo ID' })
+  @ResponseMessage('Update a permission by id')
   update(
     @Param('id') id: string,
     @Body() updatePermissionDto: UpdatePermissionDto,
@@ -62,6 +66,8 @@ export class PermissionsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Xóa quyền theo ID' })
+  @ResponseMessage('Delete a permission by id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.permissionsService.remove(id, user);
   }

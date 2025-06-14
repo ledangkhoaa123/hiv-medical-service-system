@@ -8,7 +8,8 @@ import { RolesService } from 'src/roles/roles.service';
 import { RegisterUserDto, UserLoginDto } from 'src/users/dto/create-user.dto';
 import { IUser } from 'src/users/user.interface';
 import { log } from 'console';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UpgradeFromGuestDto } from 'src/patients/dto/create-patient.dto';
 
 @ApiTags("auth")
 @Controller('auth')
@@ -23,18 +24,28 @@ export class AuthController {
   @Post('/login')
   @ResponseMessage('Login by user')
   @ApiBody({ type: UserLoginDto, })
+  @ApiOperation({ summary: 'Đăng nhập' })
   @UseGuards(LocalAuthGuard)
   login(@Req() req, @Res({ passthrough: true }) res: Response) {
     return this.authService.signIn(req.user, res);
   }
   @Public()
+  @ApiOperation({ summary: 'Đăng ký tài khoản mới (user)' })
   @ResponseMessage('Register a new user')
   @Post('/register')
   handleRegister(@Body() registerUserDTO: RegisterUserDto) {
     return this.usersService.register(registerUserDTO);
   }
+  @Public()
+  @ApiOperation({ summary: 'Nâng cấp tài khoản từ khách lên người dùng' })
+  @ResponseMessage('Upgrade account from guest to user')
+  @Post('/upgrade')
+  upgradeToUser(@Body() upgradeFromGuestDTO: UpgradeFromGuestDto) {
+    return this.usersService.upgradeFromGuest(upgradeFromGuestDTO);
+  }
   @Get('/account')
-  @ResponseMessage('Get user information')
+  @ApiOperation({ summary: 'Lấy thông tin tài khoản người dùng' })
+  @ResponseMessage('Get user account information')
   async getProfile(@User() user: IUser) {
     const temp = await this.rolesService.findOne(user.role._id) as any;
     user.permissions = temp.permissions;
@@ -43,6 +54,7 @@ export class AuthController {
 
   @Public()
   @Get('/refresh')
+  @ApiOperation({ summary: 'Lấy token mới từ refresh token' })
   @ResponseMessage('Get user refresh token')
   handleRefreshToken(
     @Req() request: Request,
@@ -53,6 +65,7 @@ export class AuthController {
   }
 
   @ResponseMessage('User logout')
+  @ApiOperation({ summary: 'Đăng xuất người dùng' })
   @Post('/logout')
   handleLogout(
     @User() user: IUser,

@@ -17,15 +17,7 @@ export class DoctorSlot {
 
     @Prop()
     endTime: Date;
-
-    @Prop({
-        type: String,
-        required: true,
-        default: 'pending',
-        enum: ['pending', 'available', 'pending_hold', 'booked', 'unavailable'],
-    })
-    status: string;
-
+   
 
     @Prop({ type: Object })
     createdBy: {

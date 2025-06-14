@@ -6,17 +6,21 @@ import {
     IsOptional,
     IsString,
     Matches,
+    IsArray,
+    ArrayNotEmpty,
+    IsBoolean,
 } from 'class-validator';
 import mongoose, { Types } from 'mongoose';
 
 export class CreateDoctorSlotDto {
-    @IsNotEmpty({ message: 'doctorID không được trống' })
-    @IsMongoId({ message: 'doctorID phải là MongoID hợp lệ' })
-    doctorID: mongoose.Schema.Types.ObjectId;
+    @IsNotEmpty({ message: 'DoctorIDs không được trống' })
+    @IsMongoId({ each: true, message: 'Mỗi DoctorID phải là MongoID hợp lệ' })
+    doctorID: string;
 
     @IsNotEmpty()
     @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
     date: Date;
+
 
     @IsNotEmpty()
     @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
@@ -26,5 +30,15 @@ export class CreateDoctorSlotDto {
     @IsNotEmpty()
     endTime: Date;
 
-   
+
 }
+// confirm-slot.dto.ts
+
+
+export class ConfirmSlotDto {
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsMongoId({ each: true })
+    slotIds: string[];
+}
+

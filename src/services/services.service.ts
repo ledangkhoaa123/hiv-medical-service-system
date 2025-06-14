@@ -42,16 +42,12 @@ export class ServicesService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Sai định dạng id`);
     }
-    const service = await this.serviceModel.findOne({ _id: id });
-    if (!service) {
-      throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
-    }
-    return service;
+    return await this.serviceModel.findOne({ _id: id });
   }
 
   async update(id: string, updateserviceDto: UpdateServiceDto, user: IUser) {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException(`Sai định dạng id`);
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
     }
 
     if (updateserviceDto.name) {
@@ -63,30 +59,22 @@ export class ServicesService {
         throw new BadRequestException('Tên dịch vụ đã tồn tại');
       }
     }
-    try {
-      const updated = await this.serviceModel.findOneAndUpdate(
-        { _id: id },
-        {
-          ...updateserviceDto,
-          updatedBy: {
-            _id: user._id,
-            email: user.email,
-          },
+    return await this.serviceModel.updateOne(
+      { _id: id },
+      {
+        ...updateserviceDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
         },
-        { new: true }
-      );
-      if (!updated) {
-        throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
-      }
-      return updated;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException('Tên dịch vụ đã tồn tại');
-      }
-      throw error;
-    }
+      },
+      { new: true }
+    );
   }
   async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
+    }
     await this.serviceModel.updateOne(
       {
         _id: id,

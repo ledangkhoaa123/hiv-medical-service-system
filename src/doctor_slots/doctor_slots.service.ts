@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { DoctorSlot, DoctorSlotDocument } from './schemas/doctor_slot.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
+import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 
 @Injectable()
 export class DoctorSlotsService {
   constructor(
     @InjectModel(DoctorSlot.name)
     private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
-  ) {}
+  ) { }
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {
     try {
@@ -32,6 +32,12 @@ export class DoctorSlotsService {
   findAll() {
     return this.doctorSlotModel.find();
   }
+  // async findAllByDoctor(doctorId: string) {
+  //   return this.doctorSlotModel.find({
+  //     doctorID: doctorId,
+  //     isDeleted: false,
+  //   }).sort({ date: 1, startTime: 1 });
+  // }
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -43,6 +49,7 @@ export class DoctorSlotsService {
     }
     return slot;
   }
+
 
   async update(id: string, updateDoctorSlotDto: UpdateDoctorSlotDto, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -67,6 +74,9 @@ export class DoctorSlotsService {
     } catch (error) {
       throw error;
     }
+  }
+  async updateManyByCondition(filter: any, updateData: any) {
+    return await this.doctorSlotModel.updateMany(filter, updateData);
   }
 
   async remove(id: string, user: IUser) {

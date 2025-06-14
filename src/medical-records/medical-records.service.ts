@@ -3,37 +3,49 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
-import { MedicalRecord, MedicalRecordDocument } from './schemas/medical-record.schema';
+import {
+  MedicalRecord,
+  MedicalRecordDocument,
+} from './schemas/medical-record.schema';
 import { IUser } from 'src/users/user.interface';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
 import { PatientsService } from 'src/patients/patients.service';
+import { create } from 'domain';
 
 @Injectable()
 export class MedicalRecordsService {
   constructor(
     @InjectModel(MedicalRecord.name)
     private medicalRecordModel: SoftDeleteModel<MedicalRecordDocument>,
-    
-    private patientsService: PatientsService
+
+    private patientsService: PatientsService,
   ) {}
 
-  async create(
-    createMedicalRecordDto: CreateMedicalRecordDto,
-    user: IUser
-  ) {
-    const patient = await this.patientsService.findOne(createMedicalRecordDto.patientID.toString());
+  async create(createMedicalRecordDto: CreateMedicalRecordDto, user: IUser) {
+    const patient = await this.patientsService.findOne(
+      createMedicalRecordDto.patientID.toString(),
+    );
     if (!patient) {
-      throw new NotFoundException(`Patient  ID ${createMedicalRecordDto.patientID} không tồn tại`);
+      throw new NotFoundException(
+        `Patient  ID ${createMedicalRecordDto.patientID} không tồn tại`,
+      );
     }
-    const medicalRecord = this.medicalRecordModel.create({
+    const medicalRecord = await this.medicalRecordModel.create({
       ...createMedicalRecordDto,
       createdBy: {
         _id: user._id,
         email: user.email,
       },
     });
-   
+    await this.patientsService.updateMedicalRecord(
+      createMedicalRecordDto.patientID,
+      medicalRecord._id as any,
+    );
+    return {
+      _id: medicalRecord._id,
+      createdAt: medicalRecord.createdAt,
+    };
   }
 
   async findAll(): Promise<MedicalRecord[]> {
