@@ -6,12 +6,16 @@ import {
   PrescribedRegiment,
   PrescribedRegimentSchema,
 } from './schemas/prescribed_regiment.schema';
+import { TreatmentsModule } from 'src/treatments/treatments.module';
+import { ArvRegimentsModule } from 'src/arv_regiments/arv_regiments.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: PrescribedRegiment.name, schema: PrescribedRegimentSchema },
     ]),
+    TreatmentsModule,
+    ArvRegimentsModule
   ],
   controllers: [PrescribedRegimentsController],
   providers: [PrescribedRegimentsService],

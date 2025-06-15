@@ -1,38 +1,48 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, Types } from 'mongoose';
+import mongoose, { Document, HydratedDocument, Types } from 'mongoose';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
+import { TreatmentStatus } from 'src/enums/all_enums';
 import { MedicalRecord } from 'src/medical-records/schemas/medical-record.schema';
 import { PrescribedRegiment } from 'src/prescribed_regiments/schemas/prescribed_regiment.schema';
-import { TestResult } from 'src/test-results/schemas/test-result.schema';
+import { TestResult } from 'src/test-results/schemas/test-result.schema'
+
+export type TreatmentDocument = HydratedDocument<Treatment>;
 
 @Schema({ timestamps: true })
 export class Treatment extends Document {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: Treatment.name,
+    ref: () => Treatment.name
   })
   previousTreatmentID: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: PrescribedRegiment.name,
+    ref: () => PrescribedRegiment.name
   })
   prescribedRegimentID: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
-    ref: TestResult.name,
+    ref: () => TestResult.name,
+    default: []
   })
   testResultID: mongoose.Schema.Types.ObjectId[];
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: Doctor.name,
+    ref: () => "MedicalRecord"
+  })
+  medicalRecordID: mongoose.Schema.Types.ObjectId;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: () => Doctor.name,
     required: true,
   })
   doctorID: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, required: true, default: Date.now })
   treatmentDate: Date;
 
   @Prop({ type: String })
@@ -41,8 +51,16 @@ export class Treatment extends Document {
   @Prop({ type: Date })
   followUpDate: Date;
 
-  @Prop({ type: String, required: true, default: 'active' })
-  status: string;
+  @Prop({
+  type: String,
+  enum: TreatmentStatus,
+  required: true,
+  default: TreatmentStatus.ACTIVE,
+})
+  status: TreatmentStatus;
+
+  @Prop({ type: Date })
+  endDate: Date;
 
   @Prop({ type: Object })
   createdBy: {

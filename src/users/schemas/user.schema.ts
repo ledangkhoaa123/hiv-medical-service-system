@@ -28,9 +28,6 @@ export class User {
   role: mongoose.Schema.Types.ObjectId;
 
   @Prop()
-  medicalRecords: mongoose.Schema.Types.ObjectId[];
-
-  @Prop()
   refreshToken: string;
 
   @Prop({ type: Object })

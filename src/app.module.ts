@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
+import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-appointments.module';
 import { ArvDrug } from './arv_drugs/schemas/arv_drug.schema';
 import { ArvDrugsModule } from './arv_drugs/arv_drugs.module';
 import { ArvRegimentsModule } from './arv_regiments/arv_regiments.module';
@@ -19,6 +20,13 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
 import { TestResultsModule } from './test-results/test-results.module';
 import { TreatmentsModule } from './treatments/treatments.module';
+import { Service } from './services/schemas/service.schema';
+import { ServicesModule } from './services/services.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
+import { Payment } from './payments/schemas/payment.schema';
+import { PaymentsModule } from './payments/payments.module';
+
 
 @Module({
   imports: [
@@ -37,6 +45,11 @@ import { TreatmentsModule } from './treatments/treatments.module';
       isGlobal: true,
       // envFilePath: '.env',
     }),
+    AppointmentsModule,
+    AnonymousAppointmentsModule,
+    DoctorSlotsModule,
+    PaymentsModule,
+    ServicesModule,
     UsersModule,
     AuthModule,
     RolesModule,
@@ -50,6 +63,7 @@ import { TreatmentsModule } from './treatments/treatments.module';
     TestResultsModule,
     TreatmentsModule,
   ],
+
   controllers: [AppController],
   providers: [
     AppService,
@@ -59,4 +73,4 @@ import { TreatmentsModule } from './treatments/treatments.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
