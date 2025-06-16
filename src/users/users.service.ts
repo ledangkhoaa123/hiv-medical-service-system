@@ -86,7 +86,7 @@ export class UsersService {
       );
     }
     //Hard CODE
-    const userRole = await this.roleModel.findOne({ name: 'USER_ROLE' });
+    const userRole = await this.roleModel.findOne({ name: 'CUSTOMER_ROLE' });
     if (!userRole) {
       throw new BadRequestException('Không tìm thấy role');
     }
