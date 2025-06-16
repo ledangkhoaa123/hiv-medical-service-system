@@ -1,10 +1,8 @@
 import { IsArray, IsBoolean, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import mongoose from 'mongoose';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
-export class CreateDoctorDto {
-    @IsNotEmpty({ message: 'userID không được trống' })
-    @IsMongoId({ message: 'userID phải là ObjectId hợp lệ' })
-    userID: mongoose.Schema.Types.ObjectId;
+export class CreateDoctorDto extends CreateUserDto {
 
     @IsNotEmpty({ message: 'room không được trống' })
     room: string;
