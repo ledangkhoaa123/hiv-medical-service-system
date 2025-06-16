@@ -35,10 +35,5 @@ export class CreateDoctorSlotDto {
 // confirm-slot.dto.ts
 
 
-export class ConfirmSlotDto {
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsMongoId({ each: true })
-    slotIds: string[];
-}
+
 

@@ -50,7 +50,13 @@ export class DoctorSlotsService {
     return slot;
   }
 
-
+  async findByDoctorAndDate(doctorId: string, date: string) {
+    return this.doctorSlotModel.find({
+      doctorID: doctorId,
+      date: new Date(date),
+      isDeleted: false,
+    }).sort({ startTime: 1 });
+  }
   async update(id: string, updateDoctorSlotDto: UpdateDoctorSlotDto, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Sai định dạng id`);

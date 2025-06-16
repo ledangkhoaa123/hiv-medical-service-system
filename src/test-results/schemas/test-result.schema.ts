@@ -1,19 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, Types } from 'mongoose';
-import { Treatment } from 'src/treatments/schemas/treatment.schema';
+import mongoose, { Document, HydratedDocument, Types } from 'mongoose';
+import { TestType } from 'src/enums/all_enums';
+
+
+export type TestResultDocument = HydratedDocument<TestResult>;
 
 @Schema({ timestamps: true })
 export class TestResult extends Document {
-  @Prop({ type: String })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: () => 'Treatment',
+    required: true,
+  })
+  treatmentID: mongoose.Schema.Types.ObjectId;
+  @Prop({ type: String, enum: TestType, required: true })
   test_type: string;
 
   @Prop({ type: String })
-  test_results: string;
+  test_results: number | string;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, required: true, default: Date.now })
   test_date: Date;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, default: 'ACTIVE' })
   status: string;
 
   @Prop({ type: String })

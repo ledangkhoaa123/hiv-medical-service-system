@@ -3,18 +3,16 @@ import mongoose from "mongoose";
 import { Doctor } from "src/doctors/schemas/doctor.schema";
 @Schema({ timestamps: true })
 export class DoctorSchedule {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: () => "Doctor", required: true })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Doctor.name, required: true })
   doctorID: mongoose.Schema.Types.ObjectId;
 
   @Prop({ required: true })
   date: Date;
 
-
-
-  @Prop({ required: true })
+  @Prop()
   shiftStart: string; // "08:00"
 
-  @Prop({ required: true })
+  @Prop()
   shiftEnd: string; // "17:00"
 
   @Prop({

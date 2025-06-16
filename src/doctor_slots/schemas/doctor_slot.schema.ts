@@ -17,7 +17,7 @@ export class DoctorSlot {
 
     @Prop()
     endTime: Date;
-   
+
 
     @Prop({ type: Object })
     createdBy: {

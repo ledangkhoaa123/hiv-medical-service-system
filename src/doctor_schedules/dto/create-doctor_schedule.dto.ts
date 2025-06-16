@@ -1,37 +1,68 @@
-import { IsArray, IsDateString, IsNotEmpty, IsMongoId, ArrayNotEmpty, Matches, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import { IsArray, IsDateString, IsNotEmpty, IsMongoId, ArrayNotEmpty, Matches, IsOptional, IsEnum, IsBoolean, Validate } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DoctorSchedule } from '../schemas/doctor_schedule.schema';
 import { HydratedDocument } from 'mongoose';
+import { DoctorSlotStatus } from 'src/enums/all_enums';
 
 export type DoctorScheduleDocument = HydratedDocument<DoctorSchedule>;
 
-export enum DoctorSlotStatus {
-    PENDING = 'pending',
-    AVAILABLE = 'available',
-    PENDING_HOLD = 'pending_hold',
-    BOOKED = 'booked',
-    UNAVAILABLE = 'unavailable',
-}
 export class CreateDoctorScheduleDto {
+  @ApiProperty({ example: '665f8b2e2e8b2c001e7e0a11', description: 'ID của bác sĩ' })
+  @IsNotEmpty({ message: 'DoctorID không được trống' })
+  @IsMongoId({ message: 'Mỗi DoctorID phải là MongoID hợp lệ' })
+  doctorID: string;
 
-    @IsNotEmpty({ message: 'DoctorID không được trống' })
-    @IsMongoId({ message: 'Mỗi DoctorID phải là MongoID hợp lệ' })
-    doctorID: string;
+  @ApiProperty({ example: '2025-06-20', description: 'Ngày làm việc (YYYY-MM-DD)' })
+  @IsNotEmpty({ message: 'Date không được trống' })
+  @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
+  date: string;
 
-    @IsNotEmpty({ message: 'Date không được trống' })
-    @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
-    date: string;
+  @ApiPropertyOptional({ enum: DoctorSlotStatus, description: 'Trạng thái lịch làm' })
+  @IsOptional()
+  @IsEnum(DoctorSlotStatus, { message: 'Status không hợp lệ' })
+  status?: DoctorSlotStatus;
 
-    @IsNotEmpty()
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'shiftStart must be in HH:mm format' })
-    shiftStart: string;
+  @ApiPropertyOptional({ example: false, description: 'Đã xác nhận hay chưa' })
+  @IsOptional()
+  @IsBoolean()
+  isConfirmed?: boolean;
+}
 
-    @IsNotEmpty()
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'shiftEnd must be in HH:mm format' })
-    shiftEnd: string;
-    @IsOptional()
-    @IsEnum(DoctorSlotStatus, { message: 'Status không hợp lệ' })
-    status?: DoctorSlotStatus;
-    @IsOptional()
-    @IsBoolean()
-    isConfirmed?: boolean;
+export class ScheduleWeekBodyDto {
+  @ApiProperty({ example: '2025-06-17', description: 'Ngày bắt đầu tuần (YYYY-MM-DD)' })
+  @IsNotEmpty({ message: 'startDate không được trống' })
+  @IsDateString({}, { message: 'startDate phải đúng định dạng YYYY-MM-DD' })
+  startDate: string;
+
+  @ApiProperty({ example: '2025-06-23', description: 'Ngày kết thúc tuần (YYYY-MM-DD)' })
+  @IsNotEmpty({ message: 'endDate không được trống' })
+  @IsDateString({}, { message: 'endDate phải đúng định dạng YYYY-MM-DD' })
+  endDate: string;
+}
+
+export class UniqueArray {
+  validate(value: any[]) {
+    return Array.isArray(value) && new Set(value).size === value.length;
+  }
+  defaultMessage() {
+    return 'dates không được chứa ngày trùng lặp';
+  }
+}
+
+export class CreateMultiScheduleDto {
+  @ApiProperty({ example: '665f8b2e2e8b2c001e7e0a11', description: 'ID của bác sĩ' })
+  @IsNotEmpty()
+  @IsMongoId()
+  doctorID: string;
+
+  @ApiProperty({
+    example: ['2025-06-20', '2025-06-21'],
+    description: 'Mảng các ngày làm việc (YYYY-MM-DD), không được trùng lặp',
+    type: [String]
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsDateString({}, { each: true })
+  @Validate(UniqueArray)
+  dates: string[];
 }

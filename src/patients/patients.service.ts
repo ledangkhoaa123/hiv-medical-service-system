@@ -1,4 +1,3 @@
-import { UpdateMedicalRecordDto } from './../medical-records/dto/update-medical-record.dto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CreateGuestPatientDto,
@@ -62,20 +61,32 @@ export class PatientsService {
   }
 
   findAll() {
-    return this.patientModel.find().populate({
+    return this.patientModel.find().populate([
+      {
       path: 'userID',
       select: 'name phone',
-    });
+    },
+    {
+      path: 'medicalRecordID',
+      select: 'diagnosis symptoms clinicalNotes',
+    },
+  ]);
   }
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Patient with id=${id}`);
     }
-    return await this.patientModel.findOne({ _id: id }).populate({
+    return await this.patientModel.findOne({ _id: id }).populate([
+      {
       path: 'userID',
       select: 'name phone',
-    });
+    },
+    {
+      path: 'medicalRecordID',
+      select: 'diagnosis symptoms clinicalNotes',
+    },
+  ]);
   }
 
   findOneByPersonalID = async (personalID: string) => {

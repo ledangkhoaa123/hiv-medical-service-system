@@ -39,6 +39,7 @@ export class DoctorsService {
         },
       });
       return {
+        _id: doctor._id,
         createdBy: {
           _id: user._id,
           email: user.email,

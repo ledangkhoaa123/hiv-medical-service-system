@@ -3,31 +3,29 @@ import {
   IsString,
   IsDateString,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { TestType } from 'src/enums/all_enums';
+
 
 export class CreateTestResultDto {
-  //@IsNotEmpty()
-  //@IsString()
-  //treatmentID: string;
+  @IsNotEmpty({ message: 'Treatment ID không được để trống' })
+  @IsString()
+  treatmentID: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Loại xét nghiệm không được để trống' })
+  @IsEnum(TestType, {
+    message: 'Loại xét nghiệm không hợp lệ',
+  })
   test_type: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Kết quả xét nghiệm không được để trống' })
   test_results: string;
 
-  @IsNotEmpty()
-  @IsDateString()
-  test_date: string;
-
-  @IsNotEmpty()
   @IsString()
-  status: string;
-
-  @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Mô tả không được để trống' })
   description: string;
 }

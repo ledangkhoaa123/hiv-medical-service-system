@@ -7,48 +7,74 @@ import {
   ValidateNested,
   IsMongoId,
   IsEmail,
+  IsObject,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
+import { RegimenType, TestType } from 'src/enums/all_enums';
 
-export class DrugRegimen {
+export class DrugRegiment {
   @IsMongoId()
-  _id: mongoose.Schema.Types.ObjectId;
+  @IsNotEmpty({ message: 'Drug ID không được để trống' })
+  drugId: mongoose.Schema.Types.ObjectId;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Dosage không được để trống' })
   dosage: string;
 
   @IsArray()
+  @IsNotEmpty({ message: 'Frequency không được để trống' })
   @IsString({ each: true })
   frequency: string[];
 }
+export class CriteriaDto {
+  @IsEnum(TestType, {
+    message: 'Test type không hợp lệ',
+  })
+  test_type: TestType;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Operator không được để trống' })
+  @IsEnum(['<', '>', '=', '<=', '>='], {
+    message: 'Operator chỉ nhận các giá trị: <, >, =, <=, >='
+  })
+  operator: string;
+
+  @IsNotEmpty({ message: 'Value không được để trống' })
+  value: number | string;
+}
 
 export class CreateArvRegimentDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Tên regiment không được để trống' })
   @IsString()
   name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  regimenType: string;
+  @IsNotEmpty({ message: 'Regimen type không được để trống' })
+  @IsEnum(RegimenType, {
+    message: 'Regimen type không hợp lệ',
+  })
+  regimenType: RegimenType;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description?: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Tác dụng phụ không được để trống' })
   @IsString()
   sideEffects?: string;
 
-  @IsNotEmpty()
-  criteria?: Record<string, any>;
-
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Tiêu chí không được để trống' })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => DrugRegimen)
-  drugs?: DrugRegimen[];
+  @Type(() => CriteriaDto)
+  criteria: CriteriaDto[];
+
+  @IsNotEmpty({ message: 'Drugs không được để trống' })
+  @IsArray({ message: 'Drugs phải là một mảng' })
+  @ValidateNested({ each: true })
+  @Type(() => DrugRegiment)
+  drugs: DrugRegiment[];
 
   @IsOptional()
   @IsBoolean()

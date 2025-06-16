@@ -71,6 +71,7 @@ export class ServicesService {
       { new: true }
     );
   }
+  
   async remove(id: string, user: IUser) {
     if (!(await this.findOne(id))) {
       throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
