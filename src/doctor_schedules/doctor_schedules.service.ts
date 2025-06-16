@@ -59,9 +59,9 @@ if( !schedule) {
       throw new NotFoundException(`Không tìm thấy lịch khám với id=${scheduleId}`);}
 
     //Kiểm tra quyền xác nhận
-    if (schedule.doctorID.toString() !== user._id.toString()) {
-      throw new BadRequestException('Bạn không có quyền xác nhận schedule này');
-    }
+    // if (schedule.doctorID.toString() !== user._id.toString()) {
+    //   throw new BadRequestException('Bạn không có quyền xác nhận schedule này');
+    // }
     if (schedule.status === 'confirmed') {
       throw new BadRequestException('Schedule đã được xác nhận');
     }
