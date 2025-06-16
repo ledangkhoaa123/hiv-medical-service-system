@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { pick } from 'lodash';
 import path from 'path';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class DoctorsService {
@@ -18,17 +19,24 @@ export class DoctorsService {
 
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
+
+    private usersService: UsersService
   ) {}
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const IsExist = await this.userModel.findOne({
-      _id: createdoctorDto.userID,
-    });
-    if (!IsExist) {
-      throw new BadRequestException('UserID không hợp lệ');
+    const {name, email, password, phone, dob, address, gender, role, degrees, experiences, room, specializations} = createdoctorDto;
+    const hashPassword = this.usersService.getHashPassword(password);
+    try {
+      const doctorUser = await this.userModel.create({name, email, password: hashPassword, phone, dob, address, gender, role});
+      if(!doctorUser){
+      throw new BadRequestException("Khởi tạo User của doctor không thành công")
     }
     try {
       const doctor = await this.doctorModel.create({
-        ...createdoctorDto,
+        userID: doctorUser._id,
+        degrees,
+        experiences,
+        room,
+        specializations,
         createdBy: {
           _id: user._id,
           email: user.email,
@@ -47,6 +55,14 @@ export class DoctorsService {
         throw new BadRequestException(`UserID đã tồn tại`);
       }
     }
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(`${email} đã tồn tại`);
+      }
+    }
+
+    
+    
   }
 
   findAll() {
