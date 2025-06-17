@@ -14,13 +14,14 @@ export class Service {
 
     @Prop()
     durationMinutes: number;
-    @Prop({default:true})
+    @Prop({ default: true })
     isActive: boolean;
     @Prop({ type: Object })
     createdBy: {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
     };
+
     @Prop({ type: Object })
     updatedBy: {
         _id: mongoose.Schema.Types.ObjectId;
@@ -32,12 +33,18 @@ export class Service {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
     };
+
     @Prop()
     createdAt: Date;
+
     @Prop()
     updatedAt: Date;
+
     @Prop()
     isDeleted: boolean;
+
+    @Prop()
+    deletedAt: Date;
 }
 
 export const ServiceSchema = SchemaFactory.createForClass(Service);

@@ -5,16 +5,13 @@ export class CreateServiceDto {
     @IsNotEmpty({ message: "Name khong được để trống" })
     name: string;
 
+    @IsNotEmpty()
     @IsNumber()
     @Min(0)
     price: number;
-
-    @IsOptional()
+    
+    @IsNotEmpty()
     @IsNumber()
     @Min(15)
     durationMinutes: number;
-
-    @IsOptional()
-    @IsBoolean()
-    isActive: boolean;
 }

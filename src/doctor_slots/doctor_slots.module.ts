@@ -9,5 +9,6 @@ import { MongooseModule } from '@nestjs/mongoose';
     [{ name: DoctorSlot.name, schema: DoctorSlotSchema }])],
   controllers: [DoctorSlotsController],
   providers: [DoctorSlotsService],
+  exports: [DoctorSlotsService],
 })
 export class DoctorSlotsModule { }

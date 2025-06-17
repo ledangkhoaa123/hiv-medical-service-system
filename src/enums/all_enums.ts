@@ -36,3 +36,10 @@ export enum RegimenType {
   Child = 'Child',
   Adult = 'Adult',
 }
+export enum DoctorSlotStatus {
+    PENDING = 'pending',
+    AVAILABLE = 'available',
+    PENDING_HOLD = 'pending_hold',
+    BOOKED = 'booked',
+    UNAVAILABLE = 'unavailable',
+}

@@ -65,6 +65,7 @@ export class DoctorsService {
     
   }
 
+
   findAll() {
     return this.doctorModel.find().populate({
       path: 'userID',
@@ -72,11 +73,11 @@ export class DoctorsService {
     });
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException(`Not found Doctor with id=${id}`);
+      throw new BadRequestException(`Sai dinh dang Id`);
     }
-    return this.doctorModel.findOne({ _id: id }).populate({
+    return await this.doctorModel.findOne({ _id: id }).populate({
       path: 'userID',
       select: 'name phone',
     });
@@ -86,7 +87,15 @@ export class DoctorsService {
     if (!(await this.findOne(id))) {
       throw new BadRequestException(`Not found Doctor with id=${id}`);
     }
-
+    if (updateDoctorDto.userID) {
+      const existing = await this.doctorModel.findOne({
+        userID: updateDoctorDto.userID,
+        _id: { $ne: id }, // Exclude current patient
+      });
+      if (existing) {
+        throw new BadRequestException('UserID đã tồn tại');
+      }
+    }
     return await this.doctorModel.updateOne(
       { _id: id },
       {
