@@ -29,6 +29,7 @@ export class DoctorsController {
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách bác sĩ' })
   @ResponseMessage('Get all Doctors')
+  @Public()
   findAll() {
     return this.doctorsService.findAll();
   }
@@ -36,6 +37,7 @@ export class DoctorsController {
   @Get(':id')
   @ApiOperation({ summary: 'Lấy thông tin bác sĩ theo ID' })
   @ResponseMessage('Get Doctor by ID')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(id);
   }

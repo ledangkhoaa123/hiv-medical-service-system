@@ -22,11 +22,13 @@ export class PatientsController {
   @ApiOperation({ summary: 'Tạo bệnh nhân mới (khách)' })
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
+  @Public()
   createByGuest(@Body() createPatientDto: CreateGuestPatientDto, @User() user: IUser) {
     return this.patientsService.createGuest(createPatientDto, user);
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Lấy danh sách bệnh nhân' })
   @ResponseMessage('Get all patients')
   findAll() {
@@ -34,6 +36,7 @@ export class PatientsController {
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo ID' })
   @ResponseMessage('Get patient by ID')
   findOne(@Param('id') id: string) {
@@ -43,6 +46,7 @@ export class PatientsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin bệnh nhân theo ID' })
   @ResponseMessage('Update patient by ID')
+  @Public()
   update(
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
