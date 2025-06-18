@@ -3,7 +3,7 @@ import { DoctorSlotsService } from './doctor_slots.service';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { IUser } from 'src/users/user.interface';
-import { ResponseMessage, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 @ApiTags('Ca làm việc của bác sĩ')
 @Controller('doctorSlots')
@@ -26,6 +26,7 @@ export class DoctorSlotsController {
   @ApiQuery({ name: 'startTime', required: true, type: String, example: '08:00' })
   @ApiQuery({ name: 'endTime', required: true, type: String, example: '08:30' })
   @ResponseMessage('Xem tất cả bác sĩ theo slot')
+  @Public()
   @Get('/doctors-by-slot')
   async findDoctorsBySlot(
     @Query('date') date: string,
@@ -48,6 +49,7 @@ export class DoctorSlotsController {
   @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
   @ResponseMessage('Xem tất cả Slot khám của bác sĩ theo ngày')
   @Get(':doctorId/slots-by-date')
+  @Public()
   async findSlotsByDate(
     @Param('doctorId') doctorId: string,
     @Query('date') date: string
