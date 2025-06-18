@@ -10,7 +10,7 @@ import { DoctorSlotsModule } from 'src/doctor_slots/doctor_slots.module';
     MongooseModule.forFeature([
       { name: DoctorSchedule.name, schema: DoctorScheduleSchema }
     ]),
-    DoctorSlotsModule // <--- import module này vào
+    DoctorSlotsModule 
   ],
   controllers: [DoctorSchedulesController],
   providers: [DoctorSchedulesService],

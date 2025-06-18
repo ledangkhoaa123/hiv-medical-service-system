@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { DoctorSchedule } from './schemas/doctor_schedule.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { CreateDoctorScheduleDto, CreateMultiScheduleDto, DoctorScheduleDocument } from './dto/create-doctor_schedule.dto';
+import {  CreateMultiScheduleDto, DoctorScheduleDocument } from './dto/create-doctor_schedule.dto';
 import { DoctorSlotStatus } from 'src/enums/all_enums';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 import { IUser } from 'src/users/user.interface';

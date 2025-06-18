@@ -3,8 +3,9 @@ import { DoctorSlotsService } from './doctor_slots.service';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { IUser } from 'src/users/user.interface';
-import { Public, ResponseMessage, User } from 'src/decorator/customize';
-
+import { ResponseMessage, User } from 'src/decorator/customize';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+@ApiTags('Ca làm việc của bác sĩ')
 @Controller('doctorSlots')
 export class DoctorSlotsController {
   constructor(private readonly doctorSlotsService: DoctorSlotsService) { }
@@ -19,12 +20,31 @@ export class DoctorSlotsController {
     return this.doctorSlotsService.findAll();
   }
 
+  @ApiOperation({ summary: 'Xem tất cả bác sĩ theo Slot' })
+  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
+  @ApiQuery({ name: 'startTime', required: true, type: String, example: '08:00' })
+  @ApiQuery({ name: 'endTime', required: true, type: String, example: '08:30' })
+  @ResponseMessage('Xem tất cả bác sĩ theo slot')
+  @Get('/doctors-by-slot')
+  async findDoctorsBySlot(
+    @Query('date') date: string,
+    @Query('startTime') startTime: string,
+    @Query('endTime') endTime: string
+  ) {
+    return this.doctorSlotsService.findDoctorsBySlots(date, startTime, endTime);
+  }
+
+  @ApiOperation({ summary: 'Xem thông tin slot khám' })
   @ResponseMessage('Xem tất cả slot khám của bác sĩ theo ngày')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.doctorSlotsService.findOne(id);
   }
-  @ResponseMessage('Xem tất cả slot khám của bác sĩ theo ngày')
+
+  @ApiOperation({ summary: 'Xem tất cả slot khám của bác sĩ theo ngày' })
+  @ApiParam({ name: 'doctorId', required: true, type: String })
+  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
+  @ResponseMessage('Xem tất cả Slot khám của bác sĩ theo ngày')
   @Get(':doctorId/slots-by-date')
   async findSlotsByDate(
     @Param('doctorId') doctorId: string,
@@ -32,7 +52,6 @@ export class DoctorSlotsController {
   ) {
     return this.doctorSlotsService.findByDoctorAndDate(doctorId, date);
   }
-
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDoctorSlotDto: UpdateDoctorSlotDto, @User() user: IUser) {

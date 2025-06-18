@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 import { Doctor } from "src/doctors/schemas/doctor.schema";
+import { DoctorScheduleStatus } from "src/enums/all_enums";
 @Schema({ timestamps: true })
 export class DoctorSchedule {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Doctor.name, required: true })
@@ -18,10 +19,10 @@ export class DoctorSchedule {
   @Prop({
     type: String,
     required: true,
-    default: 'pending',
-    enum: ['pending', 'available', 'pending_hold', 'booked', 'unavailable'],
+    default: DoctorScheduleStatus.PENDING,
+    enum: DoctorScheduleStatus,
   })
-  status: string;
+  status: DoctorScheduleStatus;
   @Prop({ default: false })
   isConfirmed: boolean;
   @Prop({ type: Object })
