@@ -7,6 +7,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import mongoose, { Types } from 'mongoose';
 import { pick } from 'lodash';
+import { use } from 'passport';
 
 @Injectable()
 export class AppointmentsService {
@@ -16,11 +17,11 @@ export class AppointmentsService {
   async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
     const { extendTo, ...rest } = createAppointmentDto;
 
-    const transformedExtendTo = extendTo?.map(id => new Types.ObjectId(id));
+
 
     const appointment = await this.appointmentModel.create({
       ...rest,
-      extendTo: transformedExtendTo,
+      extendTo,
       createdBy: {
         // _id: user._id,
         // email: user.email,
@@ -37,14 +38,64 @@ export class AppointmentsService {
   }
 
   findAll() {
-    return this.appointmentModel.find();
+    return this.appointmentModel.find().
+      populate([{
+        path: 'doctorID',
+        select: { _id: 1, userID: 1 },
+
+      },
+      {
+        path: 'doctorSlotId',
+        select: { _id: 1, startTime: 1, endTime: 1, status: 1 },
+      },
+      {
+        path: 'patientId',
+        select: { _id: 1, userID: 1 },
+
+      },
+      {
+        path: 'serviceID',
+        select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
+
+      },
+      {
+        path: 'treatmentID',
+        select: { _id: 1 },
+
+      },
+      ])
   }
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Appointment with id=${id}`);
     }
-    return this.appointmentModel.findOne({ _id: id });
+    return this.appointmentModel.findOne({ _id: id }).
+      populate([{
+        path: 'doctorID',
+        select: { _id: 1, userID: 1 },
+
+      },
+      {
+        path: 'doctorSlotId',
+        select: { _id: 1, startTime: 1, endTime: 1, status: 1 },
+      },
+      {
+        path: 'patientId',
+        select: { _id: 1, userID: 1 },
+
+      },
+      {
+        path: 'serviceID',
+        select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
+
+      },
+      {
+        path: 'treatmentID',
+        select: { _id: 1 },
+
+      },
+      ]);;
   }
 
   update(id: string, updateappointmentDto: UpdateAppointmentDto, user: IUser) {
@@ -53,7 +104,7 @@ export class AppointmentsService {
       'patientId',
       'date',
       'serviceID',
-      'medicalRecord',
+      'treatmentID',
       'extendTo',
       'startTime',
       'endTime',

@@ -1,30 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDate,
-  IsDateString,
-  IsEmail,
-  IsMongoId,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-} from 'class-validator';
+import {  IsDateString, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 import mongoose from 'mongoose';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Email không được trống' })
   @IsEmail({}, { message: 'Email không hợp lệ' })
   email: string;
-
-  @IsNotEmpty({ message: 'Password không được trống' })
+  @IsNotEmpty()
   password: string;
   @IsNotEmpty({ message: 'Name không được trống' })
   name: string;
   @IsNotEmpty({ message: 'Gender không được trống' })
   gender: string;
-  @IsNotEmpty({ message: 'Ngày sinh không được trống' })
-  @IsDateString({}, { message: 'Định dạng ngày tháng không hợp lệ' })
+  @IsDateString({}, { message: 'Ngày sinh phải đúng định dạng YYYY-MM-DD' })
+  @IsNotEmpty()
   dob: Date;
   @IsNotEmpty({ message: 'Address không được trống' })
   address: string;

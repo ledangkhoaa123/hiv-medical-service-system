@@ -17,7 +17,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('doctors')
 @ApiTags('doctors')
 export class DoctorsController {
-  constructor(private readonly doctorsService: DoctorsService) {}
+  constructor(private readonly doctorsService: DoctorsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Tạo bác sĩ mới' })
@@ -41,6 +41,8 @@ export class DoctorsController {
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(id);
   }
+
+ 
 
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin bác sĩ' })

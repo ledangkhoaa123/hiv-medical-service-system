@@ -8,10 +8,10 @@ export type PaymentDocument = Payment & Document;
 
 @Schema({ timestamps: true })
 export class Payment {
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Appointment.name, unique: true, required: true })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Appointment.name, unique: true })
     appointmentID: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: AnonymousAppointment.name })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: AnonymousAppointment.name, unique: true })
     anonymousAppointmentID?: mongoose.Schema.Types.ObjectId;
 
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Patient.name })
@@ -54,27 +54,35 @@ export class Payment {
     @Prop()
     refundNotes: string;
     @Prop({ type: Object })
-    createdBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
     @Prop({ type: Object })
-    updatedBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
+  createdBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
 
-    @Prop({ type: Object })
-    deletedBy: {
-        _id: mongoose.Schema.Types.ObjectId;
-        email: string;
-    };
-    @Prop()
-    createdAt: Date;
-    @Prop()
-    updatedAt: Date;
-    @Prop()
-    isDeleted: boolean;
+  @Prop({ type: Object })
+  updatedBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
+
+  @Prop({ type: Object })
+  deletedBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
+
+  @Prop()
+  isDeleted: boolean;
+
+  @Prop()
+  deletedAt: Date;
 
 
 }

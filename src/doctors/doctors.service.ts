@@ -81,6 +81,7 @@ export class DoctorsService {
       select: 'name phone',
     });
   }
+  
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
     if (!(await this.findOne(id))) {

@@ -26,6 +26,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
 import { Payment } from './payments/schemas/payment.schema';
 import { PaymentsModule } from './payments/payments.module';
+import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
 
 
 @Module({
@@ -62,6 +63,7 @@ import { PaymentsModule } from './payments/payments.module';
     PrescribedRegimentsModule,
     TestResultsModule,
     TreatmentsModule,
+    DoctorSchedulesModule,
   ],
 
   controllers: [AppController],

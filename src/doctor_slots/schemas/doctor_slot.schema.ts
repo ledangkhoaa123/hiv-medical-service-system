@@ -1,7 +1,9 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import e from 'express';
 import mongoose, { Document, Types } from 'mongoose';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
+import { DoctorSlotStatus } from 'src/enums/all_enums';
 export type DoctorSlotDocument = DoctorSlot & Document;
 
 @Schema({ timestamps: true }) // createdAt, updatedAt
@@ -14,17 +16,10 @@ export class DoctorSlot {
 
     @Prop({ required: true })
     startTime: Date;
-
+    @Prop({ required: true, default: DoctorSlotStatus.PENDING, enum: DoctorSlotStatus })
+    status: DoctorSlotStatus;
     @Prop()
     endTime: Date;
-
-    @Prop({
-        type: String,
-        required: true,
-        default: 'pending',
-        enum: ['pending', 'available', 'pending_hold', 'booked', 'unavailable'],
-    })
-    status: string;
 
 
     @Prop({ type: Object })
