@@ -15,11 +15,13 @@ export class DoctorSlotsController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.doctorSlotsService.findAll();
   }
 
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.doctorSlotsService.findOne(id);
   }
