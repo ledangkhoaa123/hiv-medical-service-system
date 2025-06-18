@@ -2,13 +2,7 @@ import {
     IsNotEmpty,
     IsMongoId,
     IsDateString,
-    IsEnum,
-    IsOptional,
-    IsString,
-    Matches,
-    IsArray,
-    ArrayNotEmpty,
-    IsBoolean,
+
 } from 'class-validator';
 import mongoose, { Types } from 'mongoose';
 
@@ -20,7 +14,6 @@ export class CreateDoctorSlotDto {
     @IsNotEmpty()
     @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
     date: Date;
-
 
     @IsNotEmpty()
     @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })

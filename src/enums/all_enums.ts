@@ -36,10 +36,20 @@ export enum RegimenType {
   Child = 'Child',
   Adult = 'Adult',
 }
+export enum DoctorScheduleStatus {
+  PENDING = 'pending',
+  AVAILABLE = 'available',
+  UNAVAILABLE = 'unavailable',
+}
 export enum DoctorSlotStatus {
-    PENDING = 'pending',
-    AVAILABLE = 'available',
-    PENDING_HOLD = 'pending_hold',
-    BOOKED = 'booked',
-    UNAVAILABLE = 'unavailable',
+  PENDING = 'pending',
+  AVAILABLE = 'available',
+  PENDING_HOLD = 'pending_hold',
+  BOOKED = 'booked',
+  UNAVAILABLE = 'unavailable',
+}
+export enum ServiceName {
+  BASIC_CHECKUP = 'Basic Checkup',
+  HIV_TREATMENT = 'HIV Treatment',
+  FOLLOW_UP = 'Follow Up',
 }
