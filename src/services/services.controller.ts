@@ -17,12 +17,14 @@ export class ServicesController {
   create(@Body() createServiceDto: CreateServiceDto, @User() user: IUser) {
     return this.servicesService.create(createServiceDto, user);
   }
+  @Public()
   @ApiOperation({ summary: 'Lấy tất cả dịch vụ' })
   @ResponseMessage("Lấy tất cả dịch vụ")
   @Get()
   findAll() {
     return this.servicesService.findAll();
   }
+  @Public()
   @ResponseMessage("Lấy chi tiết dịch vụ theo id")
   @ApiOperation({ summary: 'Lấy chi tiết dịch vụ theo id' })
   @ApiParam({ name: 'id', required: true, description: 'ID dịch vụ' })

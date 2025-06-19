@@ -3,7 +3,7 @@ import { DoctorSlotsService } from './doctor_slots.service';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { IUser } from 'src/users/user.interface';
-import { ResponseMessage, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
  @ApiTags('Ca làm việc của bác sĩ')
 @Controller('doctorSlots')
@@ -39,7 +39,7 @@ export class DoctorSlotsController {
   }
 
   @ApiOperation({ summary: 'Xem thông tin slot khám' })
-  @ResponseMessage('Xem tất cả slot khám của bác sĩ theo ngày')
+  @ResponseMessage('Xem thông tin slot khám')
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {

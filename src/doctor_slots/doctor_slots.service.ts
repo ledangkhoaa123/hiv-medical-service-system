@@ -52,7 +52,11 @@ export class DoctorSlotsService {
     if (!slot) {
       throw new BadRequestException(`Không tìm thấy lịch với id=${id}`);
     }
-    return slot;
+    return slot.populate({
+      path: 'doctorID',
+      select: 'userID room degrees experiences',
+      populate: { path: 'userID', select: 'name' },
+    });
   }
 
   async findByDoctorAndDate(doctorId: string, date: string) {
