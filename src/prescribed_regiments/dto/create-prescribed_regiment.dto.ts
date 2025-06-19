@@ -11,10 +11,6 @@ import { Type } from 'class-transformer';
 export class CreatePrescribedRegimentDto {
   @IsNotEmpty()
   @IsMongoId()
-  treatmentID: string;
-
-  @IsNotEmpty()
-  @IsMongoId()
   baseRegimentID: string;
 
   @IsNotEmpty()

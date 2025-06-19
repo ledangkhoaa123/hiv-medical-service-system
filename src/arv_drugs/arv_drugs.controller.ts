@@ -22,30 +22,31 @@ export class ArvDrugsController {
   async create(
     @Body() createArvDrugDto: CreateArvDrugDto,
     @User() user: IUser,
-  ): Promise<ArvDrug> {
-    return this.arvDrugsService.create(createArvDrugDto);
+  ) {
+    return this.arvDrugsService.create(createArvDrugDto, user);
   }
 
   @Get()
-  async findAll(): Promise<ArvDrug[]> {
+  async findAll() {
     return this.arvDrugsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ArvDrug> {
-    return this.arvDrugsService.findOne(id);
+  async findOne(@Param('id') id: string, user: IUser) {
+    return this.arvDrugsService.findOne(id, user);
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() updateArvDrugDto: UpdateArvDrugDto,
-  ): Promise<ArvDrug> {
-    return this.arvDrugsService.update(id, updateArvDrugDto);
+    @User() user: IUser,
+  ) {
+    return this.arvDrugsService.update(id, updateArvDrugDto, user);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.arvDrugsService.delete(id);
+  async delete(@Param('id') id: string, user: IUser) {
+    return this.arvDrugsService.delete(id, user);
   }
 }

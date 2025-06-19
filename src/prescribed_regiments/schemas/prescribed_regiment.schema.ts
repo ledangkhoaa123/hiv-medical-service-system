@@ -8,13 +8,6 @@ import { Treatment } from 'src/treatments/schemas/treatment.schema';
 export class PrescribedRegiment extends Document {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Treatment',
-    required: true,
-  })
-  treatmentID: mongoose.Schema.Types.ObjectId;
-
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
     ref: ArvRegiment.name,
     required: true,
   })

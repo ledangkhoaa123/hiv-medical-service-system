@@ -8,6 +8,7 @@ import { Model, Types } from 'mongoose';
 import { CreateArvDrugDto } from './dto/create-arv_drug.dto';
 import { UpdateArvDrugDto } from './dto/update-arv_drug.dto';
 import { ArvDrug } from './schemas/arv_drug.schema';
+import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class ArvDrugsService {
@@ -15,7 +16,7 @@ export class ArvDrugsService {
     @InjectModel(ArvDrug.name) private arvDrugModel: Model<ArvDrug>,
   ) {}
 
-  async create(createArvDrugDto: CreateArvDrugDto): Promise<ArvDrug> {
+  async create(createArvDrugDto: CreateArvDrugDto, user: IUser) {
     const existing = await this.arvDrugModel.findOne({
       drug_code: createArvDrugDto.drug_code,
     });
@@ -30,11 +31,11 @@ export class ArvDrugsService {
     return createdDrug.save();
   }
 
-  async findAll(): Promise<ArvDrug[]> {
+  async findAll() {
     return this.arvDrugModel.find().exec();
   }
 
-  async findOne(id: string): Promise<ArvDrug> {
+  async findOne(id: string, user: IUser) {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Invalid ID format: ${id}`);
     }
@@ -45,10 +46,7 @@ export class ArvDrugsService {
     return drug;
   }
 
-  async update(
-    id: string,
-    updateArvDrugDto: UpdateArvDrugDto,
-  ): Promise<ArvDrug> {
+  async update(id: string, updateArvDrugDto: UpdateArvDrugDto, user: IUser) {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Invalid ID format: ${id}`);
     }
@@ -74,7 +72,7 @@ export class ArvDrugsService {
     return updatedDrug;
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, user: IUser) {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Invalid ID format: ${id}`);
     }

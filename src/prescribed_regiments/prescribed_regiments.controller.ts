@@ -11,6 +11,8 @@ import { PrescribedRegimentsService } from './prescribed_regiments.service';
 import { CreatePrescribedRegimentDto } from './dto/create-prescribed_regiment.dto';
 import { UpdatePrescribedRegimentDto } from './dto/update-prescribed_regiment.dto';
 import { PrescribedRegiment } from './schemas/prescribed_regiment.schema';
+import { User } from 'src/decorator/customize';
+import { IUser } from 'src/users/user.interface';
 
 @Controller('prescribedRegiments')
 export class PrescribedRegimentsController {
@@ -21,33 +23,39 @@ export class PrescribedRegimentsController {
   @Post()
   async create(
     @Body() createPrescribedRegimentDto: CreatePrescribedRegimentDto,
-  ): Promise<PrescribedRegiment> {
-    return this.prescribedRegimentsService.create(createPrescribedRegimentDto);
+    @User() user: IUser,
+  ) {
+    return this.prescribedRegimentsService.create(
+      createPrescribedRegimentDto,
+      user,
+    );
   }
 
   @Get()
-  async findAll(): Promise<PrescribedRegiment[]> {
+  async findAll() {
     return this.prescribedRegimentsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<PrescribedRegiment> {
-    return this.prescribedRegimentsService.findOne(id);
+  async findOne(@Param('id') id: string, user: IUser) {
+    return this.prescribedRegimentsService.findOne(id, user);
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() updatePrescribedRegimentDto: UpdatePrescribedRegimentDto,
-  ): Promise<PrescribedRegiment> {
+    @User() user: IUser,
+  ) {
     return this.prescribedRegimentsService.update(
       id,
       updatePrescribedRegimentDto,
+      user,
     );
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.prescribedRegimentsService.delete(id);
+  async delete(@Param('id') id: string, user: IUser) {
+    return this.prescribedRegimentsService.delete(id, user);
   }
 }

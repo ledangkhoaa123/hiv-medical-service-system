@@ -4,20 +4,23 @@ import { Model } from 'mongoose';
 import { CreateArvRegimentDto } from './dto/create-arv_regiment.dto';
 import { UpdateArvRegimentDto } from './dto/update-arv_regiment.dto';
 import { ArvRegiment } from './schemas/arv_regiment.schema';
+import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class ArvRegimentsService {
-  constructor(@InjectModel(ArvRegiment.name) private arvRegimentModel: Model<ArvRegiment>) {}
+  constructor(
+    @InjectModel(ArvRegiment.name) private arvRegimentModel: Model<ArvRegiment>,
+  ) {}
 
-  async create(createArvRegimentDto: CreateArvRegimentDto): Promise<ArvRegiment> {
+  async create(createArvRegimentDto: CreateArvRegimentDto, user: IUser) {
     const createdRegiment = new this.arvRegimentModel(createArvRegimentDto);
     return createdRegiment.save();
   }
 
-  async findAll(): Promise<ArvRegiment[]> {
+  async findAll() {
     return this.arvRegimentModel.find().exec();
   }
-  async findOne(id: string): Promise<ArvRegiment> {
+  async findOne(id: string, user: IUser) {
     const regiment = await this.arvRegimentModel.findById(id).exec();
     if (!regiment) {
       throw new NotFoundException(`ARV Regiment with ID ${id} not found`);
@@ -25,7 +28,11 @@ export class ArvRegimentsService {
     return regiment;
   }
 
-  async update(id: string, updateArvRegimentDto: UpdateArvRegimentDto): Promise<ArvRegiment> {
+  async update(
+    id: string,
+    updateArvRegimentDto: UpdateArvRegimentDto,
+    user: IUser,
+  ) {
     const updatedRegiment = await this.arvRegimentModel
       .findByIdAndUpdate(id, updateArvRegimentDto, { new: true })
       .exec();
@@ -35,7 +42,7 @@ export class ArvRegimentsService {
     return updatedRegiment;
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, user: IUser) {
     const result = await this.arvRegimentModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`ARV Regiment with ID ${id} not found`);

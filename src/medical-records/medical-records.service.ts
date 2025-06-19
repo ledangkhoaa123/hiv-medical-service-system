@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import { MedicalRecord } from './schemas/medical-record.schema';
+import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -12,28 +13,26 @@ export class MedicalRecordsService {
     private medicalRecordModel: Model<MedicalRecord>,
   ) {}
 
-  async create(
-    createMedicalRecordDto: CreateMedicalRecordDto,
-  ): Promise<MedicalRecord> {
+  async create(createMedicalRecordDto: CreateMedicalRecordDto, user: IUser) {
     const createdRecord = new this.medicalRecordModel(createMedicalRecordDto);
     return createdRecord.save();
   }
-  async findAll(): Promise<MedicalRecord[]> {
+  async findAll() {
     return (
       this.medicalRecordModel
         .find()
-        //.populate('patientID', 'profile') // Populate patient with profile information
+        .populate('patientID', 'profile')
         //.populate('guestID')
-        //.populate('doctorID')
+        .populate('doctorID')
         .exec()
     );
   }
-  async findOne(id: string): Promise<MedicalRecord> {
+  async findOne(id: string) {
     const record = await this.medicalRecordModel
       .findById(id)
-      //.populate('patientID', 'profile')
+      .populate('patientID', 'profile')
       //.populate('guestID')
-      //.populate('doctorID')
+      .populate('doctorID')
       .exec();
 
     if (!record) {
@@ -44,7 +43,8 @@ export class MedicalRecordsService {
   async update(
     id: string,
     updateMedicalRecordDto: UpdateMedicalRecordDto,
-  ): Promise<MedicalRecord> {
+    user: IUser,
+  ) {
     const updatedRecord = await this.medicalRecordModel
       .findByIdAndUpdate(id, updateMedicalRecordDto, { new: true })
       .exec();
@@ -54,7 +54,7 @@ export class MedicalRecordsService {
     }
     return updatedRecord;
   }
-  async delete(id: string): Promise<void> {
+  async delete(id: string, user: IUser) {
     const result = await this.medicalRecordModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Medical record with ID ${id} not found`);

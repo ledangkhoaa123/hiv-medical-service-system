@@ -19,6 +19,9 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
 import { TestResultsModule } from './test-results/test-results.module';
 import { TreatmentsModule } from './treatments/treatments.module';
+import { EducationalDocumentsModule } from './educational-documents/educational-documents.module';
+import { BlogPostsModule } from './blog-posts/blog-posts.module';
+import { FacilityInfosModule } from './facility-infos/facility-infos.module';
 
 @Module({
   imports: [
@@ -49,6 +52,9 @@ import { TreatmentsModule } from './treatments/treatments.module';
     PrescribedRegimentsModule,
     TestResultsModule,
     TreatmentsModule,
+    EducationalDocumentsModule,
+    BlogPostsModule,
+    FacilityInfosModule,
   ],
   controllers: [AppController],
   providers: [

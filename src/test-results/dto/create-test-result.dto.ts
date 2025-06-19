@@ -7,10 +7,6 @@ import {
 import { Type } from 'class-transformer';
 
 export class CreateTestResultDto {
-  //@IsNotEmpty()
-  //@IsString()
-  //treatmentID: string;
-
   @IsString()
   @IsNotEmpty()
   test_type: string;

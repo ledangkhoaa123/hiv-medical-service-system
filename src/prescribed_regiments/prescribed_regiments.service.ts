@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreatePrescribedRegimentDto } from './dto/create-prescribed_regiment.dto';
 import { UpdatePrescribedRegimentDto } from './dto/update-prescribed_regiment.dto';
 import { PrescribedRegiment } from './schemas/prescribed_regiment.schema';
+import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class PrescribedRegimentsService {
@@ -14,13 +15,14 @@ export class PrescribedRegimentsService {
 
   async create(
     createPrescribedRegimentDto: CreatePrescribedRegimentDto,
-  ): Promise<PrescribedRegiment> {
+    user: IUser,
+  ) {
     const createdRegiment = new this.prescribedRegimentModel(
       createPrescribedRegimentDto,
     );
     return createdRegiment.save();
   }
-  async findAll(): Promise<PrescribedRegiment[]> {
+  async findAll() {
     return this.prescribedRegimentModel
       .find()
       .populate('treatmentID')
@@ -28,7 +30,7 @@ export class PrescribedRegimentsService {
       .populate('prescribedBy')
       .exec();
   }
-  async findOne(id: string): Promise<PrescribedRegiment> {
+  async findOne(id: string, user: IUser) {
     const prescribedRegiment = await this.prescribedRegimentModel
       .findById(id)
       .populate('treatmentID')
@@ -46,7 +48,8 @@ export class PrescribedRegimentsService {
   async update(
     id: string,
     updatePrescribedRegimentDto: UpdatePrescribedRegimentDto,
-  ): Promise<PrescribedRegiment> {
+    user: IUser,
+  ) {
     const updatedPrescribedRegiment = await this.prescribedRegimentModel
       .findByIdAndUpdate(id, updatePrescribedRegimentDto, { new: true })
       .exec();
@@ -58,7 +61,7 @@ export class PrescribedRegimentsService {
     }
     return updatedPrescribedRegiment;
   }
-  async delete(id: string): Promise<void> {
+  async delete(id: string, user: IUser) {
     const result = await this.prescribedRegimentModel
       .findByIdAndDelete(id)
       .exec();

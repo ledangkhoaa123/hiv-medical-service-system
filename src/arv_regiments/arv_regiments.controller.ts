@@ -11,6 +11,8 @@ import { ArvRegimentsService } from './arv_regiments.service';
 import { CreateArvRegimentDto } from './dto/create-arv_regiment.dto';
 import { UpdateArvRegimentDto } from './dto/update-arv_regiment.dto';
 import { ArvRegiment } from './schemas/arv_regiment.schema';
+import { User } from 'src/decorator/customize';
+import { IUser } from 'src/users/user.interface';
 
 @Controller('arv-regiments')
 export class ArvRegimentsController {
@@ -19,30 +21,32 @@ export class ArvRegimentsController {
   @Post()
   async create(
     @Body() createArvRegimentDto: CreateArvRegimentDto,
-  ): Promise<ArvRegiment> {
-    return this.arvRegimentsService.create(createArvRegimentDto);
+    @User() user: IUser,
+  ) {
+    return this.arvRegimentsService.create(createArvRegimentDto, user);
   }
 
   @Get()
-  async findAll(): Promise<ArvRegiment[]> {
+  async findAll() {
     return this.arvRegimentsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ArvRegiment> {
-    return this.arvRegimentsService.findOne(id);
+  async findOne(@Param('id') id: string, user: IUser) {
+    return this.arvRegimentsService.findOne(id, user);
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() updateArvRegimentDto: UpdateArvRegimentDto,
-  ): Promise<ArvRegiment> {
-    return this.arvRegimentsService.update(id, updateArvRegimentDto);
+    @User() user: IUser,
+  ) {
+    return this.arvRegimentsService.update(id, updateArvRegimentDto, user);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.arvRegimentsService.delete(id);
+  async delete(@Param('id') id: string, @User() user: IUser) {
+    return this.arvRegimentsService.delete(id, user);
   }
 }
