@@ -17,16 +17,17 @@ export class DoctorSchedulesController {
   ) {
     return this.doctorSchedulesService.createSchedule(dto, user);
   }
-
+  @Public()
   @Get()
   findAll() {
     return this.doctorSchedulesService.findAll();
   }
-
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.doctorSchedulesService.findOne(id);
   }
+  @Public()
   @ApiOperation({ summary: 'Xem lịch khám theo ngày(có thể tuần hoặc tháng)' })
   @ResponseMessage('Xem lịch khám thành công')
   @Post(':doctorId/schedule-by-week')

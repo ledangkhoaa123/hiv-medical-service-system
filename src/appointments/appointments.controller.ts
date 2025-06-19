@@ -22,12 +22,14 @@ export class AppointmentsController {
   create(@Body() createappointmentDto: CreateAppointmentDto, @User() user: IUser) {
     return this.appointmentsService.create(createappointmentDto, user);
   }
+  @Public()
   @ResponseMessage("Lấy tất cả lịch hẹn")
   @ApiOperation({ summary: 'Lấy tất cả lịch hẹn' })
   @Get()
   findAll() {
     return this.appointmentsService.findAll();
   }
+  @Public()
   @ResponseMessage("Lấy chi tiết lịch hẹn theo id")
   @ApiOperation({ summary: 'Lấy chi tiết lịch hẹn theo id' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
