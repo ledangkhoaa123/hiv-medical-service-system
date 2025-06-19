@@ -9,33 +9,45 @@ import { Appointment, AppointmentDocument } from './schemas/appointment.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import { pick } from 'lodash';
+import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+@ApiTags('Lịch hẹn')
 
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) { }
-  @Public()
+  @ApiOperation({ summary: 'Tạo lịch hẹn mới' })
+  @ResponseMessage("Tạo lịch hẹn mới")
   @Post()
   @ResponseMessage("Create a new appointment")
   create(@Body() createappointmentDto: CreateAppointmentDto, @User() user: IUser) {
     return this.appointmentsService.create(createappointmentDto, user);
   }
-
+  @Public()
+  @ResponseMessage("Lấy tất cả lịch hẹn")
+  @ApiOperation({ summary: 'Lấy tất cả lịch hẹn' })
   @Get()
   findAll() {
     return this.appointmentsService.findAll();
   }
-
-
+  @Public()
+  @ResponseMessage("Lấy chi tiết lịch hẹn theo id")
+  @ApiOperation({ summary: 'Lấy chi tiết lịch hẹn theo id' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.appointmentsService.findOne(id);
   }
-
+  @ResponseMessage("Cập nhật lịch hẹn")
+  @ApiOperation({ summary: 'Cập nhật lịch hẹn' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
+  @ApiBody({ type: UpdateAppointmentDto })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateappointmentDto: UpdateAppointmentDto, @User() user: IUser) {
     return this.appointmentsService.update(id, updateappointmentDto, user);
   }
-
+  @ResponseMessage("Xóa lịch hẹn")
+  @ApiOperation({ summary: 'Xóa lịch hẹn' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
   @Delete(':id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.appointmentsService.remove(id, user);
