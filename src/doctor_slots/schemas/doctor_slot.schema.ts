@@ -2,6 +2,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import e from 'express';
 import mongoose, { Document, Types } from 'mongoose';
+import { Appointment } from 'src/appointments/schemas/appointment.schema';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
 import { DoctorSlotStatus } from 'src/enums/all_enums';
 export type DoctorSlotDocument = DoctorSlot & Document;
@@ -21,6 +22,8 @@ export class DoctorSlot {
     @Prop()
     endTime: Date;
 
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: () => "Appointment" })
+    appointmentID?: mongoose.Schema.Types.ObjectId;
 
     @Prop({ type: Object })
     createdBy: {

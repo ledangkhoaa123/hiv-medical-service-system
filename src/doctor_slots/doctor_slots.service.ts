@@ -19,9 +19,11 @@ export class DoctorSlotsService {
   ) { }
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {
+    const{appointmentID}= createDoctorSlotDto;
     try {
       const slot = await this.doctorSlotModel.create({
         ...createDoctorSlotDto,
+        appointmentID: appointmentID ? new mongoose.Types.ObjectId(appointmentID) : null,
         createdBy: {
           _id: user._id,
           email: user.email,
@@ -50,7 +52,11 @@ export class DoctorSlotsService {
     if (!slot) {
       throw new BadRequestException(`Không tìm thấy lịch với id=${id}`);
     }
-    return slot;
+    return slot.populate({
+      path: 'doctorID',
+      select: 'userID room degrees experiences',
+      populate: { path: 'userID', select: 'name' },
+    });
   }
 
   async findByDoctorAndDate(doctorId: string, date: string) {
@@ -59,7 +65,7 @@ export class DoctorSlotsService {
       date: new Date(date),
       isDeleted: false,
     })
-      .sort({ startTime: 1 })  ;
+      .sort({ startTime: 1 });
   }
   async update(id: string, updateDoctorSlotDto: UpdateDoctorSlotDto, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id)) {

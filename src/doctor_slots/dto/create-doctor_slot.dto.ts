@@ -2,6 +2,7 @@ import {
     IsNotEmpty,
     IsMongoId,
     IsDateString,
+    IsOptional,
 
 } from 'class-validator';
 import mongoose, { Types } from 'mongoose';
@@ -22,6 +23,9 @@ export class CreateDoctorSlotDto {
     @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
     @IsNotEmpty()
     endTime: Date;
+    @IsOptional()
+    @IsMongoId({ each: true, message: 'Mỗi DoctorID phải là MongoID hợp lệ' })
+    appointmentID?: string;
 
 
 }

@@ -21,48 +21,48 @@ export class DoctorsService {
     private userModel: SoftDeleteModel<UserDocument>,
 
     private usersService: UsersService
-  ) {}
+  ) { }
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const {name, email, password, phone, dob, address, gender, role, degrees, experiences, room, specializations} = createdoctorDto;
+    const { name, email, password, phone, dob, address, gender, role, degrees, experiences, room, specializations } = createdoctorDto;
     const hashPassword = this.usersService.getHashPassword(password);
     try {
-      const doctorUser = await this.userModel.create({name, email, password: hashPassword, phone, dob, address, gender, role});
-      if(!doctorUser){
-      throw new BadRequestException("Khởi tạo User của doctor không thành công")
-    }
-    try {
-      const doctor = await this.doctorModel.create({
-        userID: doctorUser._id,
-        degrees,
-        experiences,
-        room,
-        specializations,
-        createdBy: {
-          _id: user._id,
-          email: user.email,
-        },
-      });
-      return {
-        _id: doctor._id,
-        createdBy: {
-          _id: user._id,
-          email: user.email,
-        },
-        createdAt: doctor.createdAt,
-      };
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException(`UserID đã tồn tại`);
+      const doctorUser = await this.userModel.create({ name, email, password: hashPassword, phone, dob, address, gender, role });
+      if (!doctorUser) {
+        throw new BadRequestException("Khởi tạo User của doctor không thành công")
       }
-    }
+      try {
+        const doctor = await this.doctorModel.create({
+          userID: doctorUser._id,
+          degrees,
+          experiences,
+          room,
+          specializations,
+          createdBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        });
+        return {
+          _id: doctor._id,
+          createdBy: {
+            _id: user._id,
+            email: user.email,
+          },
+          createdAt: doctor.createdAt,
+        };
+      } catch (error) {
+        if (error.code === 11000) {
+          throw new BadRequestException(`UserID đã tồn tại`);
+        }
+      }
     } catch (error) {
       if (error.code === 11000) {
         throw new BadRequestException(`${email} đã tồn tại`);
       }
     }
 
-    
-    
+
+
   }
 
   findAll() {
@@ -81,7 +81,7 @@ export class DoctorsService {
       select: 'name phone',
     });
   }
-  
+
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
     if (!(await this.findOne(id))) {
