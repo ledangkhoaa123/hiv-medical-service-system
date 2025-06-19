@@ -24,7 +24,7 @@ export class PatientsController {
   @Post('guest')
   @Public()
   createByGuest(@Body() createPatientDto: CreateGuestPatientDto, @User() user: IUser) {
-    return this.patientsService.createGuest(createPatientDto, user);
+    return this.patientsService.createGuest(createPatientDto);
   }
 
   @Get()
