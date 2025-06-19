@@ -11,6 +11,7 @@ import { TestType } from 'src/enums/all_enums';
 
 export class CreateTestResultDto {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   @IsNotEmpty({ message: 'Treatment ID không được để trống' })
   @IsString()
@@ -18,6 +19,13 @@ export class CreateTestResultDto {
 
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
   @IsString()
+=======
+  @IsNotEmpty({ message: 'Treatment ID không được để trống' })
+  @IsString()
+  treatmentID: string;
+
+  @IsString()
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @IsNotEmpty({ message: 'Loại xét nghiệm không được để trống' })
   @IsEnum(TestType, {
     message: 'Loại xét nghiệm không hợp lệ',

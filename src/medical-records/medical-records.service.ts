@@ -9,9 +9,12 @@ import mongoose, { Model, Types } from 'mongoose';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { MedicalRecord } from './schemas/medical-record.schema';
 import { IUser } from 'src/users/user.interface';
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import {
   MedicalRecord,
   MedicalRecordDocument,
@@ -21,7 +24,10 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
 import { PatientsService } from 'src/patients/patients.service';
 import { create } from 'domain';
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
 @Injectable()
 export class MedicalRecordsService {
@@ -33,6 +39,7 @@ export class MedicalRecordsService {
   ) {}
 
   async create(createMedicalRecordDto: CreateMedicalRecordDto, user: IUser) {
+<<<<<<< HEAD
 <<<<<<< HEAD
     const createdRecord = new this.medicalRecordModel(createMedicalRecordDto);
     return createdRecord.save();
@@ -61,11 +68,19 @@ export class MedicalRecordsService {
     const patient = await this.patientsService.findOne(
       createMedicalRecordDto.patientID.toString(),
     );
+=======
+    const patient = await this.patientsService.findOne(
+      createMedicalRecordDto.patientID.toString(),
+    );
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     if (!patient) {
       throw new NotFoundException(
         `Patient  ID ${createMedicalRecordDto.patientID} không tồn tại`,
       );
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
     const medicalRecord = await this.medicalRecordModel.create({
       ...createMedicalRecordDto,
@@ -115,6 +130,7 @@ async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
     user: IUser,
   ) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     const updatedRecord = await this.medicalRecordModel
       .findByIdAndUpdate(id, updateMedicalRecordDto, { new: true })
       .exec();
@@ -123,6 +139,11 @@ async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
       throw new BadRequestException(`Không tìm thấy hồ sơ y tế với id=${id}`);
     }
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+     if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy hồ sơ y tế với id=${id}`);
+    }
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
     return this.medicalRecordModel.updateOne(
       { _id: id },
@@ -136,11 +157,14 @@ async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
     );
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
   async delete(id: string, user: IUser) {
     const result = await this.medicalRecordModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Medical record with ID ${id} not found`);
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   updateTreatmentId = async (
     medicalRecordId: mongoose.Schema.Types.ObjectId,
     treatementID: mongoose.Schema.Types.ObjectId,
@@ -151,7 +175,10 @@ async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
         { _id: record._id },
         { $addToSet: { treatmentID: treatementID } },
       );
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
   };
 

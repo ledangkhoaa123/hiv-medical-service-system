@@ -11,7 +11,10 @@ export class PrescribedRegiment extends Document {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     ref: () => 'Treatment',
     required: true,
   })

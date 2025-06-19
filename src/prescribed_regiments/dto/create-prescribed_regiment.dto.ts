@@ -26,6 +26,7 @@ class Tests{
 
 export class CreatePrescribedRegimentDto {
   @IsNotEmpty({ message: 'Treatment ID không được để trống' })
+<<<<<<< HEAD
   @IsMongoId()
 <<<<<<< HEAD
   baseRegimentID: string;
@@ -37,6 +38,15 @@ export class CreatePrescribedRegimentDto {
   baseRegimentID: mongoose.Schema.Types.ObjectId;
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
 
+=======
+  @IsMongoId()
+  treatmentID: mongoose.Schema.Types.ObjectId;
+
+  @IsNotEmpty({ message: 'Base Regiment ID không được để trống' })
+  @IsMongoId()
+  baseRegimentID: mongoose.Schema.Types.ObjectId;
+
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @IsOptional()
   @IsArray({ message: 'Drugs phải là một mảng' })
   @ValidateNested({ each: true })

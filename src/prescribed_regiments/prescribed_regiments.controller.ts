@@ -16,11 +16,16 @@ import {
 import { UpdatePrescribedRegimentDto } from './dto/update-prescribed_regiment.dto';
 import { PrescribedRegiment } from './schemas/prescribed_regiment.schema';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { User } from 'src/decorator/customize';
 =======
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseMessage, User } from 'src/decorator/customize';
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ResponseMessage, User } from 'src/decorator/customize';
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import { IUser } from 'src/users/user.interface';
 
 @ApiTags('Phác đồ cá nhân')
@@ -45,19 +50,27 @@ export class PrescribedRegimentsController {
 
   @Get()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   @ApiOperation({ summary: 'Lấy tất cả Regiment cá nhân' })
   @ResponseMessage('Show all PrescribedRegiments')
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+  @ApiOperation({ summary: 'Lấy tất cả Regiment cá nhân' })
+  @ResponseMessage('Show all PrescribedRegiments')
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   async findAll() {
     return this.prescribedRegimentsService.findAll();
   }
 
   @Get(':id')
 <<<<<<< HEAD
+<<<<<<< HEAD
   async findOne(@Param('id') id: string, user: IUser) {
     return this.prescribedRegimentsService.findOne(id, user);
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @ApiOperation({ summary: 'Lấy Regiment cá nhân theo id' })
   @ResponseMessage('Get a PrescribedRegiment by id')
   async findOne(@Param('id') id: string) {
@@ -82,9 +95,12 @@ export class PrescribedRegimentsController {
 
   @Delete(':id')
 <<<<<<< HEAD
+<<<<<<< HEAD
   async delete(@Param('id') id: string, user: IUser) {
     return this.prescribedRegimentsService.delete(id, user);
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @ApiOperation({ summary: 'Delete Regiment cá nhân theo id' })
   @ResponseMessage('Delete PrescribedRegiments by id')
   async delete(@Param('id') id: string, @User() user: IUser) {
@@ -96,6 +112,9 @@ export class PrescribedRegimentsController {
   @ResponseMessage('Suggest PrescribedRegiments by TestResults')
   async suggestRegiment(@Body() dto: SuggestRegimentDto) {
     return this.prescribedRegimentsService.suggestRegiment(dto.testResults);
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   }
 }

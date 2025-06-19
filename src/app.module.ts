@@ -20,11 +20,9 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
 import { TestResultsModule } from './test-results/test-results.module';
 import { TreatmentsModule } from './treatments/treatments.module';
-<<<<<<< HEAD
 import { EducationalDocumentsModule } from './educational-documents/educational-documents.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { FacilityInfosModule } from './facility-infos/facility-infos.module';
-=======
 import { Service } from './services/schemas/service.schema';
 import { ServicesModule } from './services/services.module';
 import { AppointmentsModule } from './appointments/appointments.module';
@@ -32,8 +30,6 @@ import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
 import { Payment } from './payments/schemas/payment.schema';
 import { PaymentsModule } from './payments/payments.module';
 import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
-
->>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
 
 @Module({
   imports: [
@@ -50,7 +46,6 @@ import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.modul
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      // envFilePath: '.env',
     }),
     AppointmentsModule,
     AnonymousAppointmentsModule,
@@ -69,13 +64,10 @@ import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.modul
     PrescribedRegimentsModule,
     TestResultsModule,
     TreatmentsModule,
-<<<<<<< HEAD
     EducationalDocumentsModule,
     BlogPostsModule,
     FacilityInfosModule,
-=======
     DoctorSchedulesModule,
->>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
   ],
 
   controllers: [AppController],

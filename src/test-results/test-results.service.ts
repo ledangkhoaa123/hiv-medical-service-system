@@ -7,18 +7,25 @@ import mongoose from 'mongoose';
 import { CreateTestResultDto } from './dto/create-test-result.dto';
 import { UpdateTestResultDto } from './dto/update-test-result.dto';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { TestResult } from './schemas/test-result.schema';
 =======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import { TestResult, TestResultDocument } from './schemas/test-result.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
 import { TreatmentsService } from 'src/treatments/treatments.service';
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class TestResultsService {
   constructor(
+<<<<<<< HEAD
 <<<<<<< HEAD
     @InjectModel(TestResult.name) private testResultModel: Model<TestResult>,
   ) {}
@@ -45,6 +52,14 @@ export class TestResultsService {
   ) {}
 
   async create(createTestResultDto: CreateTestResultDto, user: IUser) {
+=======
+    @InjectModel(TestResult.name)
+    private testResultModel: SoftDeleteModel<TestResultDocument>,
+    private treatmentsService: TreatmentsService,
+  ) {}
+
+  async create(createTestResultDto: CreateTestResultDto, user: IUser) {
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     const treatment = await this.treatmentsService.findOne(
       createTestResultDto.treatmentID.toString(),
     );
@@ -52,7 +67,10 @@ export class TestResultsService {
       throw new BadRequestException(
         `Không tồn tại Treatment với ID ${createTestResultDto.treatmentID}`,
       );
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
     const testResult = await this.testResultModel.create({
       ...createTestResultDto,
@@ -64,6 +82,7 @@ export class TestResultsService {
     );
     return testResult;
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
   async update(
     id: string,
@@ -100,6 +119,21 @@ export class TestResultsService {
   }
 <<<<<<< HEAD
 =======
+=======
+
+  async findAll() {
+    return this.testResultModel.find();
+  }
+
+  async findOne(id: string): Promise<TestResult> {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new BadRequestException(`Không tìm thấy TestResult với id=${id}`);
+    }
+    const testResult = await this.testResultModel
+      .findOne({ _id: id })
+    return testResult;
+  }
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   async update(
     id: string,
     updateTestResultDto: UpdateTestResultDto,
@@ -138,5 +172,8 @@ export class TestResultsService {
       _id: id,
     });
   }
+<<<<<<< HEAD
 >>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 }
