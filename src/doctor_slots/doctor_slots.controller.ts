@@ -18,6 +18,7 @@ export class DoctorSlotsController {
   @ApiOperation({ summary: 'Lấy tất cả ca làm việc' })
   @ResponseMessage('Lấy tất cả ca làm việc thành công')
   @Get()
+  @Public()
   findAll() {
     return this.doctorSlotsService.findAll();
   }
@@ -27,6 +28,7 @@ export class DoctorSlotsController {
   @ApiQuery({ name: 'startTime', required: true, type: String, example: '08:00' })
   @ApiQuery({ name: 'endTime', required: true, type: String, example: '08:30' })
   @ResponseMessage('Xem tất cả bác sĩ theo slot')
+  @Public()
   @Get('/doctors-by-slot')
   async findDoctorsBySlot(
     @Query('date') date: string,
@@ -39,6 +41,7 @@ export class DoctorSlotsController {
   @ApiOperation({ summary: 'Xem thông tin slot khám' })
   @ResponseMessage('Xem tất cả slot khám của bác sĩ theo ngày')
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.doctorSlotsService.findOne(id);
   }
@@ -48,6 +51,7 @@ export class DoctorSlotsController {
   @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
   @ResponseMessage('Xem tất cả Slot khám của bác sĩ theo ngày')
   @Get(':doctorId/slots-by-date')
+  @Public()
   async findSlotsByDate(
     @Param('doctorId') doctorId: string,
     @Query('date') date: string
