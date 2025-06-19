@@ -1,20 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res } from '@nestjs/common';
 import { DoctorSlotsService } from './doctor_slots.service';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { IUser } from 'src/users/user.interface';
 import { ResponseMessage, User } from 'src/decorator/customize';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-@ApiTags('Ca làm việc của bác sĩ')
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+ @ApiTags('Ca làm việc của bác sĩ')
 @Controller('doctorSlots')
 export class DoctorSlotsController {
   constructor(private readonly doctorSlotsService: DoctorSlotsService) { }
-
+  @ApiOperation({ summary: 'Tạo ca làm việc cho bác sĩ' })
+  @ResponseMessage('Tạo ca làm việc thành công')
   @Post()
   create(@Body() createDoctorSlotDto: CreateDoctorSlotDto, @User() user: IUser) {
     return this.doctorSlotsService.create(createDoctorSlotDto, user);
   }
-
+  @ApiOperation({ summary: 'Lấy tất cả ca làm việc' })
+  @ResponseMessage('Lấy tất cả ca làm việc thành công')
   @Get()
   findAll() {
     return this.doctorSlotsService.findAll();
@@ -52,12 +54,14 @@ export class DoctorSlotsController {
   ) {
     return this.doctorSlotsService.findByDoctorAndDate(doctorId, date);
   }
-
+  @ApiOperation({ summary: 'Cập nhật ca làm việc' })
+  @ApiParam({ name: 'id', required: true, type: String })
+  @ApiBody({ type: UpdateDoctorSlotDto })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDoctorSlotDto: UpdateDoctorSlotDto, @User() user: IUser) {
     return this.doctorSlotsService.update(id, updateDoctorSlotDto, user);
   }
-
+  @ApiOperation({ summary: 'Xóa ca làm việc' })
   @Delete(':id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.doctorSlotsService.remove(id, user);

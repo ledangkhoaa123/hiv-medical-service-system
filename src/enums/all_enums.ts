@@ -53,3 +53,13 @@ export enum ServiceName {
   HIV_TREATMENT = 'HIV Treatment',
   FOLLOW_UP = 'Follow Up',
 }
+export enum AppointmentStatus {
+  pending_payment = 'pending_payment',
+  paid_pending_approval = 'paid_pending_approval',
+  confirmed = 'confirmed',
+  payment_failed = 'payment_failed',
+  cancelled_by_user = 'cancelled_by_user',
+  cancelled_by_staff_refund_required = 'cancelled_by_staff_refund_required',
+  cancelled_by_staff_refunded = 'cancelled_by_staff_refunded',
+  completed = 'completed'
+}

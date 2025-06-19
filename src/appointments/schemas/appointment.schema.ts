@@ -2,8 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
 import { DoctorSlot } from 'src/doctor_slots/schemas/doctor_slot.schema';
 import { Doctor } from 'src/doctors/schemas/doctor.schema';
+import { AppointmentStatus } from 'src/enums/all_enums';
+import { MedicalRecord } from 'src/medical-records/schemas/medical-record.schema';
 import { Patient } from 'src/patients/schemas/patient.schema';
 import { Service } from 'src/services/schemas/service.schema';
+import { Treatment } from 'src/treatments/schemas/treatment.schema';
 
 export type AppointmentDocument = Appointment & Document;
 
@@ -11,42 +14,34 @@ export type AppointmentDocument = Appointment & Document;
 export class Appointment {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Doctor.name, required: true })
     doctorID: mongoose.Schema.Types.ObjectId;
-    @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: DoctorSlot.name, required: true })
-    doctorSlotId: mongoose.Schema.Types.ObjectId[];
+    @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: () => DoctorSlot.name, required: true })
+    doctorSlotID: mongoose.Schema.Types.ObjectId[];
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Patient.name, required: true })
-    patientId: mongoose.Schema.Types.ObjectId;
+    patientID: mongoose.Schema.Types.ObjectId;
     @Prop({ required: true })
     date: Date;
     @Prop({
-        type: String, required: true, enum: [
-            'pending_payment',
-            'paid_pending_approval',
-            'confirmed',
-            'payment_failed',
-            'cancelled_by_user',
-            'cancelled_by_staff_refund_required',
-            'cancelled_by_staff_refunded',
-            'completed']
+        type: String, required: true, default: AppointmentStatus.pending_payment, enum: AppointmentStatus
     })
-    status: string;
+    status: AppointmentStatus;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Service.name,
-    required: true,
-  })
-  serviceID: mongoose.Schema.Types.ObjectId;
+    @Prop({
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Service.name,
+        required: true,
+    })
+    serviceID: mongoose.Schema.Types.ObjectId;
 
-    // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: '' })
-    // medicalRecord: mongoose.Schema.Types.ObjectId;
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: '', required: true })
-    treatmentID: mongoose.Schema.Types.ObjectId;
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Appointment.name })
-    extendTo: mongoose.Schema.Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: MedicalRecord.name })
+    medicalRecordID?: mongoose.Schema.Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Treatment.name })
+    treatmentID?: mongoose.Schema.Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: () => "Appointment" })
+    extendTo?: mongoose.Schema.Types.ObjectId;
     @Prop({ required: true })
     startTime: Date;
 
-   
+
     @Prop({ type: Object })
     createdBy: {
         _id: mongoose.Schema.Types.ObjectId;
