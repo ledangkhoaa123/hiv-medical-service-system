@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -5,31 +6,55 @@ import {
   IsArray,
   IsDateString,
   IsMongoId,
+  ValidateNested,
+  IsEnum,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import mongoose from 'mongoose';
+import { DrugRegiment } from 'src/arv_regiments/dto/create-arv_regiment.dto';
+import { TestType } from 'src/enums/all_enums';
+
+class Tests{
+  @IsEnum(TestType, {
+    message: 'Test type không hợp lệ',
+  })
+  @IsNotEmpty({message: "Test type không được trống"})
+  test_type: TestType;
+
+  @IsNotEmpty({message: "Test result không được trống"})
+  test_results: number | string;
+}
 
 export class CreatePrescribedRegimentDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Treatment ID không được để trống' })
   @IsMongoId()
+<<<<<<< HEAD
   baseRegimentID: string;
+=======
+  treatmentID: mongoose.Schema.Types.ObjectId;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Base Regiment ID không được để trống' })
   @IsMongoId()
-  prescribedBy: string;
+  baseRegimentID: mongoose.Schema.Types.ObjectId;
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
 
-  @IsNotEmpty()
-  @IsDateString()
-  prescribedDate: string;
-
-  @IsArray()
   @IsOptional()
-  customDrugs: Array<{
-    drugID: string;
-    dosage: string;
-    frequency: string[];
-    notes?: string;
-  }>;
+  @IsArray({ message: 'Drugs phải là một mảng' })
+  @ValidateNested({ each: true })
+  @Type(() => DrugRegiment)
+  customDrugs: DrugRegiment[];
+
+  @IsOptional()
+  notes?: string; 
+
   @IsDateString()
   @IsOptional()
   endDate: string;
+}
+export class SuggestRegimentDto {
+
+  @IsNotEmpty({message: "testResults không được trống"})
+  @IsArray({ message: 'Drugs phải là một mảng' })
+  @ValidateNested({ each: true })
+  @Type(() => Tests)
+  testResults: Tests[];
 }

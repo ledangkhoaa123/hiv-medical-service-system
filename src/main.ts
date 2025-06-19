@@ -25,18 +25,18 @@ async function bootstrap() {
     .setVersion('1.0')
     //.addTag('cats')
     .addBearerAuth(
-          {
-            type: 'http',
-            scheme: 'Bearer',
-            bearerFormat: 'JWT',
-            in: 'header',
-          },
-          'token',
-        )
-        .addSecurityRequirements('token')
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
     .build();
 
-    app.enableCors({
+  app.enableCors({
     "origin": true,
     "methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
     "preflightContinue": false,
@@ -48,7 +48,7 @@ async function bootstrap() {
       persistAuthorization: true,
     }
   }
-);
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

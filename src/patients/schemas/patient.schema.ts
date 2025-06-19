@@ -10,6 +10,7 @@ export class Patient {
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     ref: MedicalRecord.name,
+    default: [],
   })
   medicalRecordID: mongoose.Schema.Types.ObjectId[];
 
@@ -27,16 +28,13 @@ export class Patient {
   @Prop({ required: true, unique: true })
   personalID: string;
 
-  @Prop({ required: true })
-  firstName: string;
+  @Prop()
+  name: string;
 
-  @Prop({ required: true })
-  lastName: string;
-
-  @Prop({ required: true })
+  @Prop()
   gender: string;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date })
   dob: Date;
 
   @Prop()

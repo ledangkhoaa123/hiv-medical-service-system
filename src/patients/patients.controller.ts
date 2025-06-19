@@ -1,39 +1,64 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { PatientsService } from './patients.service';
-import { CreatePatientDto } from './dto/create-patient.dto';
+import { CreateGuestPatientDto, CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('patients')
 @ApiTags('patients')
 export class PatientsController {
-  constructor(private readonly patientsService: PatientsService) { }
+  constructor(private readonly patientsService: PatientsService) {}
+
+  @ApiOperation({ summary: 'Tạo bệnh nhân mới (khách)' })
+  @ResponseMessage('Create a patient by guest')
+  @Post('guest')
   @Public()
-  @ResponseMessage('Create a patient')
-  @Post()
-  create(@Body() createPatientDto: CreatePatientDto,@User() user:IUser) {
-    return this.patientsService.create(createPatientDto,user);
+  createByGuest(@Body() createPatientDto: CreateGuestPatientDto, @User() user: IUser) {
+    return this.patientsService.createGuest(createPatientDto, user);
   }
-  @Public()
+
   @Get()
+  @Public()
+  @ApiOperation({ summary: 'Lấy danh sách bệnh nhân' })
+  @ResponseMessage('Get all patients')
   findAll() {
     return this.patientsService.findAll();
   }
-  @Public()
+
   @Get(':id')
+  @Public()
+  @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo ID' })
+  @ResponseMessage('Get patient by ID')
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);
   }
-  @Public()
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto, user: IUser) {
+  @ApiOperation({ summary: 'Cập nhật thông tin bệnh nhân theo ID' })
+  @ResponseMessage('Update patient by ID')
+  @Public()
+  update(
+    @Param('id') id: string,
+    @Body() updatePatientDto: UpdatePatientDto,
+    @User() user: IUser,
+  ) {
     return this.patientsService.update(id, updatePatientDto, user);
   }
-  @Public()
+
   @Delete(':id')
-  remove(@Param('id') id: string,user: IUser) {
-    return this.patientsService.remove(id,user);
+  @ApiOperation({ summary: 'Vô hiệu hóa bệnh nhân theo ID' })
+  @ResponseMessage('Delete patient by ID')
+  remove(@Param('id') id: string,@User() user: IUser) {
+    return this.patientsService.remove(id, user);
   }
 }

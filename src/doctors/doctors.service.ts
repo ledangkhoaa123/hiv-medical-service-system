@@ -8,86 +8,110 @@ import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
 import { pick } from 'lodash';
 import path from 'path';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class DoctorsService {
-  constructor(@InjectModel(Doctor.name)
-  private doctorModel: SoftDeleteModel<DoctorDocument>,
+  constructor(
+    @InjectModel(Doctor.name)
+    private doctorModel: SoftDeleteModel<DoctorDocument>,
+
+    @InjectModel(User.name)
+    private userModel: SoftDeleteModel<UserDocument>,
+
+    private usersService: UsersService
   ) { }
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const IsExist = await this.doctorModel.findOne({
-      userID: createdoctorDto.userID,
-    });
-    if (IsExist) {
-      throw new BadRequestException('DoctorId đã tồn tại');
+    const { name, email, password, phone, dob, address, gender, role, degrees, experiences, room, specializations } = createdoctorDto;
+    const hashPassword = this.usersService.getHashPassword(password);
+    try {
+      const doctorUser = await this.userModel.create({ name, email, password: hashPassword, phone, dob, address, gender, role });
+      if (!doctorUser) {
+        throw new BadRequestException("Khởi tạo User của doctor không thành công")
+      }
+      try {
+        const doctor = await this.doctorModel.create({
+          userID: doctorUser._id,
+          degrees,
+          experiences,
+          room,
+          specializations,
+          createdBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        });
+        return {
+          _id: doctor._id,
+          createdBy: {
+            _id: user._id,
+            email: user.email,
+          },
+          createdAt: doctor.createdAt,
+        };
+      } catch (error) {
+        if (error.code === 11000) {
+          throw new BadRequestException(`UserID đã tồn tại`);
+        }
+      }
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new BadRequestException(`${email} đã tồn tại`);
+      }
     }
 
-    const doctor = await this.doctorModel.create({
-      ...createdoctorDto,
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      }
-    });
-    return {
-      createdBy: {
-        // _id: user._id,
-        // email: user.email,
-      },
-      createdAt: doctor.createdAt
-    };
+
+
   }
 
-
   findAll() {
-    return this.doctorModel.find()
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  });
+    return this.doctorModel.find().populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Not found Doctor with id=${id}`);
     }
-    return this.doctorModel.findOne({ _id: id })
-    .populate({
-    path: 'userID',
-    select: 'name phone'  
-  })
+    return this.doctorModel.findOne({ _id: id }).populate({
+      path: 'userID',
+      select: 'name phone',
+    });
   }
 
-  async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
-    const fieldsToUpdate = pick(updateDoctorDto, [
-      'room',
-      'experiences',
-      'degrees',
-      'specializations',
-    ]);
 
-    return this.doctorModel.findOneAndUpdate(
+  async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
+
+    return await this.doctorModel.updateOne(
       { _id: id },
       {
-        ...fieldsToUpdate,
+        ...updateDoctorDto,
         updatedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
-      { new: true }
     );
   }
 
   async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
     await this.doctorModel.updateOne(
       {
         _id: id,
       },
       {
         deletedBy: {
-          // _id: user._id,
-          // email: user.email,
+          _id: user._id,
+          email: user.email,
         },
       },
     );

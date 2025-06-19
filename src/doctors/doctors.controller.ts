@@ -1,43 +1,63 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('doctors')
-@ApiTags("doctors")
+@ApiTags('doctors')
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) { }
-  @Public()
+
   @Post()
-  @ResponseMessage("Create a new Doctor")
+  @ApiOperation({ summary: 'Tạo bác sĩ mới' })
+  @ResponseMessage('Create a new Doctor')
   create(@Body() createDoctorDto: CreateDoctorDto, @User() user: IUser) {
     return this.doctorsService.create(createDoctorDto, user);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Lấy danh sách bác sĩ' })
+  @ResponseMessage('Get all Doctors')
   @Public()
   findAll() {
     return this.doctorsService.findAll();
   }
 
-
   @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin bác sĩ theo ID' })
+  @ResponseMessage('Get Doctor by ID')
   @Public()
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(id);
   }
 
+ 
+
   @Patch(':id')
-  @Public()
-  update(@Param('id') id: string, @Body() updateDoctorDto: UpdateDoctorDto, @User() user: IUser) {
+  @ApiOperation({ summary: 'Cập nhật thông tin bác sĩ' })
+  @ResponseMessage('Update Doctor by ID')
+  update(
+    @Param('id') id: string,
+    @Body() updateDoctorDto: UpdateDoctorDto,
+    @User() user: IUser,
+  ) {
     return this.doctorsService.update(id, updateDoctorDto, user);
   }
 
   @Delete(':id')
-  @Public()
+  @ApiOperation({ summary: 'Vô hiệu hóa bác sĩ theo ID' })
+  @ResponseMessage('Delete Doctor by ID')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.doctorsService.remove(id, user);
   }

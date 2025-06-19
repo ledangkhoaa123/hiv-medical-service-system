@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
 import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
+import { AnonymousAppointmentsModule } from './anonymous-appointments/anonymous-appointments.module';
 import { ArvDrug } from './arv_drugs/schemas/arv_drug.schema';
 import { ArvDrugsModule } from './arv_drugs/arv_drugs.module';
 import { ArvRegimentsModule } from './arv_regiments/arv_regiments.module';
@@ -19,9 +20,20 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { PrescribedRegimentsModule } from './prescribed_regiments/prescribed_regiments.module';
 import { TestResultsModule } from './test-results/test-results.module';
 import { TreatmentsModule } from './treatments/treatments.module';
+<<<<<<< HEAD
 import { EducationalDocumentsModule } from './educational-documents/educational-documents.module';
 import { BlogPostsModule } from './blog-posts/blog-posts.module';
 import { FacilityInfosModule } from './facility-infos/facility-infos.module';
+=======
+import { Service } from './services/schemas/service.schema';
+import { ServicesModule } from './services/services.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
+import { Payment } from './payments/schemas/payment.schema';
+import { PaymentsModule } from './payments/payments.module';
+import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
+
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
 
 @Module({
   imports: [
@@ -40,6 +52,11 @@ import { FacilityInfosModule } from './facility-infos/facility-infos.module';
       isGlobal: true,
       // envFilePath: '.env',
     }),
+    AppointmentsModule,
+    AnonymousAppointmentsModule,
+    DoctorSlotsModule,
+    PaymentsModule,
+    ServicesModule,
     UsersModule,
     AuthModule,
     RolesModule,
@@ -52,10 +69,15 @@ import { FacilityInfosModule } from './facility-infos/facility-infos.module';
     PrescribedRegimentsModule,
     TestResultsModule,
     TreatmentsModule,
+<<<<<<< HEAD
     EducationalDocumentsModule,
     BlogPostsModule,
     FacilityInfosModule,
+=======
+    DoctorSchedulesModule,
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
   ],
+
   controllers: [AppController],
   providers: [
     AppService,
@@ -65,4 +87,4 @@ import { FacilityInfosModule } from './facility-infos/facility-infos.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
