@@ -3,8 +3,9 @@ import { DoctorSchedulesService } from './doctor_schedules.service';
 import { UpdateDoctorScheduleDto } from './dto/update-doctor_schedule.dto';
 import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
-import { CreateDoctorScheduleDto, CreateMultiScheduleDto, ScheduleWeekBodyDto } from './dto/create-doctor_schedule.dto';
+import {  ConfirmSlotQueryDto, CreateDoctorScheduleDto, CreateMultiScheduleDto, ScheduleWeekBodyDto } from './dto/create-doctor_schedule.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AppointmentShiftName } from 'src/enums/all_enums';
 @ApiTags('Lịch làm việc của bác sĩ')
 @Controller('doctor-schedules')
 export class DoctorSchedulesController {
@@ -28,20 +29,23 @@ export class DoctorSchedulesController {
     return this.doctorSchedulesService.findOne(id);
   }
   @Public()
-  @ApiOperation({ summary: 'Xem lịch khám theo ngày(có thể tuần hoặc tháng)' })
+  @ApiOperation({ summary: 'Xem lịch làm theo tuần (có thể ngày hoặc tháng)' })
   @ResponseMessage('Xem lịch khám thành công')
-  @Post(':doctorId/schedule-by-week')
+  @Get(':doctorId/schedule-by-week')
   findSlotsByWeek(
     @Param('doctorId') doctorId: string,
-    @Body() body: ScheduleWeekBodyDto
+    @Query() query: ScheduleWeekBodyDto
   ) {
-    return this.doctorSchedulesService.getSchedule(doctorId, body.startDate, body.endDate);
+    return this.doctorSchedulesService.getSchedule(doctorId, query.startDate, query.endDate);
   }
   @ApiOperation({ summary: 'Xác nhận lịch làm(theo từng ngày)' })
-  // @ResponseMessage('Xác nhận lịch làm thành công')
   @Patch(':id/confirm')
-  confirmSlots(@Param('id') scheduleId: string, @User() user: IUser) {
-    return this.doctorSchedulesService.confirmSlots(scheduleId, user);
+  confirmSlots(
+    @Param('id') scheduleId: string,
+    @User() user: IUser,
+    @Query() query: ConfirmSlotQueryDto
+  ) {
+    return this.doctorSchedulesService.confirmSlots(scheduleId, user, query.shiftName);
   }
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDoctorScheduleDto: UpdateDoctorScheduleDto, @User() user: IUser) {
@@ -50,7 +54,7 @@ export class DoctorSchedulesController {
   @ApiOperation({ summary: 'Xóa lịch khám theo ngày' })
   @ResponseMessage('Xóa lịch khám theo thành công')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.doctorSchedulesService.remove(id);
+  remove(@Param('id') id: string,@User() user: IUser) {
+    return this.doctorSchedulesService.remove(id, user);
   }
 }

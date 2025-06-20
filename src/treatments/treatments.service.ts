@@ -8,11 +8,22 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, mongo } from 'mongoose';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { UpdateTreatmentDto } from './dto/update-treatment.dto';
+<<<<<<< HEAD
+<<<<<<< HEAD
+import { Treatment } from './schemas/treatment.schema';
+import { IUser } from 'src/users/user.interface';
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import { Treatment, TreatmentDocument } from './schemas/treatment.schema';
 import { IUser } from 'src/users/user.interface';
 
 import { MedicalRecordsService } from 'src/medical-records/medical-records.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
 @Injectable()
 export class TreatmentsService {
@@ -23,6 +34,30 @@ export class TreatmentsService {
   ) {}
 
   async create(createTreatmentDto: CreateTreatmentDto, user: IUser) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+    const createdTreatment = new this.treatmentModel(createTreatmentDto);
+    return createdTreatment.save();
+  }
+  async findAll(): Promise<Treatment[]> {
+    return this.treatmentModel
+      .find()
+      .populate('medicalRecordID')
+      .populate('doctorID')
+      .exec();
+  }
+  async findOne(id: string, user: IUser) {
+    const treatment = await this.treatmentModel
+      .findById(id)
+      .populate('medicalRecordID')
+      .populate('doctorID')
+      .exec();
+
+    if (!treatment) {
+      throw new NotFoundException(`Treatment with ID ${id} not found`);
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     const medicalRecord = await this.medicalRecordsService.findOne(
       createTreatmentDto.medicalRecordID.toString(),
     );
@@ -30,6 +65,10 @@ export class TreatmentsService {
       throw new BadRequestException(
         `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
       );
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
     const treatment = await this.treatmentModel.create({
       ...createTreatmentDto,
@@ -72,9 +111,21 @@ export class TreatmentsService {
     updateTreatmentDto: UpdateTreatmentDto,
     user: IUser,
   ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+    const updatedTreatment = await this.treatmentModel
+      .findByIdAndUpdate(id, updateTreatmentDto, { new: true })
+      .exec();
+=======
     if (!(await this.findOne(id))) {
       throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
     }
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+    }
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
     return this.treatmentModel.updateOne(
       { _id: id },
@@ -87,9 +138,22 @@ export class TreatmentsService {
       },
     );
   }
+<<<<<<< HEAD
+<<<<<<< HEAD
+  async delete(id: string, user: IUser) {
+    const result = await this.treatmentModel.findByIdAndDelete(id).exec();
+    if (!result) {
+      throw new NotFoundException(`Treatment with ID ${id} not found`);
+=======
   async remove(id: string, user: IUser) {
     if (!(await this.findOne(id))) {
       throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+  async remove(id: string, user: IUser) {
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
     await this.treatmentModel.updateOne(
       {

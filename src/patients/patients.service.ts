@@ -40,14 +40,15 @@ export class PatientsService {
     }
   }
 
-  async createGuest(createPatientDto: CreateGuestPatientDto, user: IUser) {
+  async createGuest(createPatientDto: CreateGuestPatientDto) {
     try {
       const patient = await this.patientModel.create({
         ...createPatientDto,
-        createdBy: {
-          _id: user._id,
-          email: user.email,
-        },
+        // createdBy: {
+        //   _id: user._id,
+       
+        //   email: user.email,
+        // },
       });
       return {
         _id: patient._id,

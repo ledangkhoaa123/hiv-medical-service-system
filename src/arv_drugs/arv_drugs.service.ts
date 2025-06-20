@@ -8,9 +8,20 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { CreateArvDrugDto } from './dto/create-arv_drug.dto';
 import { UpdateArvDrugDto } from './dto/update-arv_drug.dto';
+<<<<<<< HEAD
+<<<<<<< HEAD
+import { ArvDrug } from './schemas/arv_drug.schema';
+import { IUser } from 'src/users/user.interface';
+=======
 import { ArvDrug, ArvDrugDocument } from './schemas/arv_drug.schema';
 import { IUser } from 'src/users/user.interface';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+import { ArvDrug, ArvDrugDocument } from './schemas/arv_drug.schema';
+import { IUser } from 'src/users/user.interface';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
 @Injectable()
 export class ArvDrugsService {
@@ -43,6 +54,17 @@ export class ArvDrugsService {
   }
 
   async findAll() {
+<<<<<<< HEAD
+<<<<<<< HEAD
+    return this.arvDrugModel.find().exec();
+  }
+
+  async findOne(id: string, user: IUser) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Invalid ID format: ${id}`);
+=======
+    return await this.arvDrugModel.find();
+=======
     return await this.arvDrugModel.find();
   }
 
@@ -51,8 +73,22 @@ export class ArvDrugsService {
       throw new BadRequestException(`Không tìm thấy ARV Drug với ID ${id}`);
     }
     return await this.arvDrugModel.findOne({ _id: id });
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   }
 
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Không tìm thấy ARV Drug với ID ${id}`);
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+    }
+    return await this.arvDrugModel.findOne({ _id: id });
+  }
+
+<<<<<<< HEAD
+  async update(id: string, updateArvDrugDto: UpdateArvDrugDto, user: IUser) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Invalid ID format: ${id}`);
+=======
   async update(
     id: string,
     updateArvDrugDto: UpdateArvDrugDto,
@@ -60,6 +96,10 @@ export class ArvDrugsService {
   ) {
     if (!(await this.findOne(id))) {
       throw new NotFoundException(`Không tìm thấy ARV Drug với ID ${id}`);
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     }
 
     if (updateArvDrugDto.genericName) {
@@ -85,6 +125,20 @@ export class ArvDrugsService {
     );
   }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+  async delete(id: string, user: IUser) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Invalid ID format: ${id}`);
+    }
+    const result = await this.arvDrugModel.findByIdAndDelete(id).exec();
+    if (!result) {
+      throw new NotFoundException(`ARV Drug with ID ${id} not found`);
+    }
+  }
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   async remove(id: string, user: IUser) {
      if (!(await this.findOne(id))) {
        throw new BadRequestException(`Không tìm thấy ARV Drug với id=${id}`);
@@ -104,4 +158,8 @@ export class ArvDrugsService {
        _id: id,
      });
    }
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 }
