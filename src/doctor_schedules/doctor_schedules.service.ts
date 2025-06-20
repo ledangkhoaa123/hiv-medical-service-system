@@ -86,9 +86,8 @@ export class DoctorSchedulesService {
 
   generateTimeSlotsFromShift(
     date: string,
-    shiftName: string// Mặc định là ca full nếu không có shiftName,
+    shiftName: string
   ) {
-    console.log(date, shiftName);
     const slots: { startTime: Date; endTime: Date }[] = [];
     const [year, month, day] = date.split('-').map(Number);
 
