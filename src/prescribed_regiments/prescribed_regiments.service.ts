@@ -7,6 +7,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CreatePrescribedRegimentDto } from './dto/create-prescribed_regiment.dto';
 import { UpdatePrescribedRegimentDto } from './dto/update-prescribed_regiment.dto';
+<<<<<<< HEAD
+<<<<<<< HEAD
+import { PrescribedRegiment } from './schemas/prescribed_regiment.schema';
+import { IUser } from 'src/users/user.interface';
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 import {
   PrescribedRegiment,
   PrescribedRegimentDocument,
@@ -16,6 +23,10 @@ import { TestType } from 'src/enums/all_enums';
 import { IUser } from 'src/users/user.interface';
 import { TreatmentsService } from 'src/treatments/treatments.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
 
 @Injectable()
 export class PrescribedRegimentsService {
@@ -30,6 +41,35 @@ export class PrescribedRegimentsService {
     createPrescribedRegimentDto: CreatePrescribedRegimentDto,
     user: IUser,
   ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+    const createdRegiment = new this.prescribedRegimentModel(
+      createPrescribedRegimentDto,
+    );
+    return createdRegiment.save();
+  }
+  async findAll() {
+    return this.prescribedRegimentModel
+      .find()
+      .populate('treatmentID')
+      .populate('baseRegimentID')
+      .populate('prescribedBy')
+      .exec();
+  }
+  async findOne(id: string, user: IUser) {
+    const prescribedRegiment = await this.prescribedRegimentModel
+      .findById(id)
+      .populate('treatmentID')
+      .populate('baseRegimentID')
+      .populate('prescribedBy')
+      .exec();
+
+    if (!prescribedRegiment) {
+      throw new NotFoundException(
+        `Prescribed regiment with ID ${id} not found`,
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
     if (
       !(await this.treatmentsService.findOne(
         createPrescribedRegimentDto.treatmentID.toString(),
@@ -37,6 +77,10 @@ export class PrescribedRegimentsService {
     ) {
       throw new BadRequestException(
         `Không tìm thấy treatment với id: ${createPrescribedRegimentDto.treatmentID}`,
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
       );
     }
     if (
@@ -106,9 +150,25 @@ export class PrescribedRegimentsService {
     updatePrescribedRegimentDto: UpdatePrescribedRegimentDto,
     user: IUser,
   ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+    const updatedPrescribedRegiment = await this.prescribedRegimentModel
+      .findByIdAndUpdate(id, updatePrescribedRegimentDto, { new: true })
+      .exec();
+
+    if (!updatedPrescribedRegiment) {
+      throw new NotFoundException(
+        `Prescribed regiment with ID ${id} not found`,
+=======
     if (!(await this.findOne(id))) {
       throw new BadRequestException(
         `Không tìm thấy phác đồ cá nhân với id=${id}`,
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+    if (!(await this.findOne(id))) {
+      throw new BadRequestException(
+        `Không tìm thấy phác đồ cá nhân với id=${id}`,
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
       );
     }
     return this.prescribedRegimentModel.updateOne(
@@ -122,10 +182,26 @@ export class PrescribedRegimentsService {
       },
     );
   }
+<<<<<<< HEAD
+<<<<<<< HEAD
+  async delete(id: string, user: IUser) {
+    const result = await this.prescribedRegimentModel
+      .findByIdAndDelete(id)
+      .exec();
+    if (!result) {
+      throw new NotFoundException(
+        `Prescribed regiment with ID ${id} not found`,
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   async remove(id: string, user: IUser) {
     if (!(await this.findOne(id))) {
       throw new BadRequestException(
         `Không tìm thấy phác đồ cá nhân với id=${id}`,
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
       );
     }
     await this.prescribedRegimentModel.updateOne(
