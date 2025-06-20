@@ -19,7 +19,7 @@ export class DoctorSlotsService {
   ) { }
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {
-    const{appointmentID}= createDoctorSlotDto;
+    const { appointmentID } = createDoctorSlotDto;
     try {
       const slot = await this.doctorSlotModel.create({
         ...createDoctorSlotDto,
@@ -99,9 +99,10 @@ export class DoctorSlotsService {
       throw new BadRequestException('Thời gian không hợp lệ');
     }
 
-    const adjustedStart = new Date(start.getTime() + 7 * 60 * 60 * 1000);
-    const adjustedEnd = new Date(end.getTime() + 7 * 60 * 60 * 1000);
-
+    const adjustedStart = new Date(start.getTime());
+    const adjustedEnd = new Date(end.getTime());
+    console.log('Adjusted Start:', adjustedStart);
+    console.log('Adjusted End:', adjustedEnd);
     const slots = await this.doctorSlotModel.find({
       startTime: { $gte: adjustedStart },
       endTime: { $lte: adjustedEnd },
