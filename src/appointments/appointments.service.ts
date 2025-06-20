@@ -17,7 +17,7 @@ export class AppointmentsService {
   constructor(
     @InjectModel(Appointment.name) private appointmentModel: SoftDeleteModel<AppointmentDocument>,
     @InjectModel(DoctorSlot.name) private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
-    private readonly doctorSlotService:DoctorSlotsService
+    private readonly doctorSlotService: DoctorSlotsService
   ) { }
   async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
 
@@ -129,6 +129,24 @@ export class AppointmentsService {
 
       },
       ]);;
+  }
+  async findByDoctorAndDate(doctorId: string, date: string) {
+    // Chuyển date về đầu ngày và cuối ngày để lọc chính xác
+    const start = new Date(date + 'T00:00:00.000Z');
+    const end = new Date(date + 'T23:59:59.999Z');
+    return this.appointmentModel.find({
+      doctorID: doctorId,
+      date: { $gte: start, $lte: end },
+      isDeleted: false,
+    });
+  }
+  async findByDateRange(startDate: string, endDate: string) {
+    const start = new Date(startDate + 'T00:00:00.000Z');
+    const end = new Date(endDate + 'T23:59:59.999Z');
+    return this.appointmentModel.find({
+      date: { $gte: start, $lte: end },
+      isDeleted: false,
+    });
   }
 
   async update(id: string, updateDto: UpdateAppointmentDto, user: IUser) {
