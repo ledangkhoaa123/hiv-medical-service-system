@@ -23,7 +23,7 @@ export class AppointmentsController {
     return this.appointmentsService.create(createappointmentDto, user);
   }
   @Public()
-  @ResponseMessage("Lấy tất cả lịch hẹn")
+  @ResponseMessage("Xem tất cả lịch hẹn")
   @ApiOperation({ summary: 'Lấy tất cả lịch hẹn' })
   @Get()
   findAll() {
@@ -53,7 +53,7 @@ export class AppointmentsController {
   }
 
   @Public()
-  @ResponseMessage("Lấy chi tiết lịch hẹn theo id")
+  @ResponseMessage("Xem chi tiết lịch hẹn theo id")
   @ApiOperation({ summary: 'Lấy chi tiết lịch hẹn theo id' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
   @Get(':id')

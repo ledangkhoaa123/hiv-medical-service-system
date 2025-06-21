@@ -36,8 +36,8 @@ export class Appointment {
     medicalRecordID?: mongoose.Schema.Types.ObjectId;
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Treatment.name })
     treatmentID?: mongoose.Schema.Types.ObjectId;
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: () => "Appointment" })
-    extendTo?: mongoose.Schema.Types.ObjectId;
+    @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: () => "Appointment" })
+    extendTo?: mongoose.Schema.Types.ObjectId[];
     @Prop({ required: true })
     startTime: Date;
 

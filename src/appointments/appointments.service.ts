@@ -19,83 +19,160 @@ export class AppointmentsService {
     @InjectModel(DoctorSlot.name) private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
     private readonly doctorSlotService: DoctorSlotsService
   ) { }
-  async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
+  // async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
 
+  //   const {
+  //     doctorID,
+  //     doctorSlotID,
+  //     patientID,
+  //     startTime,
+  //     date,
+  //     medicalRecordID,
+  //     treatmentID,
+  //     extendTo,
+  //     ...rest
+  //   } = createAppointmentDto;
+
+  //   const fullStartTime = new Date(`${date}T${startTime}`);
+  //   const existed = await this.appointmentModel.findOne({
+  //     doctorID,
+  //     doctorSlotID: { $in: doctorSlotID },
+  //     patientID: patientID,
+  //     date: date,
+  //     startTime: fullStartTime,
+  //     isDeleted: false,
+  //   });
+
+  //   if (existed) {
+  //     throw new BadRequestException('Lịch hẹn đã tồn tại!');
+  //   }
+  //   const newAppointment = new this.appointmentModel({
+  //     ...createAppointmentDto,
+  //     date: new Date(date),
+  //     startTime: fullStartTime,
+  //     createdBy: {
+  //       _id: user._id,
+  //       email: user.email,
+  //     },
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //     medicalRecordID: medicalRecordID ?? null,
+  //     treatmentID: treatmentID ?? null,
+  //     extendTo: extendTo ?? null,
+  //   });
+  //   const saved = await newAppointment.save();
+  //   // 👉 Update doctor slot status to pending_hold
+  //   await this.doctorSlotModel.updateMany(
+  //     { _id: { $in: doctorSlotID } },
+  //     { $set: { status: 'pending_hold' } } // hoặc AppointmentStatus.pending_hold nếu dùng enum
+  //   );
+
+  //   return await newAppointment.save();
+  // }
+
+  async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
     const {
-      doctorID,
       doctorSlotID,
       patientID,
-      startTime,
-      date,
       medicalRecordID,
       treatmentID,
       extendTo,
       ...rest
     } = createAppointmentDto;
 
-    const fullStartTime = new Date(`${date}T${startTime}:00+07:00`);
-    const existed = await this.appointmentModel.findOne({
-      doctorID,
-      doctorSlotID: { $in: doctorSlotID },
-      patientID: patientID,
-      date: date,
-      startTime: fullStartTime,
+    // 👉 Lấy toàn bộ slot được chọn cùng doctorID
+    const slots = await this.doctorSlotModel.find({
+      _id: { $in: doctorSlotID },
       isDeleted: false,
-    });
+    }).select('doctorID date startTime');
 
-    if (existed) {
-      throw new BadRequestException('Lịch hẹn đã tồn tại!');
+    if (!slots.length) {
+      throw new BadRequestException('Không tìm thấy slot bác sĩ!');
     }
-    const newAppointment = new this.appointmentModel({
-      ...createAppointmentDto,
-      date: new Date(date),
-      startTime: fullStartTime,
-      createdBy: {
-        _id: user._id,
-        email: user.email,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      medicalRecordID: medicalRecordID ?? null,
-      treatmentID: treatmentID ?? null,
-      extendTo: extendTo ?? null,
-    });
-    const saved = await newAppointment.save();
-    // 👉 Update doctor slot status to pending_hold
-    await this.doctorSlotModel.updateMany(
-      { _id: { $in: doctorSlotID } },
-      { $set: { status: 'pending_hold' } } // hoặc AppointmentStatus.pending_hold nếu dùng enum
+
+    // 👉 Kiểm tra nếu có trùng lịch
+    for (const slot of slots) {
+      const existed = await this.appointmentModel.findOne({
+        doctorID: slot.doctorID,
+        doctorSlotID: slot._id,
+        patientID,
+        date: slot.date,
+        startTime: slot.startTime,
+        isDeleted: false,
+      });
+      if (existed) {
+        throw new BadRequestException(
+          `Lịch hẹn ngày ${slot.date.toISOString().split('T')[0]}, giờ ${slot.startTime.toISOString()} đã tồn tại!`
+        );
+      }
+    }
+
+    // 👉 Tạo appointments
+    const appointments = await Promise.all(
+      slots.map((slot) =>
+        new this.appointmentModel({
+          doctorID: slot.doctorID,
+          patientID,
+          doctorSlotID: slot._id,
+          date: new Date(Date.now() + 7 * 60 * 60 * 1000),
+          startTime: slot.startTime,
+          medicalRecordID: medicalRecordID ?? null,
+          treatmentID: treatmentID ?? null,
+          extendTo: extendTo ?? null,
+          createdBy: {
+            _id: user._id,
+            email: user.email,
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...rest,
+        }).save()
+      )
     );
 
-    return await newAppointment.save();
+    // 👉 Cập nhật trạng thái slot
+    await this.doctorSlotModel.updateMany(
+      { _id: { $in: doctorSlotID } },
+      { $set: { status: 'pending_hold' } }
+    );
+
+    return appointments;
   }
+
+
+
 
   findAll() {
     return this.appointmentModel.find().
-      populate([{
-        path: 'doctorID',
-        select: { _id: 1, userID: 1 },
+      populate([
+        //   {
+        //   path: 'doctorID',
+        //   select: { _id: 1, userID: 1 },
+        // },
+        {
+          path: 'doctorSlotID',
+          select: '_id doctorID startTime  endTime date status',
+          populate: {
+            path: 'doctorID',
+            select: 'userID room degrees experiences',
+            populate: { path: 'userID', select: 'name' },
+          }
+        },
+        {
+          path: 'patientID',
+          select: { _id: 1, userID: 1 },
 
-      },
-      {
-        path: 'doctorSlotID',
-        select: { _id: 1, startTime: 1, endTime: 1, status: 1 },
-      },
-      {
-        path: 'patientID',
-        select: { _id: 1, userID: 1 },
+        },
+        {
+          path: 'serviceID',
+          select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
 
-      },
-      {
-        path: 'serviceID',
-        select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
+        },
+        {
+          path: 'treatmentID',
+          select: { _id: 1 },
 
-      },
-      {
-        path: 'treatmentID',
-        select: { _id: 1 },
-
-      },
+        },
       ]);;
   }
 
@@ -104,30 +181,31 @@ export class AppointmentsService {
       throw new BadRequestException(`Not found Appointment with id=${id}`);
     }
     return await this.appointmentModel.findOne({ _id: id }).
-      populate([{
-        path: 'doctorID',
-        select: { _id: 1, userID: 1 },
+      populate([
+        {
+          path: 'doctorSlotID',
+          select: '_id doctorID startTime  endTime date status',
+          populate: {
+            path: 'doctorID',
+            select: 'userID room degrees experiences',
+            populate: { path: 'userID', select: 'name' },
+          }
+        },
+        {
+          path: 'patientID',
+          select: { _id: 1, userID: 1 },
 
-      },
-      {
-        path: 'doctorSlotID',
-        select: { _id: 1, startTime: 1, endTime: 1, status: 1 },
-      },
-      {
-        path: 'patientID',
-        select: { _id: 1, userID: 1 },
+        },
+        {
+          path: 'serviceID',
+          select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
 
-      },
-      {
-        path: 'serviceID',
-        select: { _id: 1, name: 1, price: 1, durationMinutes: 1 },
+        },
+        {
+          path: 'treatmentID',
+          select: { _id: 1 },
 
-      },
-      {
-        path: 'treatmentID',
-        select: { _id: 1 },
-
-      },
+        },
       ]);;
   }
   async findByDoctorAndDate(doctorId: string, date: string) {
@@ -158,8 +236,8 @@ export class AppointmentsService {
     }
 
     const {
-      date,
-      startTime,
+      // date,
+      // startTime,
       medicalRecordID,
       treatmentID,
       extendTo,
@@ -167,9 +245,9 @@ export class AppointmentsService {
     } = updateDto;
 
 
-    const parsedDate = date ? new Date(date) : undefined;
-    const parsedStartTime =
-      date && startTime ? new Date(`${date}T${startTime}:00+07:00`) : undefined;
+    // const parsedDate = date ? new Date(date) : undefined;
+    // const parsedStartTime =
+    //   date && startTime ? new Date(`${date}T${startTime}:00+07:00`) : undefined;
 
 
     const updateData: any = {
@@ -181,8 +259,8 @@ export class AppointmentsService {
       updatedAt: new Date(),
     };
 
-    if (parsedDate) updateData.date = parsedDate;
-    if (parsedStartTime) updateData.startTime = parsedStartTime;
+    // if (parsedDate) updateData.date = parsedDate;
+    // if (parsedStartTime) updateData.startTime = parsedStartTime;
     if (medicalRecordID !== undefined) updateData.medicalRecordID = medicalRecordID ?? null;
     if (treatmentID !== undefined) updateData.treatmentID = treatmentID ?? null;
     if (extendTo !== undefined) updateData.extendTo = extendTo ?? null;
@@ -190,11 +268,11 @@ export class AppointmentsService {
     // Optional: Kiểm tra có lịch hẹn trùng không
     const duplicate = await this.appointmentModel.findOne({
       _id: { $ne: id },
-      doctorID: updateDto.doctorID || existedAppointment.doctorID,
+      // doctorID: updateDto.doctorID || existedAppointment.doctorID,
       doctorSlotID: { $in: updateDto.doctorSlotID || existedAppointment.doctorSlotID },
       patientID: updateDto.patientID || existedAppointment.patientID,
-      date: parsedDate || existedAppointment.date,
-      startTime: parsedStartTime || existedAppointment.startTime,
+      // date: parsedDate || existedAppointment.date,
+      // startTime: parsedStartTime || existedAppointment.startTime,
       isDeleted: false,
     });
 
