@@ -14,6 +14,6 @@ import { TreatmentsModule } from 'src/treatments/treatments.module';
 
   controllers: [ServicesController],
   providers: [ServicesService],
-  exports: [ServicesModule],
+  exports: [ServicesService],
 })
 export class ServicesModule { }

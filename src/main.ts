@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './core/transform.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { engine } from 'express-handlebars';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,6 +20,11 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
+
+  //congif engine
+  app.engine('hbs', engine({ extname: 'hbs', defaultLayout: null }));
+  app.setViewEngine('hbs');
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
 
   const config = new DocumentBuilder()
     .setTitle('HIV Treatment Medical Service')
