@@ -26,11 +26,13 @@ export class PatientsController {
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
   @Public()
+
   createByGuest(
     @Body() createPatientDto: CreateGuestPatientDto,
     @User() user: IUser,
   ) {
     return this.patientsService.createGuest(createPatientDto, user);
+
   }
 
   @Get()
@@ -75,4 +77,12 @@ export class PatientsController {
   findOneByPersonalID(@Body('personalID') personalID: string) {
     return this.patientsService.findOneByPersonalID(personalID);
   }
+
+  @Post('by-token')
+  @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo Token' })
+  @ResponseMessage('Get patient by Token')
+  findOneByToken(@User() user: IUser) {
+    return this.patientsService.findOneByToken(user);
+  }
 }
+

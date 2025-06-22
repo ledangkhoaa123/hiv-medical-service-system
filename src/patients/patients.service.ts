@@ -101,7 +101,7 @@ export class PatientsService {
 
   async update(id: string, updatePatientDto: UpdatePatientDto, user: IUser) {
     if (!(await this.findOne(id))) {
-      throw new BadRequestException(`Không tìm thấy bệnh nhân với id=${id}`);
+throw new BadRequestException(`Không tìm thấy bệnh nhân với id=${id}`);
     }
 
     const isExist = await this.patientModel.findOne({
@@ -205,7 +205,7 @@ export class PatientsService {
     );
   };
   updateUserID = async (personalID: string, userID: mongoose.Schema.Types.ObjectId, email: string) => {
-    const patient = await this.findOneByPersonalID(personalID);
+const patient = await this.findOneByPersonalID(personalID);
     const userPatient = await this.patientModel.findOne({
       userID: userID, 
     });
@@ -226,4 +226,7 @@ export class PatientsService {
       }
     );
   };
+  findOneByToken = async (user: IUser) => {
+    return this.patientModel.findOne({userID: user._id});
+  }
 }
