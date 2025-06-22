@@ -77,6 +77,7 @@ export class PatientsController {
   findOneByPersonalID(@Body('personalID') personalID: string) {
     return this.patientsService.findOneByPersonalID(personalID);
   }
+
   @Post('by-token')
   @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo Token' })
   @ResponseMessage('Get patient by Token')
@@ -84,3 +85,4 @@ export class PatientsController {
     return this.patientsService.findOneByToken(user);
   }
 }
+
