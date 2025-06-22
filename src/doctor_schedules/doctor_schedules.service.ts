@@ -107,7 +107,7 @@ export class DoctorSchedulesService {
     const addSlots = (start: Date, end: Date) => {
       let current = new Date(start);
       while (current < end) {
-        const next = new Date(current.getTime() + timeslot * 60 * 1000); // + 30 phút
+        const next = new Date(current.getTime() + timeslot * 60 * 1000); 
         if (next > end) break;
         slots.push({ startTime: new Date(current), endTime: new Date(next) });
         current = next;

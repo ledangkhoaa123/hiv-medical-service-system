@@ -5,7 +5,6 @@ import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import {  ConfirmSlotQueryDto, CreateDoctorScheduleDto, CreateMultiScheduleDto, ScheduleWeekBodyDto } from './dto/create-doctor_schedule.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AppointmentShiftName } from 'src/enums/all_enums';
 @ApiTags('Lịch làm việc của bác sĩ')
 @Controller('doctor-schedules')
 export class DoctorSchedulesController {

@@ -36,7 +36,11 @@ export class DoctorSlotsService {
   }
 
   findAll() {
-    return this.doctorSlotModel.find();
+    return this.doctorSlotModel.find().populate({
+      path: 'doctorID',
+      select: 'userID room degrees experiences',
+      populate: { path: 'userID', select: 'name' },
+    });;
   }
   // async findAllByDoctor(doctorId: string) {
   //   return this.doctorSlotModel.find({
