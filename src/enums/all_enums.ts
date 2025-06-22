@@ -55,7 +55,6 @@ export enum ServiceName {
 }
 export enum AppointmentStatus {
   pending_payment = 'pending_payment',
-  paid_pending_approval = 'paid_pending_approval',
   confirmed = 'confirmed',
   payment_failed = 'payment_failed',
   cancelled_by_user = 'cancelled_by_user',

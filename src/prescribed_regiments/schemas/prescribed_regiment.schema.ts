@@ -10,6 +10,7 @@ export type PrescribedRegimentDocument = HydratedDocument<PrescribedRegiment>;
 export class PrescribedRegiment extends Document {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
+
     ref: () => 'Treatment',
     required: true,
   })
