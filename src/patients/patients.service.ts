@@ -226,4 +226,7 @@ export class PatientsService {
       }
     );
   };
+  findOneByToken = async (user: IUser) => {
+    return this.patientModel.findOne({userID: user._id});
+  }
 }
