@@ -18,7 +18,7 @@ export class PaymentsController {
   @Get('vnpay-return')
   @Public()
   async handleReturn(@Query() query: any, @Res() res: Response) {
-    const result = this.paymentsService.verifyReturn(query);
+    const result = await this.paymentsService.verifyReturn(query);
     const success = result.vnp_ResponseCode === '00';
 
   return res.render('result', { result, success });
