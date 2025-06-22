@@ -54,6 +54,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",
+    "@types/express-handlebars": "^6.0.2",
     "@types/jest": "^29.5.2",
     "@types/ms": "0.7.31",
     "@types/node": "^20.19.1",

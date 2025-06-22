@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -9,7 +9,7 @@ import { Appointment, AppointmentDocument } from './schemas/appointment.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import { pick } from 'lodash';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 @ApiTags('Lịch hẹn')
 
 @Controller('appointments')
@@ -23,20 +23,45 @@ export class AppointmentsController {
     return this.appointmentsService.create(createappointmentDto, user);
   }
   @Public()
-  @ResponseMessage("Lấy tất cả lịch hẹn")
+  @ResponseMessage("Xem tất cả lịch hẹn")
   @ApiOperation({ summary: 'Lấy tất cả lịch hẹn' })
   @Get()
   findAll() {
     return this.appointmentsService.findAll();
   }
   @Public()
-  @ResponseMessage("Lấy chi tiết lịch hẹn theo id")
+  @ApiOperation({ summary: 'Xem lịch hẹn theo khoảng ngày' })
+  @ApiQuery({ name: 'startDate', required: true, description: 'Ngày bắt đầu (YYYY-MM-DD)', example: '2025-06-20' })
+  @ApiQuery({ name: 'endDate', required: true, description: 'Ngày kết thúc (YYYY-MM-DD)', example: '2025-06-25' })
+  @Get('by-date-range')
+  findByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string
+  ) {
+    return this.appointmentsService.findByDateRange(startDate, endDate);
+  }
+  @Public()
+  @ApiOperation({ summary: 'Xem lịch hẹn theo bác sĩ và ngày' })
+  @ApiParam({ name: 'doctorId', required: true, description: 'ID bác sĩ' })
+  @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
+  @Get('by-doctor/:doctorId')
+  findByDoctorAndDate(
+    @Param('doctorId') doctorId: string,
+    @Query('date') date: string
+  ) {
+    return this.appointmentsService.findByDoctorAndDate(doctorId, date);
+  }
+
+  @Public()
+  @ResponseMessage("Xem chi tiết lịch hẹn theo id")
   @ApiOperation({ summary: 'Lấy chi tiết lịch hẹn theo id' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.appointmentsService.findOne(id);
   }
+
+
   @ResponseMessage("Cập nhật lịch hẹn")
   @ApiOperation({ summary: 'Cập nhật lịch hẹn' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })

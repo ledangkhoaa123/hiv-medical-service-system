@@ -2,7 +2,7 @@ import { IsArray, IsDateString, IsNotEmpty, IsMongoId, ArrayNotEmpty, Matches, I
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DoctorSchedule } from '../schemas/doctor_schedule.schema';
 import { HydratedDocument } from 'mongoose';
-import { DoctorSlotStatus } from 'src/enums/all_enums';
+import { AppointmentShiftName, DoctorSlotStatus } from 'src/enums/all_enums';
 
 export type DoctorScheduleDocument = HydratedDocument<DoctorSchedule>;
 
@@ -26,8 +26,16 @@ export class CreateDoctorScheduleDto {
   @IsOptional()
   @IsBoolean()
   isConfirmed?: boolean;
+  @IsOptional()
+  @IsEnum(AppointmentShiftName, { message: 'Buổi làm việc không hợp lệ' })
+  shiftName?: AppointmentShiftName;
 }
-
+export class ConfirmSlotQueryDto {
+  @ApiProperty({ enum: AppointmentShiftName })
+  @IsNotEmpty({ message: 'shiftName không được để trống' })
+  @IsEnum(AppointmentShiftName, { message: 'shiftName không hợp lệ' })
+  shiftName: AppointmentShiftName;
+}
 export class ScheduleWeekBodyDto {
   @ApiProperty({ example: '2025-06-17', description: 'Ngày bắt đầu tuần (YYYY-MM-DD)' })
   @IsNotEmpty({ message: 'startDate không được trống' })
