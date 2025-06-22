@@ -26,11 +26,13 @@ export class PatientsController {
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
   @Public()
+
   createByGuest(
     @Body() createPatientDto: CreateGuestPatientDto,
     @User() user: IUser,
   ) {
     return this.patientsService.createGuest(createPatientDto, user);
+
   }
 
   @Get()

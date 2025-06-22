@@ -62,3 +62,8 @@ export enum AppointmentStatus {
   cancelled_by_staff_refunded = 'cancelled_by_staff_refunded',
   completed = 'completed'
 }
+export enum AppointmentShiftName{
+  MORNING = 'morning',
+  AFTERNOON = 'afternoon',
+  FullDay = 'full',
+}

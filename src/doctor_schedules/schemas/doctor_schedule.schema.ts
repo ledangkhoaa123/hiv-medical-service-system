@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 import { Doctor } from "src/doctors/schemas/doctor.schema";
-import { DoctorScheduleStatus } from "src/enums/all_enums";
+import { AppointmentShiftName, DoctorScheduleStatus } from "src/enums/all_enums";
 @Schema({ timestamps: true })
 export class DoctorSchedule {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Doctor.name, required: true })
@@ -10,9 +10,10 @@ export class DoctorSchedule {
   @Prop({ required: true })
   date: Date;
 
+  @Prop({ type: String, default: AppointmentShiftName.FullDay, required: true })
+  shiftName: AppointmentShiftName; // "Sáng", "Chiều", "Full Day"
   @Prop()
   shiftStart: string; // "08:00"
-
   @Prop()
   shiftEnd: string; // "17:00"
 

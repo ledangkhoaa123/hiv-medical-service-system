@@ -32,17 +32,33 @@ export class ArvDrugsController {
   }
 
   @Get()
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
   @ApiOperation({ summary: 'Lấy danh sách thuốc' })
   @ResponseMessage("Get all drugs")
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+  @ApiOperation({ summary: 'Lấy danh sách thuốc' })
+  @ResponseMessage("Get all drugs")
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   async findAll() {
     return this.arvDrugsService.findAll();
   }
 
   @Get(':id')
+<<<<<<< HEAD
+<<<<<<< HEAD
+  async findOne(@Param('id') id: string, user: IUser) {
+    return this.arvDrugsService.findOne(id, user);
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @ApiOperation({ summary: 'Lấy thuốc theo ID' })
   @ResponseMessage("Get drug by ID")
   async findOne(@Param('id') id: string) {
     return this.arvDrugsService.findOne(id);
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
   }
 
   @Patch(':id')
@@ -57,9 +73,20 @@ export class ArvDrugsController {
   }
 
   @Delete(':id')
+<<<<<<< HEAD
+<<<<<<< HEAD
+  async delete(@Param('id') id: string, user: IUser) {
+    return this.arvDrugsService.delete(id, user);
+=======
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   @ApiOperation({ summary: 'Xóa thuốc theo ID' })
   @ResponseMessage("Delete drug by ID")
   async delete(@Param('id') id: string, @User() user: IUser) {
     return this.arvDrugsService.remove(id, user);
+<<<<<<< HEAD
+>>>>>>> 88fa26ca5f1230add3c7fc7008f6fc67b2f70598
+=======
+>>>>>>> 09a0db82c012a1a6ae1c4fbd1123026f7ded2faf
   }
 }
