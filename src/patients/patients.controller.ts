@@ -8,7 +8,10 @@ import {
   Delete,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
-import { CreateGuestPatientDto, CreatePatientDto } from './dto/create-patient.dto';
+import {
+  CreateGuestPatientDto,
+  CreatePatientDto,
+} from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
@@ -23,8 +26,13 @@ export class PatientsController {
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
   @Public()
-  createByGuest(@Body() createPatientDto: CreateGuestPatientDto, @User() user: IUser) {
-    return this.patientsService.createGuest(createPatientDto);
+
+  createByGuest(
+    @Body() createPatientDto: CreateGuestPatientDto,
+    @User() user: IUser,
+  ) {
+    return this.patientsService.createGuest(createPatientDto, user);
+
   }
 
   @Get()
@@ -58,7 +66,21 @@ export class PatientsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Vô hiệu hóa bệnh nhân theo ID' })
   @ResponseMessage('Delete patient by ID')
-  remove(@Param('id') id: string,@User() user: IUser) {
+  remove(@Param('id') id: string, @User() user: IUser) {
     return this.patientsService.remove(id, user);
+  }
+
+  @Post('by-personal-id')
+  @Public()
+  @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo PersonalID' })
+  @ResponseMessage('Get patient by PersonalID')
+  findOneByPersonalID(@Body('personalID') personalID: string) {
+    return this.patientsService.findOneByPersonalID(personalID);
+  }
+  @Post('by-token')
+  @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo Token' })
+  @ResponseMessage('Get patient by Token')
+  findOneByToken(@User() user: IUser) {
+    return this.patientsService.findOneByToken(user);
   }
 }

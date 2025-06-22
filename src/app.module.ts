@@ -27,7 +27,6 @@ import { Service } from './services/schemas/service.schema';
 import { ServicesModule } from './services/services.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
-import { Payment } from './payments/schemas/payment.schema';
 import { PaymentsModule } from './payments/payments.module';
 import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
 

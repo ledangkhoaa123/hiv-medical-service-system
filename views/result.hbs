@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kết quả thanh toán</title>
+</head>
+<body>
+  <h1>Kết quả thanh toán</h1>
+  <p>Mã giao dịch: {{result.vnp_TxnRef}}</p>
+  <p>Trạng thái: {{result.vnp_ResponseCode}}</p>
+  <p>Thời gian: {{result.vnp_PayDate}}</p>
+
+  {{#if success}}
+  <p style="color: green;">✅ Thanh toán thành công!</p>
+{{else}}
+  <p style="color: red;">❌ Thanh toán thất bại!</p>
+{{/if}}
+</body>
+</html>

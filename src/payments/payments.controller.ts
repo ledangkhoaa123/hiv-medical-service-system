@@ -1,37 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { Public, ResponseMessage, User } from 'src/decorator/customize';
-import { IUser } from 'src/users/user.interface';
+import { Request, Response } from 'express';
+import { Public } from 'src/decorator/customize';
 
 @Controller('payments')
 export class PaymentsController {
-   constructor(private readonly paymentsService: PaymentsService) { }
-    @Public()
-    @ResponseMessage('Create a payment')
-    @Post()
-    create(@Body() createpaymentDto: CreatePaymentDto,@User() user:IUser) {
-      return this.paymentsService.create(createpaymentDto,user);
-    }
-    @Public()
-    @Get()
-    findAll() {
-      return this.paymentsService.findAll();
-    }
-    @Public()
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-      return this.paymentsService.findOne(id);
-    }
-    @Public()
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updatepaymentDto: UpdatePaymentDto, user: IUser) {
-      return this.paymentsService.update(id, updatepaymentDto, user);
-    }
-    @Public()
-    @Delete(':id')
-    remove(@Param('id') id: string,user: IUser) {
-      return this.paymentsService.remove(id,user);
-    }
+  constructor(private readonly paymentsService: PaymentsService) {}
+
+  @Post('vnpay-url')
+  @Public()
+  async createPaymentUrl(@Body('appointmentId') appointmentId: string, @Req() req: Request) {
+    const ip = req.ip;
+    const url = await this.paymentsService.createPaymentUrl(appointmentId, ip);
+    return { paymentUrl: url };
+  }
+
+  @Get('vnpay-return')
+  @Public()
+  async handleReturn(@Query() query: any, @Res() res: Response) {
+    const result = this.paymentsService.verifyReturn(query);
+    const success = result.vnp_ResponseCode === '00';
+
+  return res.render('result', { result, success });
+  }
+
+  @Get('vnpay-ipn')
+  @Public()
+  async handleIpn(@Query() query: any, @Res() res: Response) {
+    const result = await this.paymentsService.verifyIpn(query);
+    return res.json(result);
+  }
 }
