@@ -68,7 +68,7 @@ export class DoctorsService {
   findAll() {
     return this.doctorModel.find().populate({
       path: 'userID',
-      select: 'name phone',
+      select: 'name phone email',
     });
   }
 
@@ -78,7 +78,7 @@ export class DoctorsService {
     }
     return this.doctorModel.findOne({ _id: id }).populate({
       path: 'userID',
-      select: 'name phone',
+      select: 'name phone email',
     });
   }
 
