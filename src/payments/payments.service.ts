@@ -45,8 +45,21 @@ export class PaymentsService {
     return this.vnpay.buildPaymentUrl(data);
   }
 
-  verifyReturn(query: any) {
+  async verifyReturn(query: any) {
     const result = this.vnpay.verifyReturnUrl(query as VerifyReturnUrl);
+    if (result.isVerified){
+      const appointment = await this.appointmentsService.findOne(result.vnp_TxnRef);
+      if (appointment){
+        const service =  await this.servicesService.findOne(appointment.serviceID as any);
+        if (service){
+          if (result.vnp_Amount == service.price ){
+            if (appointment.status !== AppointmentStatus.confirmed){
+              await this.appointmentsService.updateStatus(appointment._id as any, AppointmentStatus.confirmed);
+            }
+          }
+        }
+      }
+    }
     return {
       ...result,
       vnp_PayDate: parseDate(result.vnp_PayDate ?? 'Invalid Date').toLocaleString(),

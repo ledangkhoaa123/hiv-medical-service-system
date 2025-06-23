@@ -2,7 +2,7 @@ import { IsArray, IsDateString, IsNotEmpty, IsMongoId, ArrayNotEmpty, Matches, I
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DoctorSchedule } from '../schemas/doctor_schedule.schema';
 import { HydratedDocument } from 'mongoose';
-import { AppointmentShiftName, DoctorSlotStatus } from 'src/enums/all_enums';
+import { AppointmentShiftName, DoctorScheduleStatus, DoctorSlotStatus } from 'src/enums/all_enums';
 
 export type DoctorScheduleDocument = HydratedDocument<DoctorSchedule>;
 
@@ -17,10 +17,10 @@ export class CreateDoctorScheduleDto {
   @IsDateString({}, { message: 'Date phải đúng định dạng YYYY-MM-DD' })
   date: string;
 
-  @ApiPropertyOptional({ enum: DoctorSlotStatus, description: 'Trạng thái lịch làm' })
+  @ApiPropertyOptional({ enum: DoctorScheduleStatus, description: 'Trạng thái lịch làm' })
   @IsOptional()
-  @IsEnum(DoctorSlotStatus, { message: 'Status không hợp lệ' })
-  status?: DoctorSlotStatus;
+  @IsEnum(DoctorScheduleStatus, { message: 'Status không hợp lệ' })
+  status?: DoctorScheduleStatus;
 
   @ApiPropertyOptional({ example: false, description: 'Đã xác nhận hay chưa' })
   @IsOptional()

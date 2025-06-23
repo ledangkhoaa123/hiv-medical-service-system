@@ -17,7 +17,7 @@ export class DoctorSlot {
 
     @Prop({ required: true })
     startTime: Date;
-    @Prop({ required: true, default: DoctorSlotStatus.PENDING, enum: DoctorSlotStatus })
+    @Prop({ required: true, default: DoctorSlotStatus.AVAILABLE, enum: DoctorSlotStatus })
     status: DoctorSlotStatus;
     @Prop()
     endTime: Date;

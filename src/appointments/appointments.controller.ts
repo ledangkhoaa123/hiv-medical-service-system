@@ -4,23 +4,19 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { InjectModel } from '@nestjs/mongoose';
-import { Appointment, AppointmentDocument } from './schemas/appointment.schema';
-import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import mongoose from 'mongoose';
-import { pick } from 'lodash';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 @ApiTags('Lịch hẹn')
 
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) { }
+  @Public()
   @ApiOperation({ summary: 'Tạo lịch hẹn mới' })
   @ResponseMessage("Tạo lịch hẹn mới")
   @Post()
   @ResponseMessage("Create a new appointment")
-  create(@Body() createappointmentDto: CreateAppointmentDto, @User() user: IUser) {
-    return this.appointmentsService.create(createappointmentDto, user);
+  create(@Body() createappointmentDto: CreateAppointmentDto) {
+    return this.appointmentsService.create(createappointmentDto);
   }
   @Public()
   @ResponseMessage("Xem tất cả lịch hẹn")
@@ -76,5 +72,11 @@ export class AppointmentsController {
   @Delete(':id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.appointmentsService.remove(id, user);
+  }
+  @ApiOperation({ summary: 'Lấy Appointment theo token' })
+  @ResponseMessage("Get Appointment from Access Token")
+  @Post('token')
+  getAppointByToken(@User() user: IUser) {
+    return this.appointmentsService.getFromToken(user);
   }
 }

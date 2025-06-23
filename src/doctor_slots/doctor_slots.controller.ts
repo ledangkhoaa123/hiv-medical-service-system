@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, BadRequestException } from '@nestjs/common';
 import { DoctorSlotsService } from './doctor_slots.service';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
- @ApiTags('Ca làm việc của bác sĩ')
+@ApiTags('Ca làm việc của bác sĩ')
 @Controller('doctorSlots')
 export class DoctorSlotsController {
   constructor(private readonly doctorSlotsService: DoctorSlotsService) { }
@@ -21,6 +21,23 @@ export class DoctorSlotsController {
   @Public()
   findAll() {
     return this.doctorSlotsService.findAll();
+  }
+  @Public()
+  @ApiOperation({ summary: 'Tìm slot khả dụng theo dịch vụ, bác sĩ và ngày' })
+  @ApiParam({ name: 'doctorId', required: true, description: 'ID bác sĩ' })
+  @ApiQuery({ name: 'serviceId', required: true, description: 'ID dịch vụ' })
+  @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
+  @Get(':doctorId/available-slots')
+  async findSlotByService(
+    @Param('doctorId') doctorId: string,
+    @Query('serviceId') serviceId: string,
+    @Query('date') date: Date
+  ) {
+    if (!doctorId || !serviceId || !date) {
+      throw new BadRequestException('Thiếu tham số doctorId, serviceId hoặc date');
+    }
+    // Chuyển date về kiểu Date
+    return this.doctorSlotsService.findSlotByService(serviceId, doctorId, date);
   }
 
   @ApiOperation({ summary: 'Xem tất cả bác sĩ theo Slot' })

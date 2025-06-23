@@ -21,7 +21,7 @@ export class Appointment {
     @Prop({ required: true })
     date: Date;
     @Prop({
-        type: String, required: true, default: AppointmentStatus.pending_payment, enum: AppointmentStatus
+        type: String, required: true, default: AppointmentStatus.pending, enum: AppointmentStatus
     })
     status: AppointmentStatus;
 
@@ -32,8 +32,7 @@ export class Appointment {
     })
     serviceID: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: MedicalRecord.name })
-    medicalRecordID?: mongoose.Schema.Types.ObjectId;
+
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Treatment.name })
     treatmentID?: mongoose.Schema.Types.ObjectId;
     @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: () => "Appointment" })
