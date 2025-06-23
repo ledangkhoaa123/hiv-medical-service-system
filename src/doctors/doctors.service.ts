@@ -119,4 +119,7 @@ export class DoctorsService {
       _id: id,
     });
   }
+  findByUserID = async (userID : string) => {
+    return await this.doctorModel.findOne({userID});
+  }
 }

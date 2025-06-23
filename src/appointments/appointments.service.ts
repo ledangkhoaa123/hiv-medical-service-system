@@ -20,6 +20,7 @@ import {
 } from 'src/doctor_slots/schemas/doctor_slot.schema';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 import { AppointmentStatus } from 'src/enums/all_enums';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -30,6 +31,7 @@ export class AppointmentsService {
     @InjectModel(DoctorSlot.name)
     private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
     private readonly doctorSlotService: DoctorSlotsService,
+    private doctorsService: DoctorsService
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
@@ -250,4 +252,16 @@ export class AppointmentsService {
 
     return result;
   };
+  getFromToken = async (user: IUser) => {
+    const doctor = await this.doctorsService.findByUserID(user._id);
+    if (!doctor) {
+      throw new BadRequestException("Không tìm thấy doctor bằng userID ở Token");
+    }
+    return await this.appointmentModel.find({
+      doctorID: doctor._id,
+      status: {
+        $in: [AppointmentStatus.confirmed, AppointmentStatus.completed]
+      }
+    })
+  }
 }
