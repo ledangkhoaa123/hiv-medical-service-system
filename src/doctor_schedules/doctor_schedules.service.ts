@@ -4,7 +4,7 @@ import mongoose, { Model } from 'mongoose';
 import { DoctorSchedule } from './schemas/doctor_schedule.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { CreateMultiScheduleDto, DoctorScheduleDocument } from './dto/create-doctor_schedule.dto';
-import { AppointmentShiftName, DoctorSlotStatus } from 'src/enums/all_enums';
+import { AppointmentShiftName, DoctorScheduleStatus, DoctorSlotStatus } from 'src/enums/all_enums';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 import { IUser } from 'src/users/user.interface';
 import { UpdateDoctorScheduleDto } from './dto/update-doctor_schedule.dto';
@@ -36,7 +36,7 @@ export class DoctorSchedulesService {
       const schedule = await this.doctorScheduleModel.create({
         doctorID: dto.doctorID,
         date: new Date(date),
-        status: 'pending',
+        status: DoctorScheduleStatus.PENDING,
         createdBy: {
           _id: user._id,
           email: user.email,
@@ -78,7 +78,7 @@ export class DoctorSchedulesService {
 
     // Cập nhật trạng thái schedule
     await this.update(scheduleId,
-      { status: DoctorSlotStatus.AVAILABLE, isConfirmed: true, shiftName }, user);
+      { status: DoctorScheduleStatus.AVAILABLE, isConfirmed: true, shiftName }, user);
 
     return { message: `Đã xác nhận lịch làm ngày ${date}!` };
   }
@@ -107,7 +107,7 @@ export class DoctorSchedulesService {
     const addSlots = (start: Date, end: Date) => {
       let current = new Date(start);
       while (current < end) {
-        const next = new Date(current.getTime() + timeslot * 60 * 1000); // + 30 phút
+        const next = new Date(current.getTime() + timeslot * 60 * 1000); 
         if (next > end) break;
         slots.push({ startTime: new Date(current), endTime: new Date(next) });
         current = next;
