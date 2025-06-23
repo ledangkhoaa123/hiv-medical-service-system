@@ -10,12 +10,13 @@ import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swag
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) { }
+  @Public()
   @ApiOperation({ summary: 'Tạo lịch hẹn mới' })
   @ResponseMessage("Tạo lịch hẹn mới")
   @Post()
   @ResponseMessage("Create a new appointment")
-  create(@Body() createappointmentDto: CreateAppointmentDto, @User() user: IUser) {
-    return this.appointmentsService.create(createappointmentDto, user);
+  create(@Body() createappointmentDto: CreateAppointmentDto) {
+    return this.appointmentsService.create(createappointmentDto);
   }
   @Public()
   @ResponseMessage("Xem tất cả lịch hẹn")

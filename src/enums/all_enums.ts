@@ -37,16 +37,15 @@ export enum RegimenType {
   Adult = 'Adult',
 }
 export enum DoctorScheduleStatus {
-  PENDING = 'pending',
-  AVAILABLE = 'available',
-  UNAVAILABLE = 'unavailable',
+  PENDING = 'Chờ bác sĩ xác nhận',
+  AVAILABLE = 'Bác sĩ đã xác nhận',
+  UNAVAILABLE = 'Không khả dụng',
 }
 export enum DoctorSlotStatus {
-  PENDING = 'pending',
-  AVAILABLE = 'available',
-  PENDING_HOLD = 'pending_hold',
-  BOOKED = 'booked',
-  UNAVAILABLE = 'unavailable',
+  AVAILABLE = 'Sẵn sàng khám',
+  PENDING = 'Đang xét duyệt',
+  BOOKED = 'Đã đặt',
+  UNAVAILABLE = ' Không khả dụng',
 }
 export enum ServiceName {
   BASIC_CHECKUP = 'Basic Checkup',
@@ -54,15 +53,16 @@ export enum ServiceName {
   FOLLOW_UP = 'Follow Up',
 }
 export enum AppointmentStatus {
-  pending_payment = 'pending_payment',
-  confirmed = 'confirmed',
-  payment_failed = 'payment_failed',
-  cancelled_by_user = 'cancelled_by_user',
-  cancelled_by_staff_refund_required = 'cancelled_by_staff_refund_required',
-  cancelled_by_staff_refunded = 'cancelled_by_staff_refunded',
-  completed = 'completed'
+  pending = 'Đang xét duyệt',
+  pending_payment = 'Chờ thanh toán ',
+  confirmed = 'Hoàn tất đặt lịch',
+  payment_failed = 'Thanh toán thất bại',
+  cancelled_by_user = 'Hủy bởi người khách hàng',
+  cancelled_by_staff_refund_required = 'Hủy bởi Staff và chờ hoàn tiền  ',
+  refund_completed = 'Hoàn tiền thành công',
+  completed = 'Hoàn tất quá trình khám',
 }
-export enum AppointmentShiftName{
+export enum AppointmentShiftName {
   MORNING = 'morning',
   AFTERNOON = 'afternoon',
   FullDay = 'full',

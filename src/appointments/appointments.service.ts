@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,24 +8,28 @@ import { IUser } from 'src/users/user.interface';
 import mongoose, { Types } from 'mongoose';
 import { DoctorSlot, DoctorSlotDocument } from 'src/doctor_slots/schemas/doctor_slot.schema';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
+import { ServicesService } from 'src/services/services.service';
+import { AppointmentStatus, DoctorSlotStatus } from 'src/enums/all_enums';
+import { config } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @InjectModel(Appointment.name) private appointmentModel: SoftDeleteModel<AppointmentDocument>,
     @InjectModel(DoctorSlot.name) private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
-    private readonly doctorSlotService: DoctorSlotsService
+    private readonly doctorSlotService: DoctorSlotsService,
+    private readonly serviceService: ServicesService,
+    private readonly configService: ConfigService
   ) { }
 
 
-  async create(createAppointmentDto: CreateAppointmentDto, user: IUser) {
+  async create(createAppointmentDto: CreateAppointmentDto) {
     const {
       doctorSlotID,
       patientID,
-      medicalRecordID,
+      serviceID,
       treatmentID,
-      extendTo,
-      ...rest
     } = createAppointmentDto;
 
     //  Lấy toàn bộ slot được chọn cùng doctorID
@@ -37,52 +41,40 @@ export class AppointmentsService {
     if (!slots.length) {
       throw new BadRequestException('Không tìm thấy slot bác sĩ!');
     }
+    const slot = slots[0];
 
-    // 👉 Kiểm tra nếu có trùng lịch
-    for (const slot of slots) {
-      const existed = await this.appointmentModel.findOne({
-        doctorID: slot.doctorID,
-        doctorSlotID: slot._id,
-        patientID,
-        date: slot.date,
-        startTime: slot.startTime,
-        isDeleted: false,
-      });
-      if (existed) {
-        throw new BadRequestException(
-          `Lịch hẹn ngày ${slot.date.toISOString().split('T')[0]}, giờ ${slot.startTime.toISOString()} đã tồn tại!`
-        );
-      }
+
+    const checkService = await this.serviceService.findOne(serviceID as any);
+    if (!checkService) {
+      throw new BadRequestException("Không tìm thấy Service")
+    }
+    const checkServiceDuration = checkService.durationMinutes
+    const timeSlot = Number((this.configService.get<number>('TIME_SLOT')))
+    if (checkServiceDuration > timeSlot) {
+      const slot2 = await this.doctorSlotService.findSlotbyPrevious(slot._id as any);
+      doctorSlotID.push(slot2._id as any)
     }
 
+    const createApp = await this.appointmentModel.create(
+      {
+        doctorID: slot.doctorID,
+        doctorSlotID,
+        patientID,
+        serviceID,
+        treatmentID: treatmentID ?? null,
+        date: new Date(),
+        startTime: slot.startTime
+      }
+
+    )
     //  Tạo appointments
-    const appointments = await Promise.all(
-      slots.map((slot) =>
-        new this.appointmentModel({
-          doctorID: slot.doctorID,
-          patientID,
-          doctorSlotID: slot._id,
-          date: new Date(Date.now() + 7 * 60 * 60 * 1000),
-          startTime: slot.startTime,
-          medicalRecordID: medicalRecordID ?? null,
-          treatmentID: treatmentID ?? null,
-          extendTo: extendTo ?? null,
-          createdBy: {
-            _id: user._id,
-            email: user.email,
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          ...rest,
-        }).save()
-      )
-    );
+
     await this.doctorSlotModel.updateMany(
       { _id: { $in: doctorSlotID } },
-      { $set: { status: 'pending_hold' } }
+      { $set: { status: DoctorSlotStatus.PENDING } }
     );
 
-    return appointments;
+    return createApp;
   }
 
 
@@ -177,9 +169,8 @@ export class AppointmentsService {
     }
 
     const {
-      medicalRecordID,
+
       treatmentID,
-      extendTo,
       ...restFields
     } = updateDto;
 
@@ -192,9 +183,8 @@ export class AppointmentsService {
       },
       updatedAt: new Date(),
     };
-    if (medicalRecordID !== undefined) updateData.medicalRecordID = medicalRecordID ?? null;
+
     if (treatmentID !== undefined) updateData.treatmentID = treatmentID ?? null;
-    if (extendTo !== undefined) updateData.extendTo = extendTo ?? null;
 
     const duplicate = await this.appointmentModel.findOne({
       _id: { $ne: id },
@@ -212,6 +202,22 @@ export class AppointmentsService {
     const updated = await this.appointmentModel.findByIdAndUpdate(id, updateData, { new: true });
     return updated;
   }
+  updateStatus = async (id: string, newStatus: AppointmentStatus) => {
+    const existedAppointment = await this.findOne(id);
+
+    if (!existedAppointment || existedAppointment.isDeleted) {
+      throw new BadRequestException('Lịch hẹn không tồn tại hoặc đã bị xoá');
+    }
+    const result = await this.appointmentModel.updateOne(
+      { _id: id },
+      { status: newStatus },
+    );
+    if (result.modifiedCount === 0) {
+      throw new InternalServerErrorException('Cập nhật trạng thái thất bại');
+    }
+
+    return result;
+  };
 
 
   async remove(id: string, user: IUser) {
@@ -230,4 +236,5 @@ export class AppointmentsService {
       _id: id,
     });
   }
+
 }
