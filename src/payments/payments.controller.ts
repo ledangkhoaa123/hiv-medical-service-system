@@ -15,9 +15,9 @@ export class PaymentsController {
   @ApiBody({ type: CreatePaymentDto, })
   @ResponseMessage("Get URL for Payment")
   @Public()
-  async createPaymentUrl(@Body('appointmentId') appointmentId: string, @Req() req: Request) {
+  async createPaymentUrl(@Body() createPaymentDto: CreatePaymentDto, @Req() req: Request) {
     const ip = req.ip;
-    const url = await this.paymentsService.createPaymentUrl(appointmentId, ip);
+    const url = await this.paymentsService.createPaymentUrl(createPaymentDto.appointmentID, ip);
     return { paymentUrl: url };
   }
 
