@@ -22,6 +22,17 @@ export class DoctorSlotsController {
   findAll() {
     return this.doctorSlotsService.findAll();
   }
+  @ApiOperation({ summary: 'Xem Slot khả dụng theo ngày (theo dịch vụ đã chọn)' })
+  @ApiQuery({ name: 'serviceId', required: true, description: 'ID dịch vụ' })
+  @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
+  @Public()
+  @Get('/available-slots-by-date')
+  async getAvailableSlotsByDate(
+    @Query('serviceId') serviceId: string,
+    @Query('date') date: Date
+  ) {
+    return this.doctorSlotsService.findSlotAvaliable(serviceId, date);
+  }
   @Public()
   @ApiOperation({ summary: 'Tìm slot khả dụng theo dịch vụ, bác sĩ và ngày' })
   @ApiParam({ name: 'doctorId', required: true, description: 'ID bác sĩ' })
@@ -36,23 +47,18 @@ export class DoctorSlotsController {
     if (!doctorId || !serviceId || !date) {
       throw new BadRequestException('Thiếu tham số doctorId, serviceId hoặc date');
     }
-    // Chuyển date về kiểu Date
     return this.doctorSlotsService.findSlotByService(serviceId, doctorId, date);
   }
 
-  @ApiOperation({ summary: 'Xem tất cả bác sĩ theo Slot' })
-  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
-  @ApiQuery({ name: 'startTime', required: true, type: String, example: '08:00' })
-  @ApiQuery({ name: 'endTime', required: true, type: String, example: '08:30' })
+  @ApiOperation({ summary: 'Xem tất cả BÁC SĨ theo Slot'})
+  @ApiQuery({ name: 'startTime', required: true, type: Date, example: '2025-06-20T09:00:00.000Z' })
   @ResponseMessage('Xem tất cả bác sĩ theo slot')
   @Public()
   @Get('/doctors-by-slot')
   async findDoctorsBySlot(
-    @Query('date') date: string,
-    @Query('startTime') startTime: string,
-    @Query('endTime') endTime: string
+    @Query('startTime') startTime: Date,
   ) {
-    return this.doctorSlotsService.findDoctorsBySlots(date, startTime, endTime);
+    return this.doctorSlotsService.findDoctorsBySlots(startTime);
   }
 
   @ApiOperation({ summary: 'Xem thông tin slot khám' })
