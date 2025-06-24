@@ -76,6 +76,15 @@ export class DoctorSlotsService {
     })
       .sort({ startTime: 1 });
   }
+  async findByDoctorAndDateByToken(user: IUser, date: string) {
+    const doctor = await this.doctorService.findByUserID(user._id);
+    return this.doctorSlotModel.find({
+      doctorID: doctor.id,
+      date: new Date(date),
+      isDeleted: false,
+    })
+      .sort({ startTime: 1 });
+  }
   async update(id: string, updateDoctorSlotDto: UpdateDoctorSlotDto, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Sai định dạng id`);
