@@ -80,7 +80,7 @@ export class PatientsService {
     return await this.patientModel.findOne({ _id: id }).populate([
       {
       path: 'userID',
-      select: 'name phone',
+      select: 'email name phone',
     },
     {
       path: 'medicalRecordID',

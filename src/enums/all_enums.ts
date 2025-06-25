@@ -54,7 +54,7 @@ export enum ServiceName {
 }
 export enum AppointmentStatus {
   pending = 'Đang xét duyệt',
-  pending_payment = 'Chờ thanh toán ',
+  pending_payment = 'Chờ thanh toán',
   confirmed = 'Hoàn tất đặt lịch',
   payment_failed = 'Thanh toán thất bại',
   cancelled_by_user = 'Hủy bởi người khách hàng',

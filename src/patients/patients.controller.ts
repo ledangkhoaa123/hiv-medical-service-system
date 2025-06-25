@@ -54,7 +54,6 @@ export class PatientsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin bệnh nhân theo ID' })
   @ResponseMessage('Update patient by ID')
-  @Public()
   update(
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
