@@ -10,6 +10,7 @@ import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
 import { Doctor, DoctorDocument } from 'src/doctors/schemas/doctor.schema';
 import { ServicesService } from 'src/services/services.service';
 import { DoctorSlotStatus } from 'src/enums/all_enums';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class DoctorSlotsService {
@@ -18,8 +19,8 @@ export class DoctorSlotsService {
     private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
     @InjectModel(Doctor.name)
     private doctorModel: SoftDeleteModel<DoctorDocument>,
-    private readonly serviceService: ServicesService
-
+    private readonly serviceService: ServicesService,
+    private doctorService: DoctorsService
   ) { }
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {

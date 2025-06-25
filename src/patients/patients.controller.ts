@@ -11,11 +11,12 @@ import { PatientsService } from './patients.service';
 import {
   CreateGuestPatientDto,
   CreatePatientDto,
+  PersonalIDDto,
 } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('patients')
 @ApiTags('patients')
@@ -26,12 +27,10 @@ export class PatientsController {
   @ResponseMessage('Create a patient by guest')
   @Post('guest')
   @Public()
-
   createByGuest(
     @Body() createPatientDto: CreateGuestPatientDto,
-    @User() user: IUser,
   ) {
-    return this.patientsService.createGuest(createPatientDto, user);
+    return this.patientsService.createGuest(createPatientDto);
 
   }
 
@@ -72,9 +71,10 @@ export class PatientsController {
   @Post('by-personal-id')
   @Public()
   @ApiOperation({ summary: 'Lấy thông tin bệnh nhân theo PersonalID' })
+  @ApiBody({type: PersonalIDDto})
   @ResponseMessage('Get patient by PersonalID')
-  findOneByPersonalID(@Body('personalID') personalID: string) {
-    return this.patientsService.findOneByPersonalID(personalID);
+  findOneByPersonalID(@Body() personalIDdto: PersonalIDDto) {
+    return this.patientsService.findOneByPersonalID(personalIDdto.personalID);
   }
 
   @Post('by-token')
