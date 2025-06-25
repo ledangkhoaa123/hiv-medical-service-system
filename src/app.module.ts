@@ -29,6 +29,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
 import { PaymentsModule } from './payments/payments.module';
 import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.modul
     BlogPostsModule,
     FacilityInfosModule,
     DoctorSchedulesModule,
+    MailModule,
   ],
 
   controllers: [AppController],

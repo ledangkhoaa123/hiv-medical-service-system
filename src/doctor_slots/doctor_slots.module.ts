@@ -5,11 +5,13 @@ import { DoctorSlot, DoctorSlotSchema } from './schemas/doctor_slot.schema';
 import { DoctorsModule } from 'src/doctors/doctors.module';
 import { DoctorSlotsController } from './doctor_slots.controller';
 import { ServicesModule } from 'src/services/services.module';
+import { Doctor, DoctorSchema } from 'src/doctors/schemas/doctor.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: DoctorSlot.name, schema: DoctorSlotSchema }
+      { name: DoctorSlot.name, schema: DoctorSlotSchema },
+       { name: Doctor.name, schema: DoctorSchema }
     ])
   ,DoctorsModule,ServicesModule],
   controllers:[DoctorSlotsController],

@@ -7,9 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
 import { CreateDoctorSlotDto } from './dto/create-doctor_slot.dto';
-import path from 'path';
-import { Doctor } from 'src/doctors/schemas/doctor.schema';
-import { DoctorsService } from 'src/doctors/doctors.service';
+import { Doctor, DoctorDocument } from 'src/doctors/schemas/doctor.schema';
 import { ServicesService } from 'src/services/services.service';
 import { DoctorSlotStatus } from 'src/enums/all_enums';
 
@@ -18,7 +16,8 @@ export class DoctorSlotsService {
   constructor(
     @InjectModel(DoctorSlot.name)
     private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
-    private doctorService: DoctorsService,
+    @InjectModel(Doctor.name)
+    private doctorModel: SoftDeleteModel<DoctorDocument>,
     private readonly serviceService: ServicesService
 
   ) { }
@@ -73,6 +72,7 @@ export class DoctorSlotsService {
       doctorID: doctorId,
       date: new Date(date),
       isDeleted: false,
+      status: DoctorSlotStatus.AVAILABLE
     })
       .sort({ startTime: 1 });
   }
@@ -109,121 +109,116 @@ export class DoctorSlotsService {
       throw error;
     }
   }
-  async findDoctorsBySlots(date: string, startTime: string, endTime: string) {
-    const start = new Date(`${date}T${startTime}:00Z`);
-    const end = new Date(`${date}T${endTime}:00Z`);
+  async findDoctorsBySlots(adjustedStart: Date) {
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      throw new BadRequestException('Thời gian không hợp lệ');
-    }
-
-    const adjustedStart = new Date(start.getTime());
-    const adjustedEnd = new Date(end.getTime());
-    console.log('Adjusted Start:', adjustedStart);
-    console.log('Adjusted End:', adjustedEnd);
     const slots = await this.doctorSlotModel.find({
-      startTime: { $gte: adjustedStart },
-      endTime: { $lte: adjustedEnd },
+      startTime: adjustedStart,
       isDeleted: false,
+      status: DoctorSlotStatus.AVAILABLE
     }).select('doctorID');
 
-    const uniqueDoctorIDs = Array.from(
-      new Set(slots.map(slot => slot.doctorID.toString()))
-    );
 
-    const doctors = await Promise.all(
-      uniqueDoctorIDs.map(id => this.doctorService.findOne(id))
-    );
-
-    return doctors;
+    return await this.doctorModel.find({ _id: { $in: slots.map(s => s.doctorID) } });
   }
-  // async findSlotByService(serviceID: string, doctorID: string, date: Date) {
-  //   // Lấy thông tin service để biết duration
-  //   const service = await this.serviceService.findOne(serviceID); // hoặc inject ServiceService nếu cần
-  //   if (!service) throw new BadRequestException('Không tìm thấy dịch vụ');
-  //   const duration = service.durationMinutes; // ví dụ: 60
-
-  //   // Lấy tất cả slot của bác sĩ trong ngày, đã sắp xếp theo startTime
-  //   const slots = await this.doctorSlotModel.find({
-  //     doctorID,
-  //     date,
-  //     isDeleted: false,
-  //     status: DoctorSlotStatus.AVAILABLE
-  //   }).sort({ startTime: 1 });
-
-  //   // Tìm các chuỗi slot liên tiếp đủ thời gian
-  //   const result: { slots: typeof slots, totalMinutes: number }[] = [];
-  //   for (let i = 0; i < slots.length; i++) {
-  //     let total = 0;
-  //     let group = [];
-  //     for (let j = i; j < slots.length; j++) {
-  //       const slot = slots[j];
-  //       const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
-  //       // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
-  //       if (
-  //         group.length === 0 ||
-  //         slot.startTime.getTime() === group[group.length - 1].endTime.getTime()
-  //       ) {
-  //         group.push(slot);
-  //         total += slotMinutes;
-  //         if (total >= duration) {
-  //           result.push({ slots: [...group], totalMinutes: total });
-  //           break; // chỉ lấy chuỗi liên tiếp đầu tiên đủ thời gian
-  //         }
-  //       } else {
-  //         break; // không liên tiếp, dừng chuỗi này
-  //       }
-  //     }
-  //   }
-
-  //   // Trả về các chuỗi slot liên tiếp đủ thời gian
-  //   return result.map(r => r.slots);
-  // }
   async findSlotByService(serviceID: string, doctorID: string, date: Date) {
-  // Lấy thông tin service để biết duration
-  const service = await this.serviceService.findOne(serviceID);
-  if (!service) throw new BadRequestException('Không tìm thấy dịch vụ');
-  const duration = service.durationMinutes; // phút
+    // Lấy thông tin service để biết duration
+    const service = await this.serviceService.findOne(serviceID);
+    if (!service) throw new BadRequestException('Không tìm thấy dịch vụ');
+    const duration = service.durationMinutes; // phút
 
-  // Lấy tất cả slot của bác sĩ trong ngày, đã sắp xếp theo startTime
-  const slots = await this.doctorSlotModel.find({
-    doctorID,
-    date,
-    isDeleted: false,
-    status: DoctorSlotStatus.AVAILABLE
-  }).sort({ startTime: 1 });
+    // Lấy tất cả slot của bác sĩ trong ngày, đã sắp xếp theo startTime
+    const slots = await this.doctorSlotModel.find({
+      doctorID,
+      date,
+      isDeleted: false,
+      status: DoctorSlotStatus.AVAILABLE
+    }).sort({ startTime: 1 });
 
-  const availableSlots = [];
+    const availableSlots = [];
 
-  for (let i = 0; i < slots.length; i++) {
-    let total = 0;
-    let group = [];
-    for (let j = i; j < slots.length; j++) {
-      const slot = slots[j];
-      const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
+    for (let i = 0; i < slots.length; i++) {
+      let total = 0;
+      let group = [];
+      for (let j = i; j < slots.length; j++) {
+        const slot = slots[j];
+        const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
 
-      // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
-      if (
-        group.length === 0 ||
-        slot.startTime.getTime() === group[group.length - 1].endTime.getTime()
-      ) {
-        group.push(slot);
-        total += slotMinutes;
-        if (total >= duration) {
-          // Chỉ trả về slot đầu tiên của chuỗi liên tiếp đủ thời gian
-          availableSlots.push(group[0]);
-          break;
+        // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
+        if (
+          group.length === 0 ||
+          slot.startTime.getTime() === group[group.length - 1].endTime.getTime()
+        ) {
+          group.push(slot);
+          total += slotMinutes;
+          if (total >= duration) {
+            // Chỉ trả về slot đầu tiên của chuỗi liên tiếp đủ thời gian
+            availableSlots.push(group[0]);
+            break;
+          }
+        } else {
+          break; // không liên tiếp, dừng chuỗi này
         }
-      } else {
-        break; // không liên tiếp, dừng chuỗi này
       }
     }
+
+    // Trả về mảng các slot có thể chọn được (slot đầu tiên của mỗi chuỗi liên tiếp đủ thời gian)
+    return availableSlots;
   }
+  async findSlotAvaliable(serviceID: string, date: Date) {
+    const slots = await this.doctorSlotModel.find({
+      date,
+      isDeleted: false,
+      status: DoctorSlotStatus.AVAILABLE
+    }).sort({ startTime: 1 });
+    const service = await this.serviceService.findOne(serviceID);
+    if (!service) throw new BadRequestException('Không tìm thấy dịch vụ');
+    const duration = service.durationMinutes; // phút
+    const availableSlots = [];
 
-  // Trả về mảng các slot có thể chọn được (slot đầu tiên của mỗi chuỗi liên tiếp đủ thời gian)
-  return availableSlots;
-}
+    for (let i = 0; i < slots.length; i++) {
+      let total = 0;
+      let group = [];
+      for (let j = i; j < slots.length; j++) {
+        const slot = slots[j];
+        const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
 
+        // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
+        if (
+          group.length === 0 ||
+          slot.startTime.getTime() === group[group.length - 1].endTime.getTime()
+        ) {
+          group.push(slot);
+          total += slotMinutes;
+          if (total >= duration) {
+            // Chỉ trả về slot đầu tiên của chuỗi liên tiếp đủ thời gian
+            availableSlots.push(group[0]);
+            break;
+          }
+        } else {
+          break; // không liên tiếp, dừng chuỗi này
+        }
+      }
+    }
+    const uniqueSlots = [];
+    const seenStartTimes = new Set();
+    for (const slot of availableSlots) {
+      const timeKey = slot.startTime.getTime();
+      if (!seenStartTimes.has(timeKey)) {
+        uniqueSlots.push(slot);
+        seenStartTimes.add(timeKey);
+      }
+    }
+
+    return uniqueSlots.map(slot => slot.startTime
+    );
+  }
+   async findByDoctorAndStartTime(doctorId: string, startTime: Date) {
+    return this.doctorSlotModel.findOne({
+      doctorID: doctorId,
+      startTime: startTime,
+      isDeleted: false,
+    });
+  }
 
   async remove(id: string, user: IUser) {
     await this.doctorSlotModel.updateOne(
@@ -237,9 +232,10 @@ export class DoctorSlotsService {
     );
     return this.doctorSlotModel.softDelete({ _id: id });
   }
-  async findSlotbyPrevious(slotID:string){
-    const slot=await this.findOne(slotID);
-    const time=slot.endTime
-    return this.doctorSlotModel.findOne({startTime:time})
+  async findSlotbyPrevious(slotID: string) {
+    const slot = await this.findOne(slotID);
+    const time = slot.endTime
+    return this.doctorSlotModel.findOne({ startTime: time })
   }
+ 
 }
