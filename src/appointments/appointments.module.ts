@@ -9,6 +9,8 @@ import { ServicesModule } from "src/services/services.module";
 import { ConfigModule } from "@nestjs/config";
 import { MailModule } from "src/mail/mail.module";
 import { PatientsModule } from "src/patients/patients.module";
+import { DoctorsModule } from "src/doctors/doctors.module";
+
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { PatientsModule } from "src/patients/patients.module";
       { name: Appointment.name, schema: AppointmentSchema },
       { name: DoctorSlot.name, schema: DoctorSlotSchema }
     ]),
-    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule
+    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],

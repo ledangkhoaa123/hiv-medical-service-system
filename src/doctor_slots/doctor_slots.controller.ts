@@ -96,6 +96,16 @@ export class DoctorSlotsController {
   ) {
     return this.doctorSlotsService.findByDoctorAndDate(doctorId, date);
   }
+  @ApiOperation({ summary: 'Xem tất cả slot khám của bác sĩ theo ngày bằng token' })
+  @ApiQuery({ name: 'date', required: true, type: String, example: '2025-06-20' })
+  @ResponseMessage('Xem tất cả Slot khám của bác sĩ theo ngày bằng token')
+  @Get('/slots-by-date/token')
+  async findSlotsByDateAndToken(
+    @User() user: IUser,
+    @Query('date') date: string
+  ) {
+    return this.doctorSlotsService.findByDoctorAndDateByToken(user, date);
+  }
   @ApiOperation({ summary: 'Cập nhật ca làm việc' })
   @ApiParam({ name: 'id', required: true, type: String })
   @ApiBody({ type: UpdateDoctorSlotDto })

@@ -79,4 +79,10 @@ export class AppointmentsController {
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.appointmentsService.remove(id, user);
   }
+  @ApiOperation({ summary: 'Lấy Appointment theo token' })
+  @ResponseMessage("Get Appointment from Access Token")
+  @Post('token')
+  getAppointByToken(@User() user: IUser) {
+    return this.appointmentsService.getFromToken(user);
+  }
 }

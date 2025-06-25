@@ -56,4 +56,14 @@ export class DoctorSchedulesController {
   remove(@Param('id') id: string,@User() user: IUser) {
     return this.doctorSchedulesService.remove(id, user);
   }
+  
+  @ApiOperation({ summary: 'Xem lịch làm theo tuần (có thể ngày hoặc tháng) bằng Token' })
+  @ResponseMessage('Xem lịch khám thành công')
+  @Get('/schedule-by-week/token')
+  findSlotsByWeekFromToken(
+    @User() user: IUser,
+    @Query() query: ScheduleWeekBodyDto
+  ) {
+    return this.doctorSchedulesService.getScheduleByToken(user, query.startDate, query.endDate);
+  }
 }

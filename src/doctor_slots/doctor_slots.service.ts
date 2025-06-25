@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdateDoctorSlotDto } from './dto/update-doctor_slot.dto';
 import { DoctorSlot, DoctorSlotDocument } from './schemas/doctor_slot.schema';
@@ -72,6 +73,15 @@ export class DoctorSlotsService {
       date: new Date(date),
       isDeleted: false,
       status: DoctorSlotStatus.AVAILABLE
+    })
+      .sort({ startTime: 1 });
+  }
+  async findByDoctorAndDateByToken(user: IUser, date: string) {
+    const doctor = await this.doctorService.findByUserID(user._id);
+    return this.doctorSlotModel.find({
+      doctorID: doctor.id,
+      date: new Date(date),
+      isDeleted: false,
     })
       .sort({ startTime: 1 });
   }

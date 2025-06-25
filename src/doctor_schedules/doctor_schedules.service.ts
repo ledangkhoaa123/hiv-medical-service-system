@@ -9,12 +9,14 @@ import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 import { IUser } from 'src/users/user.interface';
 import { UpdateDoctorScheduleDto } from './dto/update-doctor_schedule.dto';
 import { ConfigService } from '@nestjs/config';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class DoctorSchedulesService {
   constructor(
     @InjectModel(DoctorSchedule.name) private doctorScheduleModel: SoftDeleteModel<DoctorScheduleDocument>,
     private readonly doctorSlotsService: DoctorSlotsService,
+    private doctorsService: DoctorsService,
     private configService: ConfigService,
 
   ) { }
@@ -151,6 +153,25 @@ export class DoctorSchedulesService {
     // Lấy tất cả schedule của bác sĩ trong khoảng ngày
     return this.doctorScheduleModel.find({
       doctorID: doctorId,
+      date: {
+        $gte: start,
+        $lte: end,
+      },
+      isDeleted: false,
+    }).sort({ date: 1, shiftStart: 1 });
+  }
+  getScheduleByToken = async(user: IUser, startDate: string, endDate: string) => {
+    const doctor = await this.doctorsService.findByUserID(user._id);
+    if(!doctor){
+      throw new NotFoundException("Không tìm thấy doctor bằng token")
+    }
+    // Đảm bảo startDate, endDate là chuỗi ngày hợp lệ
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Lấy tất cả schedule của bác sĩ trong khoảng ngày
+    return this.doctorScheduleModel.find({
+      doctorID: doctor.id,
       date: {
         $gte: start,
         $lte: end,

@@ -8,12 +8,13 @@ import { IUser } from 'src/users/user.interface';
 import mongoose, { Types } from 'mongoose';
 import { DoctorSlot, DoctorSlotDocument } from 'src/doctor_slots/schemas/doctor_slot.schema';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
-import { ServicesService } from 'src/services/services.service';
 import { AppointmentStatus, DoctorSlotStatus } from 'src/enums/all_enums';
-import { config } from 'rxjs';
+import { ServicesService } from 'src/services/services.service';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/mail/mail.service';
 import { PatientsService } from 'src/patients/patients.service';
+import { DoctorsService } from 'src/doctors/doctors.service';
+
 
 @Injectable()
 export class AppointmentsService {
@@ -23,9 +24,11 @@ export class AppointmentsService {
     private readonly doctorSlotService: DoctorSlotsService,
     private readonly serviceService: ServicesService,
     private readonly configService: ConfigService,
+
     private readonly mailService: MailService,
-    private readonly patientService: PatientsService
-  ) { }
+    private readonly patientService: PatientsService,
+    private doctorsService: DoctorsService
+  ) {}
 
 
   async create(createAppointmentDto: CreateAppointmentDto) {
@@ -242,6 +245,7 @@ export class AppointmentsService {
       _id: id,
     });
   }
+
   async confirmAppointment(id: string, user: IUser) {
     const appointment = await this.appointmentModel.findById(id);
     if (!appointment) {
@@ -293,5 +297,17 @@ export class AppointmentsService {
 
     return { message: `Đã xác nhận lịch ngày${slot.date}` };
   }
-
+  getFromToken = async (user: IUser) => {
+    const doctor = await this.doctorsService.findByUserID(user._id);
+    if (!doctor) {
+      throw new BadRequestException("Không tìm thấy doctor bằng userID ở Token");
+    }
+    return await this.appointmentModel.find({
+      doctorID: doctor._id,
+      status: {
+        $in: [AppointmentStatus.confirmed, AppointmentStatus.completed]
+      }
+    })
+  }
 }
+
