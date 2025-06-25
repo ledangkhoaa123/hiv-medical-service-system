@@ -6,7 +6,12 @@ export type DoctorDocument = HydratedDocument<Doctor>;
 
 @Schema({ timestamps: true })
 export class Doctor {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, required: true, unique: true, ref: User.name })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    unique: true,
+    ref: User.name,
+  })
   userID: mongoose.Schema.Types.ObjectId;
 
   @Prop({ required: true })
@@ -23,6 +28,9 @@ export class Doctor {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop()
+  avatarURL: string;
 
   @Prop({ type: Object })
   createdBy: {

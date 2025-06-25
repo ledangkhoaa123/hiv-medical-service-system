@@ -40,19 +40,15 @@ export class PatientsService {
     }
   }
 
-  async createGuest(createPatientDto: CreateGuestPatientDto, user: IUser) {
+  async createGuest(createPatientDto: CreateGuestPatientDto) {
     try {
-      const patient = await this.patientModel.create({
-        ...createPatientDto,
-        createdBy: {
-          _id: user._id,
-          email: user.email,
-        },
-      });
-      return {
-        _id: patient._id,
-        createdAt: patient.createdAt,
-      };
+    const patient = await this.patientModel.create({
+      ...createPatientDto,
+    });
+    return {
+      _id: patient._id,
+      createdAt: patient.createdAt,
+    };
     } catch (error) {
       if (error.code === 11000) {
         throw new BadRequestException(`personalID đã tồn tại`);
@@ -63,14 +59,14 @@ export class PatientsService {
   findAll() {
     return this.patientModel.find().populate([
       {
-      path: 'userID',
-      select: 'name phone',
-    },
-    {
-      path: 'medicalRecordID',
-      select: 'diagnosis symptoms clinicalNotes',
-    },
-  ]);
+        path: 'userID',
+        select: 'name phone',
+      },
+      {
+        path: 'medicalRecordID',
+        select: 'diagnosis symptoms clinicalNotes',
+      },
+    ]);
   }
 
   async findOne(id: string) {
@@ -79,14 +75,14 @@ export class PatientsService {
     }
     return await this.patientModel.findOne({ _id: id }).populate([
       {
-      path: 'userID',
-      select: 'email name phone',
-    },
-    {
-      path: 'medicalRecordID',
-      select: 'diagnosis symptoms clinicalNotes',
-    },
-  ]);
+        path: 'userID',
+        select: 'email name phone',
+      },
+      {
+        path: 'medicalRecordID',
+        select: 'diagnosis symptoms clinicalNotes',
+      },
+    ]);
   }
 
   findOneByPersonalID = async (personalID: string) => {
@@ -101,7 +97,7 @@ export class PatientsService {
 
   async update(id: string, updatePatientDto: UpdatePatientDto, user: IUser) {
     if (!(await this.findOne(id))) {
-throw new BadRequestException(`Không tìm thấy bệnh nhân với id=${id}`);
+      throw new BadRequestException(`Không tìm thấy bệnh nhân với id=${id}`);
     }
 
     const isExist = await this.patientModel.findOne({
@@ -204,29 +200,37 @@ throw new BadRequestException(`Không tìm thấy bệnh nhân với id=${id}`);
       { $addToSet: { medicalRecordID: newMedicalRecordID } }, // dùng $push nếu muốn cho phép trùng lặp
     );
   };
-  updateUserID = async (personalID: string, userID: mongoose.Schema.Types.ObjectId, email: string) => {
-const patient = await this.findOneByPersonalID(personalID);
+  updateUserID = async (
+    personalID: string,
+    userID: mongoose.Schema.Types.ObjectId,
+    email: string,
+  ) => {
+    const patient = await this.findOneByPersonalID(personalID);
     const userPatient = await this.patientModel.findOne({
-      userID: userID, 
+      userID: userID,
     });
     if (!patient) {
-      throw new BadRequestException(`Không tìm thấy bệnh nhân với personalID=${personalID}`);
+      throw new BadRequestException(
+        `Không tìm thấy bệnh nhân với personalID=${personalID}`,
+      );
     }
     if (userPatient) {
-      throw new BadRequestException(`UserID đã được sử dụng cho bệnh nhân khác`);
+      throw new BadRequestException(
+        `UserID đã được sử dụng cho bệnh nhân khác`,
+      );
     }
     return this.patientModel.updateOne(
       { _id: patient._id },
-      { 
+      {
         userID: userID,
         isRegistered: true,
         $addToSet: {
           contactEmails: email,
         },
-      }
+      },
     );
   };
   findOneByToken = async (user: IUser) => {
-    return this.patientModel.findOne({userID: user._id});
-  }
+    return this.patientModel.findOne({ userID: user._id });
+  };
 }

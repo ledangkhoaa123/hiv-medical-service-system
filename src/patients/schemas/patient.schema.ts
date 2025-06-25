@@ -17,8 +17,6 @@ export class Patient {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,
-    unique: true,
-    default: null,
   })
   userID: mongoose.Schema.Types.ObjectId;
 
