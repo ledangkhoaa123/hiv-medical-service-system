@@ -56,7 +56,13 @@ export class AppointmentsController {
   findOne(@Param('id') id: string) {
     return this.appointmentsService.findOne(id);
   }
-
+  @Patch(':id/confirm')
+  @ApiOperation({ summary: 'Xác nhận lịch hẹn' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
+  @ResponseMessage("Xác nhận lịch hẹn thành công")
+  confirmAppointment(@Param('id') id: string, @User() user: IUser) {
+    return this.appointmentsService.confirmAppointment(id, user);
+  }
 
   @ResponseMessage("Cập nhật lịch hẹn")
   @ApiOperation({ summary: 'Cập nhật lịch hẹn' })

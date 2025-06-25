@@ -22,19 +22,8 @@ export class DoctorSlotsController {
   findAll() {
     return this.doctorSlotsService.findAll();
   }
-  @ApiOperation({ summary: 'Xem Slot khả dụng theo ngày (theo dịch vụ đã chọn)' })
-  @ApiQuery({ name: 'serviceId', required: true, description: 'ID dịch vụ' })
-  @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
   @Public()
-  @Get('/available-slots-by-date')
-  async getAvailableSlotsByDate(
-    @Query('serviceId') serviceId: string,
-    @Query('date') date: Date
-  ) {
-    return this.doctorSlotsService.findSlotAvaliable(serviceId, date);
-  }
-  @Public()
-  @ApiOperation({ summary: 'Tìm slot khả dụng theo dịch vụ, bác sĩ và ngày' })
+  @ApiOperation({ summary: '(Op1)Tìm slot khả dụng theo dịch vụ, bác sĩ và ngày' })
   @ApiParam({ name: 'doctorId', required: true, description: 'ID bác sĩ' })
   @ApiQuery({ name: 'serviceId', required: true, description: 'ID dịch vụ' })
   @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
@@ -50,7 +39,19 @@ export class DoctorSlotsController {
     return this.doctorSlotsService.findSlotByService(serviceId, doctorId, date);
   }
 
-  @ApiOperation({ summary: 'Xem tất cả BÁC SĨ theo Slot'})
+  @ApiOperation({ summary: '(Opt2,Step1)Xem Slot khả dụng theo ngày (theo dịch vụ đã chọn)' })
+  @ApiQuery({ name: 'serviceId', required: true, description: 'ID dịch vụ' })
+  @ApiQuery({ name: 'date', required: true, description: 'Ngày (YYYY-MM-DD)', example: '2025-06-20' })
+  @Public()
+  @Get('/available-slots-by-date')
+  async getAvailableSlotsByDate(
+    @Query('serviceId') serviceId: string,
+    @Query('date') date: Date
+  ) {
+    return this.doctorSlotsService.findSlotAvaliable(serviceId, date);
+  }
+
+  @ApiOperation({ summary: '((Opt2,Step2))Xem tất cả BÁC SĨ theo Slot' })
   @ApiQuery({ name: 'startTime', required: true, type: Date, example: '2025-06-20T09:00:00.000Z' })
   @ResponseMessage('Xem tất cả bác sĩ theo slot')
   @Public()
@@ -59,6 +60,20 @@ export class DoctorSlotsController {
     @Query('startTime') startTime: Date,
   ) {
     return this.doctorSlotsService.findDoctorsBySlots(startTime);
+  }
+  @ApiOperation({ summary: '((Opt2,Step3))Lấy slot theo bác sĩ và startTime' })
+  @ApiParam({ name: 'doctorId', required: true, type: String })
+  @ApiQuery({ name: 'startTime', required: true, type: String, example: '2025-06-20T09:00:00.000Z' })
+  @Public()
+  @Get(':doctorId/slot-by-starttime')
+  async getSlotByDoctorAndStartTime(
+    @Param('doctorId') doctorId: string,
+    @Query('startTime') startTime: string
+  ) {
+    if (!doctorId || !startTime) {
+      throw new BadRequestException('Thiếu doctorId hoặc startTime');
+    }
+    return this.doctorSlotsService.findByDoctorAndStartTime(doctorId, new Date(startTime));
   }
 
   @ApiOperation({ summary: 'Xem thông tin slot khám' })

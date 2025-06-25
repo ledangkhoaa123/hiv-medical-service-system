@@ -21,7 +21,7 @@ export class Appointment {
     @Prop({ required: true })
     date: Date;
     @Prop({
-        type: String, required: true, default: AppointmentStatus.pending, enum: AppointmentStatus
+        type: String, required: true, default: AppointmentStatus.pending_payment, enum: AppointmentStatus
     })
     status: AppointmentStatus;
 

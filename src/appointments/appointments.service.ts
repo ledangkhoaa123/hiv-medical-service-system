@@ -12,6 +12,8 @@ import { ServicesService } from 'src/services/services.service';
 import { AppointmentStatus, DoctorSlotStatus } from 'src/enums/all_enums';
 import { config } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
+import { MailService } from 'src/mail/mail.service';
+import { PatientsService } from 'src/patients/patients.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -20,7 +22,9 @@ export class AppointmentsService {
     @InjectModel(DoctorSlot.name) private doctorSlotModel: SoftDeleteModel<DoctorSlotDocument>,
     private readonly doctorSlotService: DoctorSlotsService,
     private readonly serviceService: ServicesService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly mailService: MailService,
+    private readonly patientService: PatientsService
   ) { }
 
 
@@ -67,6 +71,7 @@ export class AppointmentsService {
       }
 
     )
+
     //  Tạo appointments
 
     await this.doctorSlotModel.updateMany(
@@ -142,6 +147,7 @@ export class AppointmentsService {
         },
       ]);;
   }
+
   async findByDoctorAndDate(doctorId: string, date: string) {
     const start = new Date(date + 'T00:00:00.000Z');
     const end = new Date(date + 'T23:59:59.999Z');
@@ -235,6 +241,57 @@ export class AppointmentsService {
     return this.appointmentModel.softDelete({
       _id: id,
     });
+  }
+  async confirmAppointment(id: string, user: IUser) {
+    const appointment = await this.appointmentModel.findById(id);
+    if (!appointment) {
+      throw new BadRequestException('Không tìm thấy lịch hẹn!');
+    }
+    
+    if (appointment.status !== AppointmentStatus.pending) {
+      if (appointment.status === AppointmentStatus.pending_payment) {
+        throw new BadRequestException('Lịch hẹnc chưa được thanh toán!');
+      }
+      throw new BadRequestException('Lịch hẹn dẵ được xác nhận!');
+    }
+    const slots = await this.doctorSlotModel.find({
+      _id: { $in: appointment.doctorSlotID },
+      isDeleted: false,
+    }).select('doctorID date startTime');
+
+    if (!slots.length) {
+      throw new BadRequestException('Không tìm thấy slot bác sĩ!');
+    }
+    const slot = slots[0];
+
+    const updateAppointment = await this.appointmentModel.updateOne({ _id: id },
+      {
+        status: AppointmentStatus.confirmed,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        }
+      }
+    )
+
+    if (updateAppointment.modifiedCount > 0) {
+      await this.doctorSlotModel.updateMany(
+        { _id: { $in: appointment.doctorSlotID } },
+        { $set: { status: DoctorSlotStatus.BOOKED } }
+      );
+    }
+
+    const patientI4 = await this.patientService.findOne(appointment.patientID as any);
+
+    await this.mailService.sendAppointmentCreatedEmail({
+      to: patientI4.contactEmails[0],
+      patientName: patientI4.name || "Quý Khách",
+      appointmentDate: appointment.date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+      shift: slot.startTime.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+      status: AppointmentStatus.confirmed,
+    });
+
+    return { message: `Đã xác nhận lịch ngày${slot.date}` };
   }
 
 }

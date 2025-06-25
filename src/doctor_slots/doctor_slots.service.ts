@@ -99,7 +99,7 @@ export class DoctorSlotsService {
       throw error;
     }
   }
-  async findDoctorsBySlots( adjustedStart: Date) {
+  async findDoctorsBySlots(adjustedStart: Date) {
 
     const slots = await this.doctorSlotModel.find({
       startTime: adjustedStart,
@@ -190,17 +190,24 @@ export class DoctorSlotsService {
       }
     }
     const uniqueSlots = [];
-  const seenStartTimes = new Set();
-  for (const slot of availableSlots) {
-    const timeKey = slot.startTime.getTime();
-    if (!seenStartTimes.has(timeKey)) {
-      uniqueSlots.push(slot);
-      seenStartTimes.add(timeKey);
+    const seenStartTimes = new Set();
+    for (const slot of availableSlots) {
+      const timeKey = slot.startTime.getTime();
+      if (!seenStartTimes.has(timeKey)) {
+        uniqueSlots.push(slot);
+        seenStartTimes.add(timeKey);
+      }
     }
-  }
 
     return uniqueSlots.map(slot => slot.startTime
     );
+  }
+   async findByDoctorAndStartTime(doctorId: string, startTime: Date) {
+    return this.doctorSlotModel.findOne({
+      doctorID: doctorId,
+      startTime: startTime,
+      isDeleted: false,
+    });
   }
 
   async remove(id: string, user: IUser) {
@@ -220,4 +227,5 @@ export class DoctorSlotsService {
     const time = slot.endTime
     return this.doctorSlotModel.findOne({ startTime: time })
   }
+ 
 }
