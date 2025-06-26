@@ -158,7 +158,16 @@ export class AppointmentsService {
       doctorID: doctorId,
       date: { $gte: start, $lte: end },
       isDeleted: false,
-    });
+    }).populate([{
+      path: 'serviceID',
+      select: 'name price durationMinutes',
+    },
+    {
+      path: 'patientID',
+      select: 'name userID',
+      populate: { path: 'userID', select: 'name' },
+    }
+  ]);
   }
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
@@ -166,7 +175,16 @@ export class AppointmentsService {
     return this.appointmentModel.find({
       date: { $gte: start, $lte: end },
       isDeleted: false,
-    });
+    }).populate([{
+      path: 'serviceID',
+      select: 'name price durationMinutes',
+    },
+    {
+      path: 'patientID',
+      select: 'name userID',
+      populate: { path: 'userID', select: 'name' },
+    }
+  ]);
   }
 
   async update(id: string, updateDto: UpdateAppointmentDto, user: IUser) {
@@ -307,7 +325,16 @@ export class AppointmentsService {
       status: {
         $in: [AppointmentStatus.confirmed, AppointmentStatus.completed]
       }
-    })
+    }).populate([{
+      path: 'serviceID',
+      select: 'name price durationMinutes',
+    },
+    {
+      path: 'patientID',
+      select: 'name userID',
+      populate: { path: 'userID', select: 'name' },
+    }
+  ])
   }
 }
 
