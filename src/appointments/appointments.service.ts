@@ -336,5 +336,28 @@ export class AppointmentsService {
     }
   ])
   }
+  getFromTokenPatient= async (user: IUser) => {
+    const patient = await this.patientService.findOneByToken(user)
+    if (!patient) {
+      throw new BadRequestException("Không tìm thấy patient bằng userID ở Token");
+    }
+    return await this.appointmentModel.find({
+      patientID: patient._id,
+    }).populate([{
+      path: 'serviceID',
+      select: 'name price durationMinutes',
+    },
+    {
+      path: 'patientID',
+      select: 'name userID',
+      populate: { path: 'userID', select: 'name' },
+    },
+    {
+      path: 'doctorID',
+      select: 'userID room',
+      populate: { path: 'userID', select: 'name' },
+    }
+  ])
+  }
 }
 
