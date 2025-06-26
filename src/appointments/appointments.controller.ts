@@ -52,7 +52,7 @@ export class AppointmentsController {
   @ResponseMessage("Xem chi tiết lịch hẹn theo id")
   @ApiOperation({ summary: 'Lấy chi tiết lịch hẹn theo id' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
-  @Get(':id')
+  @Get('findOne/:id')
   findOne(@Param('id') id: string) {
     return this.appointmentsService.findOne(id);
   }
@@ -84,5 +84,11 @@ export class AppointmentsController {
   @Post('token')
   getAppointByToken(@User() user: IUser) {
     return this.appointmentsService.getFromToken(user);
+  }
+  @ApiOperation({ summary: 'Lấy Appointment theo patient token' })
+  @ResponseMessage("Get Appointment from Access Token")
+  @Get('patienttoken')
+  getAppointByPatientToken(@User() user: IUser) {
+    return this.appointmentsService.getFromTokenPatient(user);
   }
 }
