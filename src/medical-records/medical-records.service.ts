@@ -56,34 +56,82 @@ export class MedicalRecordsService {
   async findAll(): Promise<MedicalRecord[]> {
     return this.medicalRecordModel
       .find()
-      .populate([{ path: 'treatmentID', select: 'profile' }]);
+      .populate([
+      {
+        path: 'patientID',
+        select: 'name userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ]);
   }
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-          throw new BadRequestException('Không tìm thấy hồ sơ y tế, kiểm tra lại ID');
-        }
+      throw new BadRequestException(
+        'Không tìm thấy hồ sơ y tế, kiểm tra lại ID',
+      );
+    }
     const record = await this.medicalRecordModel
       .findOne({ _id: id })
-      .populate([{ path: 'treatmentID', select: 'profile' }]);
+      .populate([
+      {
+        path: 'patientID',
+        select: 'name userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ]);
     return record;
   }
+  findOnePersonalID = async (id: string) => {
+    const patient = await this.patientsService.findOneByPersonalID(id);
+    if (!patient) {
+      throw new BadRequestException(
+        `Không tìm thấy bệnh nhân với personalId: ${id}`,
+      );
+    }
+    const medical = this.medicalRecordModel.findOne({ patientID: patient.id });
+    if (!medical) {
+      throw new NotFoundException(
+        `Không tìm thấy bệnh án với personalId: ${id}`,
+      );
+    }
+    return medical.populate([
+      {
+        path: 'patientID',
+        select: 'name userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ]);
+  };
   async findAllByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
-  return await this.medicalRecordModel.find({ patientID });
-}
+    return await this.medicalRecordModel.find({ patientID }).populate([
+      {
+        path: 'patientID',
+        select: 'name userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ]);
+  }
 
-// Trả về record hoặc null
-async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
-  return await this.medicalRecordModel
-    .findOne({ patientID })
-    .sort({ createdAt: -1 });
-}
+  // Trả về record hoặc null
+  async findLatestByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
+    return await this.medicalRecordModel
+      .findOne({ patientID })
+      .populate([
+      {
+        path: 'patientID',
+        select: 'name userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ])
+      .sort({ createdAt: -1 });
+  }
 
   async update(
     id: string,
     updateMedicalRecordDto: UpdateMedicalRecordDto,
     user: IUser,
   ) {
-     if (!(await this.findOne(id))) {
+    if (!(await this.findOne(id))) {
       throw new BadRequestException(`Không tìm thấy hồ sơ y tế với id=${id}`);
     }
 

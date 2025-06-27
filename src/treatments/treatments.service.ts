@@ -13,6 +13,7 @@ import { IUser } from 'src/users/user.interface';
 
 import { MedicalRecordsService } from 'src/medical-records/medical-records.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class TreatmentsService {
@@ -20,12 +21,19 @@ export class TreatmentsService {
     @InjectModel(Treatment.name)
     private treatmentModel: SoftDeleteModel<TreatmentDocument>,
     private medicalRecordsService: MedicalRecordsService,
+    private doctorsService: DoctorsService
   ) {}
 
   async create(createTreatmentDto: CreateTreatmentDto, user: IUser) {
     const medicalRecord = await this.medicalRecordsService.findOne(
       createTreatmentDto.medicalRecordID.toString(),
     );
+    const doctor = await this.doctorsService.findByUserID(user._id)
+    if(!doctor){
+      throw new BadRequestException(
+        `Doctor's token không hợp lệ`,
+      );
+    }
     if (!medicalRecord) {
       throw new BadRequestException(
         `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
@@ -33,6 +41,7 @@ export class TreatmentsService {
     }
     const treatment = await this.treatmentModel.create({
       ...createTreatmentDto,
+      doctorID: doctor.id,
       createdBy: { _id: user._id, email: user.email },
     });
     this.medicalRecordsService.updateTreatmentId(

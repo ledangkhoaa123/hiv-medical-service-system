@@ -13,15 +13,9 @@ export class CreateTreatmentDto {
   @IsMongoId({ message: 'medicalRecordID phải là ObjectId hợp lệ' })
   medicalRecordID: mongoose.Schema.Types.ObjectId;
 
-  @IsNotEmpty({ message: 'doctorID không được để trống' })
-  @IsString({ message: 'doctorID phải là chuỗi' })
-  doctorID: string;
-
   @IsString({ message: 'note phải là chuỗi' })
   @IsOptional()
   note: string;
 
-  @IsDateString()
-  @IsOptional()
-  followUpDate: Date;
+
 }
