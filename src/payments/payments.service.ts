@@ -53,8 +53,8 @@ export class PaymentsService {
         const service =  await this.servicesService.findOne(appointment.serviceID as any);
         if (service){
           if (result.vnp_Amount == service.price ){
-            if (appointment.status !== AppointmentStatus.confirmed){
-              await this.appointmentsService.updateStatus(appointment._id as any, AppointmentStatus.confirmed);
+            if (appointment.status !== AppointmentStatus.pending){
+              await this.appointmentsService.updateStatus(appointment._id as any, AppointmentStatus.pending);
             }
           }
         }

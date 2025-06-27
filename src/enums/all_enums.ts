@@ -58,7 +58,7 @@ export enum AppointmentStatus {
   confirmed = 'Hoàn tất đặt lịch',
   payment_failed = 'Thanh toán thất bại',
   cancelled_by_user = 'Hủy bởi người khách hàng',
-  cancelled_by_staff_refund_required = 'Hủy bởi Staff và chờ hoàn tiền  ',
+  cancelled_by_staff_refund_required = 'Hủy bởi Staff và chờ hoàn tiền',
   refund_completed = 'Hoàn tiền thành công',
   completed = 'Hoàn tất quá trình khám',
 }

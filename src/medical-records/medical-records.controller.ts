@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
 } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
@@ -22,42 +23,47 @@ export class MedicalRecordsController {
 
   @Post()
   @ApiOperation({ summary: 'Tạo hồ sơ bệnh án mới' })
-  @ResponseMessage("Create a new medical record")
+  @ResponseMessage('Create a new medical record')
   async create(
     @Body() createMedicalRecordDto: CreateMedicalRecordDto,
-    @User() user: IUser
+    @User() user: IUser,
   ) {
     return this.medicalRecordsService.create(createMedicalRecordDto, user);
   }
 
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách hồ sơ bệnh án' })
-  @ResponseMessage("Get all medical records")
+  @ResponseMessage('Get all medical records')
   async findAll() {
     return this.medicalRecordsService.findAll();
   }
 
-  @Get(':id')
+  @Get('/getone/:id')
   @ApiOperation({ summary: 'Lấy hồ sơ bệnh án theo ID' })
-  @ResponseMessage("Get medical record by ID")
+  @ResponseMessage('Get medical record by ID')
   async findOne(@Param('id') id: string): Promise<MedicalRecord> {
     return this.medicalRecordsService.findOne(id);
   }
-
+  @Get('/personalID')
+  @ApiOperation({ summary: 'Lấy hồ sơ bệnh án theo ID' })
+  @ResponseMessage('Get medical record by ID')
+  async findOnePersonalID(@Query('personalId') id: string): Promise<MedicalRecord> {
+    return this.medicalRecordsService.findOnePersonalID(id);
+  }
   @Put(':id')
   @ApiOperation({ summary: 'Cập nhật hồ sơ bệnh án theo ID' })
-  @ResponseMessage("Update medical record by ID")
+  @ResponseMessage('Update medical record by ID')
   async update(
     @Param('id') id: string,
     @Body() updateMedicalRecordDto: UpdateMedicalRecordDto,
-    @User() user: IUser
+    @User() user: IUser,
   ) {
     return this.medicalRecordsService.update(id, updateMedicalRecordDto, user);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Xóa hồ sơ bệnh án theo ID' })
-  @ResponseMessage("Delete medical record by ID")
+  @ResponseMessage('Delete medical record by ID')
   async delete(@Param('id') id: string, @User() user: IUser) {
     return this.medicalRecordsService.remove(id, user);
   }

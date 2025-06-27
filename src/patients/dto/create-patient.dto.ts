@@ -88,3 +88,9 @@ export class UpgradeFromGuestDto {
   @IsNotEmpty({ message: 'Password không được trống' })
   password: string;
 }
+export class PersonalIDDto {
+  @IsNotEmpty({ message: 'Personal ID không được trống' })
+  @Matches(/^[0-9A-Z]{8,20}$/, { message: 'personalID không hợp lệ' })
+  personalID: string;
+
+}

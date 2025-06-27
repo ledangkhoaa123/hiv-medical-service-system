@@ -65,10 +65,10 @@ export class DoctorsService {
 
   }
 
-  findAll() {
-    return this.doctorModel.find().populate({
+  async findAll() {
+    return await this.doctorModel.find().populate({
       path: 'userID',
-      select: 'name phone',
+      select: 'name phone email',
     });
   }
 
@@ -78,8 +78,18 @@ export class DoctorsService {
     }
     return this.doctorModel.findOne({ _id: id }).populate({
       path: 'userID',
-      select: 'name phone',
+      select: 'name phone email',
     });
+  }
+  async findByToken(user: IUser) {
+    const doctor = await this.doctorModel.findOne({userID: user._id}).populate({
+      path: 'userID',
+      select: 'name phone email',
+    });
+    if (!doctor) {
+      throw new BadRequestException("Token không trả về doctor theo UserID");
+    }
+    return doctor;
   }
 
 
@@ -118,5 +128,8 @@ export class DoctorsService {
     return this.doctorModel.softDelete({
       _id: id,
     });
+  }
+  findByUserID = async (userID : string) => {
+    return await this.doctorModel.findOne({userID});
   }
 }

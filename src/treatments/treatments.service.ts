@@ -16,7 +16,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { MailService } from 'src/mail/mail.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CronJob } from 'cron';
-
+import { DoctorsService } from 'src/doctors/doctors.service';
 @Injectable()
 export class TreatmentsService {
   constructor(
@@ -24,6 +24,7 @@ export class TreatmentsService {
     private treatmentModel: SoftDeleteModel<TreatmentDocument>,
     private medicalRecordsService: MedicalRecordsService,
     private readonly mailService: MailService,
+    private doctorsService: DoctorsService
   ) {
     const job = new CronJob(
       '0 43 10 * * *', // giây phút giờ ngày tháng thứ
@@ -39,6 +40,12 @@ export class TreatmentsService {
     const medicalRecord = await this.medicalRecordsService.findOne(
       createTreatmentDto.medicalRecordID.toString(),
     );
+    const doctor = await this.doctorsService.findByUserID(user._id)
+    if(!doctor){
+      throw new BadRequestException(
+        `Doctor's token không hợp lệ`,
+      );
+    }
     if (!medicalRecord) {
       throw new BadRequestException(
         `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
@@ -46,6 +53,7 @@ export class TreatmentsService {
     }
     const treatment = await this.treatmentModel.create({
       ...createTreatmentDto,
+      doctorID: doctor.id,
       createdBy: { _id: user._id, email: user.email },
     });
     this.medicalRecordsService.updateTreatmentId(

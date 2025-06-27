@@ -9,7 +9,8 @@ import { MailModule } from 'src/mail/mail.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Treatment', schema: TreatmentSchema }]),
-    MedicalRecordsModule,MailModule // Assuming MedicalRecordsModule is defined elsewhere
+    MedicalRecordsModule, DoctorsModule,MailModule
+    // Assuming MedicalRecordsModule is defined elsewhere
   ],
   controllers: [TreatmentsController],
   providers: [TreatmentsService],

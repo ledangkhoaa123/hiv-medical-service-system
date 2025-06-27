@@ -17,7 +17,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('doctors')
 @ApiTags('doctors')
 export class DoctorsController {
-  constructor(private readonly doctorsService: DoctorsService) { }
+  constructor(private readonly doctorsService: DoctorsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Tạo bác sĩ mới' })
@@ -41,8 +41,12 @@ export class DoctorsController {
   findOne(@Param('id') id: string) {
     return this.doctorsService.findOne(id);
   }
-
- 
+  @Post('token')
+  @ApiOperation({ summary: 'Lấy bác sĩ từ token' })
+  @ResponseMessage('Get Doctor from Token')
+  getByToken(@User() user: IUser) {
+    return this.doctorsService.findByToken(user);
+  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin bác sĩ' })
