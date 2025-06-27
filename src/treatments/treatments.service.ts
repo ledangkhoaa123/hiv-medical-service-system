@@ -13,6 +13,9 @@ import { IUser } from 'src/users/user.interface';
 
 import { MedicalRecordsService } from 'src/medical-records/medical-records.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { MailService } from 'src/mail/mail.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 
 @Injectable()
 export class TreatmentsService {
@@ -20,7 +23,17 @@ export class TreatmentsService {
     @InjectModel(Treatment.name)
     private treatmentModel: SoftDeleteModel<TreatmentDocument>,
     private medicalRecordsService: MedicalRecordsService,
-  ) {}
+    private readonly mailService: MailService,
+  ) {
+    const job = new CronJob(
+      '0 43 10 * * *', // giây phút giờ ngày tháng thứ
+      () => this.sendFollowUpReminders(),
+      null,
+      true,
+      'Asia/Ho_Chi_Minh'
+    );
+    job.start();
+  }
 
   async create(createTreatmentDto: CreateTreatmentDto, user: IUser) {
     const medicalRecord = await this.medicalRecordsService.findOne(
@@ -130,4 +143,45 @@ export class TreatmentsService {
       );
     }
   };
+
+
+  async sendFollowUpReminders() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+
+    const treatments = await this.treatmentModel.find({
+      followUpDate: { $gte: tomorrow, $lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) },
+      isDeleted: false,
+    }).populate({
+      path: 'medicalRecordID',
+      populate: { path: 'patientID' }
+    })
+      .populate({
+        path: 'doctorID',
+        select: 'userID room',
+        populate: { path: 'userID', select: 'name' }
+      });
+    for (const treatment of treatments) {
+      const medicalRecord: any = treatment.medicalRecordID;
+      const patient: any = medicalRecord?.patientID;
+      const doctor: any = treatment.doctorID;
+      const date = new Date(treatment.followUpDate)
+      const vietnamDate = new Date(date.getTime() - 7 * 60 * 60 * 1000);
+      const yyyy = vietnamDate.getFullYear();
+      const mm = String(vietnamDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(vietnamDate.getDate()).padStart(2, '0');
+      const hh = String(vietnamDate.getHours()).padStart(2, '0');
+      const min = String(vietnamDate.getMinutes()).padStart(2, '0');
+      const formatted = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+      await this.mailService.sendFollowUpReminderEmail({
+        to: patient.contactEmails?.[0],
+        patientName: patient.name || 'Quý khách',
+        doctorName: doctor?.userID?.name || '',
+        room: doctor?.room || '',
+        followUpDate: formatted
+      });
+    }
+  }
 }

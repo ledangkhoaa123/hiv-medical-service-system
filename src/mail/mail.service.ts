@@ -24,4 +24,23 @@ export class MailService {
             }
         })
     }
+    async sendFollowUpReminderEmail(data: {
+        to: string;
+        patientName: string;
+        doctorName: string;
+        room: string;
+        followUpDate: string;
+    }) {
+        await this.mailerService.sendMail({
+            to: data.to,
+            subject: 'Nhắc lịch tái khám',
+            template: 'followUp',
+            context: {
+                patientName: data.patientName,
+                followUpDate: data.followUpDate,
+                doctorName:data.doctorName,
+                room:data.room
+            },
+        });
+    }
 }
