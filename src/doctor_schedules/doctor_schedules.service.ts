@@ -21,31 +21,40 @@ export class DoctorSchedulesService {
 
   ) { }
   async createSchedule(dto: CreateMultiScheduleDto, user: IUser) {
-    // Kiểm tra ngày đã tồn tại trong DB
-    const existed = await this.doctorScheduleModel.find({
-      doctorID: dto.doctorID,
-      date: { $in: dto.dates.map(d => new Date(d)) },
-      isDeleted: false,
-    });
-    if (existed.length > 0) {
-      const existedDates = existed.map(e => e.date.toISOString().split('T')[0]);
-      throw new BadRequestException(`Bác sĩ đã có lịch vào các ngày: ${existedDates.join(', ')}`);
+     const pairs = [];
+  for (const doctorID of dto.doctorID) {
+    for (const date of dto.dates) {
+      pairs.push({ doctorID, date: new Date(date) });
     }
+  }
+    // Kiểm tra ngày đã tồn tại trong DB
+     const existed = await this.doctorScheduleModel.find({
+    $or: pairs.map(pair => ({
+      doctorID: pair.doctorID,
+      date: pair.date,
+      isDeleted: false,
+    })),
+  });
+
+  if (existed.length > 0) {
+    const existedInfo = existed.map(e => `Bác sĩ ${e.doctorID} ngày ${e.date.toISOString().split('T')[0]}`);
+    throw new BadRequestException(`Đã có lịch cho: ${existedInfo.join(', ')}`);
+  }
 
     // Tạo mới từng ngày
     const results = [];
-    for (const date of dto.dates) {
-      const schedule = await this.doctorScheduleModel.create({
-        doctorID: dto.doctorID,
-        date: new Date(date),
-        status: DoctorScheduleStatus.PENDING,
-        createdBy: {
-          _id: user._id,
-          email: user.email,
-        },
-      });
-      results.push(schedule);
-    }
+  for (const pair of pairs) {
+    const schedule = await this.doctorScheduleModel.create({
+      doctorID: pair.doctorID,
+      date: pair.date,
+      status: DoctorScheduleStatus.PENDING,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+      },
+    });
+    results.push(schedule);
+  }
     return results;
   }
 

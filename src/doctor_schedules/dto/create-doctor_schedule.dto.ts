@@ -58,10 +58,15 @@ export class UniqueArray {
 }
 
 export class CreateMultiScheduleDto {
-  @ApiProperty({ example: '665f8b2e2e8b2c001e7e0a11', description: 'ID của bác sĩ' })
+  @ApiProperty({
+     example: ['665f8b2e2e8b2c001e7e0a11', '665f8b2e2e8b2c001e7e0a11'],
+      description: 'ID của bác sĩ',
+      type: [String] 
+    })
   @IsNotEmpty()
-  @IsMongoId()
-  doctorID: string;
+  @IsMongoId({ each: true, message: 'Each permission phải là MongoObj ID' })
+  @IsArray()
+  doctorID: string[];
 
   @ApiProperty({
     example: ['2025-06-20', '2025-06-21'],
