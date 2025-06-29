@@ -54,7 +54,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     //   throw new ForbiddenException(
     //     'Bạn không có quyền để truy cập EndPoint này',
     //   );
-
+    // }
     return user;
   }
 }

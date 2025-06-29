@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, Min, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, Min, IsEnum, Max } from 'class-validator';
 import { ServiceName } from 'src/enums/all_enums';
 
 export class CreateServiceDto {
@@ -15,6 +15,6 @@ export class CreateServiceDto {
     @IsNotEmpty()
     @IsNumber()
     @Min(15)
-    durationMinutes: number;
-    
+    @Max(120)
+    durationMinutes: number;  
 }

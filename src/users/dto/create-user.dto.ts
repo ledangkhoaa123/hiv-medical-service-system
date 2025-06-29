@@ -20,7 +20,7 @@ export class CreateUserDto {
   address: string;
   @IsNotEmpty({ message: 'Phone không được trống' })
   phone: string;
-  @IsNotEmpty({ message: 'Role không được trống' })
+  @IsOptional()
   @IsMongoId({ message: 'Role có định dạng là MongoID' })
   role: mongoose.Schema.Types.ObjectId;
 }
