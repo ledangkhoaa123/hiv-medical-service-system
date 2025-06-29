@@ -67,3 +67,10 @@ export enum AppointmentShiftName {
   AFTERNOON = 'afternoon',
   FullDay = 'full',
 }
+export enum RoleName {
+  CUSTOMER_ROLE = 'CUSTOMER_ROLE',
+  STAFF_ROLE = 'STAFF_ROLE',
+  ADMIN_ROLE = 'ADMIN_ROLE',
+  DOCTOR_ROLE = 'DOCTOR_ROLE',
+  MANAGER_ROLE = 'MANAGER_ROLE'
+}

@@ -29,7 +29,7 @@ export class Doctor {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop()
+  @Prop({default: ''})
   avatarURL: string;
 
   @Prop({ type: Object })
