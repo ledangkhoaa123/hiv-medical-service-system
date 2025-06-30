@@ -29,9 +29,6 @@ export class Doctor {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({default: ''})
-  avatarURL: string;
-
   @Prop({ type: Object })
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;

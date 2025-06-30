@@ -17,7 +17,4 @@ export class CreateDoctorDto extends CreateUserDto {
     @IsOptional()
     @IsString({ message: 'specializations phải là chuỗi' })
     specializations: string;
-    @IsOptional()
-    @IsString({ message: 'avatarURL phải là chuỗi' })
-    avatarURL: string;
 }

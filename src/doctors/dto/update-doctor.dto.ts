@@ -7,9 +7,6 @@ export class UpdateDoctorDto {
   room: string;
 
   @IsOptional()
-  avatarURL: string;
-
-  @IsOptional()
   @IsArray({ message: 'Experiences phải là mảng' })
   @IsString({
     each: true,
