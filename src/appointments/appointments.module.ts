@@ -10,6 +10,7 @@ import { ConfigModule } from "@nestjs/config";
 import { MailModule } from "src/mail/mail.module";
 import { PatientsModule } from "src/patients/patients.module";
 import { DoctorsModule } from "src/doctors/doctors.module";
+import { AppointmentCronService } from "./appointment-cron.service";
 
 
 @Module({
@@ -21,7 +22,7 @@ import { DoctorsModule } from "src/doctors/doctors.module";
     DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule
   ],
   controllers: [AppointmentsController],
-  providers: [AppointmentsService],
+  providers: [AppointmentsService,AppointmentCronService],
   exports: [AppointmentsService]
 })
 export class AppointmentsModule {}

@@ -30,6 +30,7 @@ import { DoctorSlotsModule } from './doctor_slots/doctor_slots.module';
 import { PaymentsModule } from './payments/payments.module';
 import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
 import { MailModule } from './mail/mail.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { MailModule } from './mail/mail.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     AppointmentsModule,
     AnonymousAppointmentsModule,
     DoctorSlotsModule,

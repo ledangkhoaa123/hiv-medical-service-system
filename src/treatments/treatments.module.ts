@@ -5,6 +5,7 @@ import { TreatmentsController } from './treatments.controller';
 import { Treatment, TreatmentSchema } from './schemas/treatment.schema';
 import { MedicalRecordsModule } from 'src/medical-records/medical-records.module';
 import { MailModule } from 'src/mail/mail.module';
+import { DoctorsModule } from 'src/doctors/doctors.module';
 
 @Module({
   imports: [
