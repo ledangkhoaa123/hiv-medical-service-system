@@ -74,3 +74,7 @@ export enum RoleName {
   DOCTOR_ROLE = 'DOCTOR_ROLE',
   MANAGER_ROLE = 'MANAGER_ROLE'
 }
+export enum WalletType {
+  REFUND = 'Giao dịch hoàn trả',
+  PAYMENT = 'Giao dịch thanh toán'
+}
