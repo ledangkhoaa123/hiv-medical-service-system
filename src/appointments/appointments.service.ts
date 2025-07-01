@@ -200,7 +200,7 @@ export class AppointmentsService {
   }
 
 
-  }
+  
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
     const end = new Date(endDate + 'T23:59:59.999Z');
