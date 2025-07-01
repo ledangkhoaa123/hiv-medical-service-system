@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {  IsDateString, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 import mongoose from 'mongoose';
 
 export class CreateUserDto {
@@ -20,7 +28,7 @@ export class CreateUserDto {
   address: string;
   @IsNotEmpty({ message: 'Phone không được trống' })
   phone: string;
-  @IsNotEmpty({ message: 'Role không được trống' })
+  @IsOptional()
   @IsMongoId({ message: 'Role có định dạng là MongoID' })
   role: mongoose.Schema.Types.ObjectId;
 }
@@ -46,11 +54,15 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'gender không được trống' })
   gender: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'address không được trống' })
   address: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'phone không được trống' })
   phone: string;
+
+  @IsOptional()
+  @IsString({ message: 'avatarURL phải là chuỗi' })
+  avatarURL: string;
 }
 export class UserLoginDto {
   @IsString()
@@ -83,5 +95,4 @@ export class UpgradeUserDto {
 
   @IsNotEmpty({ message: 'gender không được trống' })
   gender: string;
-
 }

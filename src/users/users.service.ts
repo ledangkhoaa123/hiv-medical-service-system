@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { pick } from 'lodash';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   CreateUserDto,
   RegisterUserDto,
@@ -33,6 +33,9 @@ export class UsersService {
     });
     if (isExist) {
       throw new BadRequestException('Email đã tồn tại!');
+    }
+    if (!(await this.roleModel.findOne({_id: createUserDto.role})) || !createUserDto.role) {
+      throw new NotFoundException("Không tìm thấy role")
     }
     const { email, password, dob, gender, name, phone, address, role } =
       createUserDto;

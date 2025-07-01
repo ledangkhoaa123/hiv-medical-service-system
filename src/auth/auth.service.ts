@@ -34,13 +34,16 @@ export class AuthService {
   }
 
   async signIn(user: IUser, res: Response) {
-    const { _id, email, name, role, permissions } = user;
+    const { _id, email, name, role, permissions, address, gender, avatarURL } = user;
     const payload = {
       iss: 'Form Server',
       sub: 'Token Login',
       _id,
       name,
+      address,
+      gender,
       email,
+      avatarURL,
       role
     };
     const refreshToken = this.createRefreshToken({ name: name });
@@ -57,6 +60,9 @@ export class AuthService {
         _id,
         email,
         name,
+        address,
+        gender,
+        avatarURL,
         role,
         permissions,
       },

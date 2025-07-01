@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Doctor, DoctorSchema } from './schemas/doctor.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { UsersModule } from 'src/users/users.module';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [MongooseModule.forFeature(
@@ -13,7 +14,8 @@ import { UsersModule } from 'src/users/users.module';
       { name: User.name, schema: UserSchema },
     
     ]),
-    UsersModule
+    UsersModule,
+    RolesModule
   ],
   controllers: [DoctorsController],
   providers: [DoctorsService],

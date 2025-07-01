@@ -17,5 +17,4 @@ export class CreateDoctorDto extends CreateUserDto {
     @IsOptional()
     @IsString({ message: 'specializations phải là chuỗi' })
     specializations: string;
-
 }
