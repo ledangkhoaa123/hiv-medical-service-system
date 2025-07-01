@@ -18,7 +18,7 @@ import { DoctorsModule } from "src/doctors/doctors.module";
       { name: Appointment.name, schema: AppointmentSchema },
       { name: DoctorSlot.name, schema: DoctorSlotSchema }
     ]),
-    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule
+    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],

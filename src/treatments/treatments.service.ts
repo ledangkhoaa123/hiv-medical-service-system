@@ -17,6 +17,7 @@ import { MailService } from 'src/mail/mail.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { DoctorsService } from 'src/doctors/doctors.service';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class TreatmentsService {
   constructor(
@@ -24,10 +25,12 @@ export class TreatmentsService {
     private treatmentModel: SoftDeleteModel<TreatmentDocument>,
     private medicalRecordsService: MedicalRecordsService,
     private readonly mailService: MailService,
-    private doctorsService: DoctorsService
+    private doctorsService: DoctorsService,
+    private readonly configService:ConfigService
   ) {
+    const cronTime = this.configService.get<string>('TIME_SEND_MAIL_FOLLOWUP');
     const job = new CronJob(
-      '0 43 10 * * *', // giây phút giờ ngày tháng thứ
+      cronTime,
       () => this.sendFollowUpReminders(),
       null,
       true,
@@ -151,7 +154,6 @@ export class TreatmentsService {
       );
     }
   };
-
 
   async sendFollowUpReminders() {
     const today = new Date();
