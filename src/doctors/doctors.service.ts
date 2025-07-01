@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { Doctor, DoctorDocument } from './schemas/doctor.schema';
@@ -10,6 +10,8 @@ import { pick } from 'lodash';
 import path from 'path';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/users.service';
+import { RolesService } from 'src/roles/roles.service';
+import { RoleName } from 'src/enums/all_enums';
 
 @Injectable()
 export class DoctorsService {
@@ -20,10 +22,16 @@ export class DoctorsService {
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
 
-    private usersService: UsersService
+    private usersService: UsersService,
+
+    private rolesService: RolesService
   ) { }
   async create(createdoctorDto: CreateDoctorDto, user: IUser) {
-    const { name, email, password, phone, dob, address, gender, role, degrees, experiences, room, specializations } = createdoctorDto;
+    const { name, email, password, phone, dob, address, gender, degrees, experiences, room, specializations } = createdoctorDto;
+    const role = (await this.rolesService.findByRoleName(RoleName.DOCTOR_ROLE)).id
+    if (!role) {
+      throw new NotFoundException("Không tìm thấy role Doctor")
+    }
     const hashPassword = this.usersService.getHashPassword(password);
     try {
       const doctorUser = await this.userModel.create({ name, email, password: hashPassword, phone, dob, address, gender, role });

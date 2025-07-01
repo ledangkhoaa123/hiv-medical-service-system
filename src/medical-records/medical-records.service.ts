@@ -47,10 +47,13 @@ export class MedicalRecordsService {
       createMedicalRecordDto.patientID,
       medicalRecord._id as any,
     );
-    return {
-      _id: medicalRecord._id,
-      createdAt: medicalRecord.createdAt,
-    };
+    return medicalRecord.populate([
+      {
+        path: 'patientID',
+        select: 'name personalID userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ])
   }
 
   async findAll(): Promise<MedicalRecord[]> {
@@ -59,7 +62,7 @@ export class MedicalRecordsService {
       .populate([
       {
         path: 'patientID',
-        select: 'name userID',
+        select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
     ]);
@@ -75,7 +78,7 @@ export class MedicalRecordsService {
       .populate([
       {
         path: 'patientID',
-        select: 'name userID',
+        select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
     ]);
@@ -97,7 +100,7 @@ export class MedicalRecordsService {
     return medical.populate([
       {
         path: 'patientID',
-        select: 'name userID',
+        select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
     ]);
@@ -106,7 +109,7 @@ export class MedicalRecordsService {
     return await this.medicalRecordModel.find({ patientID }).populate([
       {
         path: 'patientID',
-        select: 'name userID',
+        select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
     ]);
@@ -119,7 +122,7 @@ export class MedicalRecordsService {
       .populate([
       {
         path: 'patientID',
-        select: 'name userID',
+        select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
     ])

@@ -9,6 +9,7 @@ import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
 import { log } from 'console';
 import { Permission, PermissionDocument } from 'src/permissions/schemas/permission.schema';
+import { RoleName } from 'src/enums/all_enums';
 
 @Injectable()
 export class RolesService {
@@ -138,5 +139,8 @@ export class RolesService {
     return this.roleModel.softDelete({
       _id: id,
     });
+  }
+  findByRoleName = async(name : RoleName) => {
+    return await this.roleModel.findOne({name: name});
   }
 }

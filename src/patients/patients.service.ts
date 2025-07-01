@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateGuestPatientDto,
   CreatePatientDto,
@@ -42,13 +46,13 @@ export class PatientsService {
 
   async createGuest(createPatientDto: CreateGuestPatientDto) {
     try {
-    const patient = await this.patientModel.create({
-      ...createPatientDto,
-    });
-    return {
-      _id: patient._id,
-      createdAt: patient.createdAt,
-    };
+      const patient = await this.patientModel.create({
+        ...createPatientDto,
+      });
+      return {
+        _id: patient._id,
+        createdAt: patient.createdAt,
+      };
     } catch (error) {
       if (error.code === 11000) {
         throw new BadRequestException(`personalID đã tồn tại`);
@@ -232,5 +236,18 @@ export class PatientsService {
   };
   findOneByToken = async (user: IUser) => {
     return this.patientModel.findOne({ userID: user._id });
+  };
+  updateMinorWallet = async (id: string, amount: number) => {
+    const patient = await this.findOne(id);
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy patient');
+    }
+    if (typeof patient.wallet !== 'number' || patient.wallet < amount) {
+      throw new BadRequestException('Số dư không đủ');
+    }
+    return await this.patientModel.updateOne(
+      { _id: id },
+      { $inc: { wallet: -amount } },
+    );
   };
 }

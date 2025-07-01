@@ -21,7 +21,7 @@ export class User {
   phone: string;
   @Prop()
   address: string;
-  @Prop()
+  @Prop({default: ''})
   avatarURL: string;
 
   @Prop({type: mongoose.Schema.Types.ObjectId, ref: Role.name })

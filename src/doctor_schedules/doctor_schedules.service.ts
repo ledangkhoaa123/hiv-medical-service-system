@@ -1,10 +1,21 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { DoctorSchedule } from './schemas/doctor_schedule.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { CreateMultiScheduleDto, DoctorScheduleDocument } from './dto/create-doctor_schedule.dto';
-import { AppointmentShiftName, DoctorScheduleStatus, DoctorSlotStatus } from 'src/enums/all_enums';
+import {
+  CreateMultiScheduleDto,
+  DoctorScheduleDocument,
+} from './dto/create-doctor_schedule.dto';
+import {
+  AppointmentShiftName,
+  DoctorScheduleStatus,
+  DoctorSlotStatus,
+} from 'src/enums/all_enums';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
 import { IUser } from 'src/users/user.interface';
 import { UpdateDoctorScheduleDto } from './dto/update-doctor_schedule.dto';
@@ -14,30 +25,50 @@ import { DoctorsService } from 'src/doctors/doctors.service';
 @Injectable()
 export class DoctorSchedulesService {
   constructor(
-    @InjectModel(DoctorSchedule.name) private doctorScheduleModel: SoftDeleteModel<DoctorScheduleDocument>,
+    @InjectModel(DoctorSchedule.name)
+    private doctorScheduleModel: SoftDeleteModel<DoctorScheduleDocument>,
     private readonly doctorSlotsService: DoctorSlotsService,
     private doctorsService: DoctorsService,
     private configService: ConfigService,
-
-  ) { }
+  ) {}
   async createSchedule(dto: CreateMultiScheduleDto, user: IUser) {
+    const pairs = [];
+    for (const doctorID of dto.doctorID) {
+      for (const date of dto.dates) {
+        pairs.push({ doctorID, date: new Date(date) });
+      }
+    }
     // Kiểm tra ngày đã tồn tại trong DB
-    const existed = await this.doctorScheduleModel.find({
-      doctorID: dto.doctorID,
-      date: { $in: dto.dates.map(d => new Date(d)) },
-      isDeleted: false,
-    });
+    const existed = await this.doctorScheduleModel
+      .find({
+        $or: pairs.map((pair) => ({
+          doctorID: pair.doctorID,
+          date: pair.date,
+          isDeleted: false,
+        })),
+      })
+      .populate({
+        path: 'doctorID',
+        select: 'userID',
+        populate: { path: 'userID', select: 'name' },
+      });
+
     if (existed.length > 0) {
-      const existedDates = existed.map(e => e.date.toISOString().split('T')[0]);
-      throw new BadRequestException(`Bác sĩ đã có lịch vào các ngày: ${existedDates.join(', ')}`);
+      const existedInfo = existed.map((e) => {
+        const doctor = e.doctorID as unknown as any;
+        return `Bác sĩ ${doctor.userID?.name || 'Không rõ'} ngày ${e.date.toISOString().split('T')[0]}`;
+      });
+      throw new BadRequestException(
+        `Đã có lịch cho: ${existedInfo.join(', ')}`,
+      );
     }
 
     // Tạo mới từng ngày
     const results = [];
-    for (const date of dto.dates) {
+    for (const pair of pairs) {
       const schedule = await this.doctorScheduleModel.create({
-        doctorID: dto.doctorID,
-        date: new Date(date),
+        doctorID: pair.doctorID,
+        date: pair.date,
         status: DoctorScheduleStatus.PENDING,
         createdBy: {
           _id: user._id,
@@ -49,10 +80,16 @@ export class DoctorSchedulesService {
     return results;
   }
 
-  async confirmSlots(scheduleId: string, user: IUser, shiftName: AppointmentShiftName) {
+  async confirmSlots(
+    scheduleId: string,
+    user: IUser,
+    shiftName: AppointmentShiftName,
+  ) {
     const schedule = await this.findOne(scheduleId);
     if (!schedule) {
-      throw new NotFoundException(`Không tìm thấy lịch khám với id=${scheduleId}`);
+      throw new NotFoundException(
+        `Không tìm thấy lịch khám với id=${scheduleId}`,
+      );
     }
 
     //Kiểm tra quyền xác nhận
@@ -63,36 +100,37 @@ export class DoctorSchedulesService {
       throw new BadRequestException('Schedule đã được xác nhận');
     }
 
-    const date = schedule.date.toISOString().split('T')[0]
+    const date = schedule.date.toISOString().split('T')[0];
     const slots = this.generateTimeSlotsFromShift(
       date, // Chỉ lấy phần ngày
-      shiftName
+      shiftName,
     );
 
     for (const slot of slots) {
-      await this.doctorSlotsService.create({
-        doctorID: schedule.doctorID.toString(),
-        date: schedule.date,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      }, user);
+      await this.doctorSlotsService.create(
+        {
+          doctorID: schedule.doctorID.toString(),
+          date: schedule.date,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+        },
+        user,
+      );
     }
 
     // Cập nhật trạng thái schedule
-    await this.update(scheduleId,
-      { status: DoctorScheduleStatus.AVAILABLE, isConfirmed: true, shiftName }, user);
+    await this.update(
+      scheduleId,
+      { status: DoctorScheduleStatus.AVAILABLE, isConfirmed: true, shiftName },
+      user,
+    );
 
     return { message: `Đã xác nhận lịch làm ngày ${date}!` };
   }
 
-
-  generateTimeSlotsFromShift(
-    date: string,
-    shiftName: string
-  ) {
+  generateTimeSlotsFromShift(date: string, shiftName: string) {
     const slots: { startTime: Date; endTime: Date }[] = [];
     const [year, month, day] = date.split('-').map(Number);
-
 
     const parseTime = (time: string) => {
       const [h, m] = time.split(':').map(Number);
@@ -100,16 +138,24 @@ export class DoctorSchedulesService {
     };
 
     // Khung giờ các ca
-    const morningStart = parseTime(this.configService.get<string>('TIME_MORNING_WORK_START'));
-    const morningEnd = parseTime(this.configService.get<string>('TIME_MORNING_WORK_FINISH'));
-    const afternoonStart = parseTime(this.configService.get<string>('TIME_AFTERNOON_WORK_START'));
-    const afternoonEnd = parseTime(this.configService.get<string>('TIME_AFTERNOON_WORK_FINISH'));
+    const morningStart = parseTime(
+      this.configService.get<string>('TIME_MORNING_WORK_START'),
+    );
+    const morningEnd = parseTime(
+      this.configService.get<string>('TIME_MORNING_WORK_FINISH'),
+    );
+    const afternoonStart = parseTime(
+      this.configService.get<string>('TIME_AFTERNOON_WORK_START'),
+    );
+    const afternoonEnd = parseTime(
+      this.configService.get<string>('TIME_AFTERNOON_WORK_FINISH'),
+    );
     const timeslot = Number(this.configService.get<number>('TIME_SLOT')); // Thời gian mỗi slot (60 phút)
     // Helper để tạo slot 30 phút
     const addSlots = (start: Date, end: Date) => {
       let current = new Date(start);
       while (current < end) {
-        const next = new Date(current.getTime() + timeslot * 60 * 1000); 
+        const next = new Date(current.getTime() + timeslot * 60 * 1000);
         if (next > end) break;
         slots.push({ startTime: new Date(current), endTime: new Date(next) });
         current = next;
@@ -136,7 +182,16 @@ export class DoctorSchedulesService {
   }
 
   findAll() {
-    return this.doctorScheduleModel.find({ isDeleted: false }).sort({ date: 1, shiftStart: 1 });  
+    return this.doctorScheduleModel
+      .find({ isDeleted: false })
+      .populate([
+        {
+          path: 'doctorID',
+          select: 'userID room',
+          populate: { path: 'userID', select: 'name' },
+        },
+      ])
+      .sort({ date: 1, shiftStart: 1 });
   }
 
   async findOne(id: string) {
@@ -151,35 +206,47 @@ export class DoctorSchedulesService {
     const end = new Date(endDate);
 
     // Lấy tất cả schedule của bác sĩ trong khoảng ngày
-    return this.doctorScheduleModel.find({
-      doctorID: doctorId,
-      date: {
-        $gte: start,
-        $lte: end,
-      },
-      isDeleted: false,
-    }).sort({ date: 1, shiftStart: 1 });
+    return this.doctorScheduleModel
+      .find({
+        doctorID: doctorId,
+        date: {
+          $gte: start,
+          $lte: end,
+        },
+        isDeleted: false,
+      })
+      .sort({ date: 1, shiftStart: 1 });
   }
-  getScheduleByToken = async(user: IUser, startDate: string, endDate: string) => {
+  getScheduleByToken = async (
+    user: IUser,
+    startDate: string,
+    endDate: string,
+  ) => {
     const doctor = await this.doctorsService.findByUserID(user._id);
-    if(!doctor){
-      throw new NotFoundException("Không tìm thấy doctor bằng token")
+    if (!doctor) {
+      throw new NotFoundException('Không tìm thấy doctor bằng token');
     }
     // Đảm bảo startDate, endDate là chuỗi ngày hợp lệ
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     // Lấy tất cả schedule của bác sĩ trong khoảng ngày
-    return this.doctorScheduleModel.find({
-      doctorID: doctor.id,
-      date: {
-        $gte: start,
-        $lte: end,
-      },
-      isDeleted: false,
-    }).sort({ date: 1, shiftStart: 1 });
-  }
-  async update(id: string, updateDoctorScheduleDto: UpdateDoctorScheduleDto, user: IUser) {
+    return this.doctorScheduleModel
+      .find({
+        doctorID: doctor.id,
+        date: {
+          $gte: start,
+          $lte: end,
+        },
+        isDeleted: false,
+      })
+      .sort({ date: 1, shiftStart: 1 });
+  };
+  async update(
+    id: string,
+    updateDoctorScheduleDto: UpdateDoctorScheduleDto,
+    user: IUser,
+  ) {
     if (!(await this.findOne(id))) {
       throw new BadRequestException(`Không tìm thấy dịch vụ với id=${id}`);
     }
@@ -187,7 +254,7 @@ export class DoctorSchedulesService {
     if (updateDoctorScheduleDto.doctorID) {
       const existed = await this.doctorScheduleModel.findOne({
         doctorID: updateDoctorScheduleDto.doctorID,
-        _id: { $ne: id }
+        _id: { $ne: id },
       });
       if (existed) {
         throw new BadRequestException('Lịch làm đã tồn tại');
@@ -202,11 +269,11 @@ export class DoctorSchedulesService {
           email: user.email,
         },
       },
-      { new: true }
+      { new: true },
     );
   }
 
-  async remove(id: string,user: IUser) {
+  async remove(id: string, user: IUser) {
     await this.doctorScheduleModel.updateOne(
       {
         _id: id,
