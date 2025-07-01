@@ -43,6 +43,7 @@ export enum DoctorScheduleStatus {
 }
 export enum DoctorSlotStatus {
   AVAILABLE = 'Sẵn sàng khám',
+  PENDING_HOLD='Đang chờ thanh toán',
   PENDING = 'Đang xét duyệt',
   BOOKED = 'Đã đặt',
   UNAVAILABLE = ' Không khả dụng',
