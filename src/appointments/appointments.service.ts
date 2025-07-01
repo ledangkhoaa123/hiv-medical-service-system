@@ -84,30 +84,8 @@ export class AppointmentsService {
 
     return createApp;
   }
-  @Cron(CronExpression.EVERY_MINUTE)
-  async releaseUnpaidAppointments() {
-    const fifteenMinutesAgo = new Date(
-      Date.now() - Number(this.configService.get<string>('TIME_CANCLE_APPOINTMET')) * 60 * 1000
-    );
-    const expiredAppointments = await this.appointmentModel.find({
-      status: AppointmentStatus.pending_payment,
-      createdAt: { $lte: fifteenMinutesAgo },
-      isDeleted: false,
-    });
 
-    for (const app of expiredAppointments) {
-
-      await this.appointmentModel.softDelete(
-        { _id: app._id }
-      );
-
-
-      await this.doctorSlotModel.updateMany(
-        { _id: { $in: app.doctorSlotID } },
-        { $set: { status: DoctorSlotStatus.AVAILABLE } }
-      );
-    }
-  }
+  
 
 
 
