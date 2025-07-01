@@ -49,13 +49,15 @@ export class AppointmentsService {
         _id: { $in: doctorSlotID },
         isDeleted: false,
       })
-      .select('doctorID date startTime');
+      .select('doctorID date startTime status');
 
     if (!slots.length) {
       throw new BadRequestException('Không tìm thấy slot bác sĩ!');
     }
     const slot = slots[0];
-
+    if (slot.status != DoctorSlotStatus.AVAILABLE) {
+      throw new BadRequestException("Slot không khả dụng")
+    }
     const checkService = await this.serviceService.findOne(serviceID as any);
     if (!checkService) {
       throw new BadRequestException('Không tìm thấy Service');
@@ -306,7 +308,9 @@ export class AppointmentsService {
     if (updateAppointment.modifiedCount > 0) {
       await this.doctorSlotModel.updateMany(
         { _id: { $in: appointment.doctorSlotID } },
-        { $set: { status: DoctorSlotStatus.BOOKED } },
+        { $set: { status: DoctorSlotStatus.BOOKED,
+          appointmentID: id
+         } },
       );
     }
 
