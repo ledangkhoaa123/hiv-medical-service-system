@@ -43,7 +43,9 @@ export class AppointmentsService {
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
-
+    if (!(await this.patientService.findOne(patientID as any))) {
+      throw new NotFoundException("Không tìm thấy bệnh nhân")
+    }
     //  Lấy toàn bộ slot được chọn cùng doctorID
     const slots = await this.doctorSlotModel
       .find({
