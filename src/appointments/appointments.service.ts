@@ -57,7 +57,7 @@ export class AppointmentsService {
     }
     const slot = slots[0];
     if (slot.status != DoctorSlotStatus.AVAILABLE) {
-      throw new BadRequestException("Slot không khả dụng")
+      throw new BadRequestException('Slot không khả dụng');
     }
     const checkService = await this.serviceService.findOne(serviceID as any);
     if (!checkService) {
@@ -72,7 +72,10 @@ export class AppointmentsService {
       doctorSlotID.push(slot2._id as any);
     }
     const now = new Date();
-    const paymentExpireAt = new Date(now.getTime() + 10 * 60 * 1000)
+    const expireMinutes = Number(
+      this.configService.get('TIME_CANCLE_APPOINTMENT') || 10,
+    );
+    const paymentExpireAt = new Date(now.getTime() + expireMinutes * 60 * 1000);
     const createApp = await this.appointmentModel.create({
       doctorID: slot.doctorID,
       doctorSlotID,
@@ -81,7 +84,7 @@ export class AppointmentsService {
       treatmentID: treatmentID ?? null,
       date: new Date(),
       startTime: slot.startTime,
-      paymentExpireAt
+      paymentExpireAt,
     });
 
 
@@ -317,9 +320,7 @@ export class AppointmentsService {
     if (updateAppointment.modifiedCount > 0) {
       await this.doctorSlotModel.updateMany(
         { _id: { $in: appointment.doctorSlotID } },
-        { $set: { status: DoctorSlotStatus.BOOKED,
-          appointmentID: id
-         } },
+        { $set: { status: DoctorSlotStatus.BOOKED, appointmentID: id } },
       );
     }
 
