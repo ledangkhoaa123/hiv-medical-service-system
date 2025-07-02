@@ -22,6 +22,7 @@ import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/mail/mail.service';
 import { PatientsService } from 'src/patients/patients.service';
 import { DoctorsService } from 'src/doctors/doctors.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AppointmentsService {
@@ -36,9 +37,9 @@ export class AppointmentsService {
 
     private readonly mailService: MailService,
     private readonly patientService: PatientsService,
+
     private doctorsService: DoctorsService,
   ) {}
-
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
@@ -86,15 +87,16 @@ export class AppointmentsService {
       paymentExpireAt,
     });
 
-    //  Tạo appointments
 
     await this.doctorSlotModel.updateMany(
       { _id: { $in: doctorSlotID } },
-      { $set: { status: DoctorSlotStatus.PENDING } },
+
+      { $set: { status: DoctorSlotStatus.PENDING_HOLD } }
     );
 
     return createApp;
   }
+  
 
   findAll() {
     return this.appointmentModel.find().populate([
@@ -173,10 +175,16 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
+
+     
   }
+
+
+  
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
     const end = new Date(endDate + 'T23:59:59.999Z');
+
     return this.appointmentModel
       .find({
         date: { $gte: start, $lte: end },
@@ -193,6 +201,7 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
+
   }
 
   async update(id: string, updateDto: UpdateAppointmentDto, user: IUser) {
@@ -274,7 +283,7 @@ export class AppointmentsService {
   }
 
   async confirmAppointment(id: string, user: IUser) {
-    const appointment = await this.appointmentModel.findById(id);
+    const appointment = await this.appointmentModel.findById({ _id: id, isDeleted: true });
     if (!appointment) {
       throw new BadRequestException('Không tìm thấy lịch hẹn!');
     }
@@ -340,6 +349,7 @@ export class AppointmentsService {
         'Không tìm thấy doctor bằng userID ở Token',
       );
     }
+
     return await this.appointmentModel
       .find({
         doctorID: doctor._id,
@@ -361,11 +371,13 @@ export class AppointmentsService {
   };
   getFromTokenPatient = async (user: IUser) => {
     const patient = await this.patientService.findOneByToken(user);
+
     if (!patient) {
       throw new BadRequestException(
         'Không tìm thấy patient bằng userID ở Token',
       );
     }
+
     return await this.appointmentModel
       .find({
         patientID: patient._id,
@@ -387,4 +399,6 @@ export class AppointmentsService {
         },
       ]);
   };
+
+
 }
