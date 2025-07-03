@@ -55,8 +55,7 @@ export class PaymentsService {
   async createPaymentUrl(appointmentId: string, ip: string): Promise<string> {
     const appointment = await this.appointmentsService.findOne(appointmentId);
     if (!appointment) throw new BadRequestException('Appointment not found');
-    if (appointment.status !== AppointmentStatus.pending_payment)
-      throw new BadRequestException('Appointment is not pending payment');
+    
     if (
       appointment.paymentExpireAt &&
       new Date() > appointment.paymentExpireAt
@@ -66,6 +65,8 @@ export class PaymentsService {
     const service = await this.servicesService.findOne(
       appointment.serviceID as any,
     );
+    if (appointment.status !== AppointmentStatus.pending_payment)
+      throw new BadRequestException('Appointment is not pending payment');
     // Ví dụ: lấy giá dịch vụ
     const amount = service.price; // Hoặc lấy từ appointment.service.price
 
