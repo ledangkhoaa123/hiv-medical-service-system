@@ -116,6 +116,9 @@ export class UsersService {
         contactEmails: registerUserDTO.email ? [registerUserDTO.email] : [],
         contactPhones: registerUserDTO.phone ? [registerUserDTO.phone] : [],
         wallet: 0,
+        name,
+        gender,
+        dob,
       };
       await this.patientService.createCustomer(patient);
       return {
@@ -249,6 +252,12 @@ export class UsersService {
 
   findUserByRefreshToken = async (refreshToken: string) => {
     return await this.userModel.findOne({ refreshToken }).populate({
+      path: 'role',
+      select: { name: 1 },
+    });
+  };
+  findUserByPersonalID = async (personalId: string) => {
+    return await this.userModel.findOne({ personalID: personalId }).populate({
       path: 'role',
       select: { name: 1 },
     });

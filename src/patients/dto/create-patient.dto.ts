@@ -45,6 +45,17 @@ export class CreatePatientDto {
   @IsNumber()
   @Min(0)
   wallet?: number;
+  @IsString()
+  @IsNotEmpty({ message: 'Họ và Tên không được trống' })
+  name: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Giới tính không được trống' })
+  gender: string;
+
+  @IsDateString()
+  @IsNotEmpty({ message: 'Ngày sinh không được trống' })
+  dob: Date;
 }
 export class CreateGuestPatientDto {
   @IsString()

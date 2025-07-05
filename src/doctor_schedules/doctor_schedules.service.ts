@@ -289,4 +289,59 @@ export class DoctorSchedulesService {
       _id: id,
     });
   }
+  async findSchedulesByDoctorAndDates(doctorID: string, dateStrings: string[]) {
+    const dateRanges = dateStrings.map((dateStr) => {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        throw new BadRequestException(`Ngày không hợp lệ: ${dateStr}`);
+      }
+
+      // Normalize start & end of that day
+      const start = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+      );
+      const end = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1,
+      );
+
+      return { start, end };
+    });
+
+    const conditions = dateRanges.map((range) => ({
+      date: { $gte: range.start, $lt: range.end },
+    }));
+
+    return this.doctorScheduleModel.find({
+      doctorID,
+      isConfirmed: true,
+      isDeleted: { $ne: true },
+      $or: conditions,
+    });
+  }
+  async markSchedulesAsUnavailableFromList(
+  schedules: DoctorScheduleDocument[]
+) {
+  const scheduleIds = schedules.map(s => s._id);
+
+  if (!scheduleIds.length) return { modifiedCount: 0, message: 'Không có lịch nào để cập nhật' };
+
+  const result = await this.doctorScheduleModel.updateMany(
+    { _id: { $in: scheduleIds } },
+    {
+      $set: {
+        status: DoctorScheduleStatus.UNAVAILABLE,
+      },
+    },
+  );
+
+  return {
+    modifiedCount: result.modifiedCount,
+    message: `${result.modifiedCount} lịch làm việc đã chuyển sang UNAVAILABLE`,
+  };
+}
+
 }
