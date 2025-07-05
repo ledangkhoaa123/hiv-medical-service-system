@@ -1,16 +1,20 @@
+/* eslint-disable prefer-const */
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import {
+  CancelAppointmentForDoctorDto,
+  CreateAppointmentDto,
+} from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Appointment, AppointmentDocument } from './schemas/appointment.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import {
   DoctorSlot,
   DoctorSlotDocument,
@@ -22,8 +26,9 @@ import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/mail/mail.service';
 import { PatientsService } from 'src/patients/patients.service';
 import { DoctorsService } from 'src/doctors/doctors.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
-
+import { DoctorSchedulesService } from 'src/doctor_schedules/doctor_schedules.service';
+import { UsersService } from 'src/users/users.service';
+import { format } from 'date-fns';
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -34,17 +39,17 @@ export class AppointmentsService {
     private readonly doctorSlotService: DoctorSlotsService,
     private readonly serviceService: ServicesService,
     private readonly configService: ConfigService,
-
+    private usersService: UsersService,
     private readonly mailService: MailService,
     private readonly patientService: PatientsService,
-
+    private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
   ) {}
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
     if (!(await this.patientService.findOne(patientID as any))) {
-      throw new NotFoundException("Không tìm thấy bệnh nhân")
+      throw new NotFoundException('Không tìm thấy bệnh nhân');
     }
     //  Lấy toàn bộ slot được chọn cùng doctorID
     const slots = await this.doctorSlotModel
@@ -89,16 +94,17 @@ export class AppointmentsService {
       paymentExpireAt,
     });
 
-
     await this.doctorSlotModel.updateMany(
       { _id: { $in: doctorSlotID } },
 
-      { $set: { status: DoctorSlotStatus.PENDING_HOLD } }
+      {
+        $set: { status: DoctorSlotStatus.PENDING_HOLD },
+        appointmentID: createApp._id,
+      },
     );
 
     return createApp;
   }
-  
 
   findAll() {
     return this.appointmentModel.find().populate([
@@ -177,12 +183,8 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
-
-     
   }
 
-
-  
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
     const end = new Date(endDate + 'T23:59:59.999Z');
@@ -203,7 +205,6 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
-
   }
 
   async update(id: string, updateDto: UpdateAppointmentDto, user: IUser) {
@@ -285,16 +286,19 @@ export class AppointmentsService {
   }
 
   async confirmAppointment(id: string, user: IUser) {
-    const appointment = await this.appointmentModel.findById({ _id: id, isDeleted: true });
+    const appointment = await this.appointmentModel.findById({
+      _id: id,
+      isDeleted: true,
+    });
     if (!appointment) {
       throw new BadRequestException('Không tìm thấy lịch hẹn!');
     }
 
     if (appointment.status !== AppointmentStatus.pending) {
       if (appointment.status === AppointmentStatus.pending_payment) {
-        throw new BadRequestException('Lịch hẹnc chưa được thanh toán!');
+        throw new BadRequestException('Lịch hẹn chưa được thanh toán!');
       }
-      throw new BadRequestException('Lịch hẹn dẵ được xác nhận!');
+      throw new BadRequestException('Lịch hẹn đã được xác nhận!');
     }
     const slots = await this.doctorSlotModel
       .find({
@@ -342,7 +346,7 @@ export class AppointmentsService {
       status: AppointmentStatus.confirmed,
     });
 
-    return { message: `Đã xác nhận lịch ngày${slot.date}` };
+    return { message: `Đã xác nhận lịch ngày ${slot.date}` };
   }
   getFromToken = async (user: IUser) => {
     const doctor = await this.doctorsService.findByUserID(user._id);
@@ -401,6 +405,98 @@ export class AppointmentsService {
         },
       ]);
   };
+  cancelAppointment = async (
+    canceldto: CancelAppointmentForDoctorDto,
+    user: IUser,
+  ) => {
+    let countCancelled = 0;
+    let refundTotal = 0;
+    const schedules =
+      await this.doctorScheduleService.findSchedulesByDoctorAndDates(
+        canceldto.doctorId as any,
+        canceldto.dates,
+      );
+    if (schedules.length == 0) {
+      throw new NotFoundException('Không tìm thấy lịch làm của bác sĩ');
+    }
+    const allSlots = schedules.flatMap((schedule) => {
+      const dateStr = schedule.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      return this.doctorScheduleService.generateTimeSlotsFromShift(
+        dateStr,
+        schedule.shiftName,
+      );
+    });
+    const slotStartTimes = allSlots.map((slot) => slot.startTime);
 
-
+    // Tìm các DoctorSlot đã được đặt
+    const bookedSlots =
+      await this.doctorSlotService.findBookedSlotsByStartTimes(
+        canceldto.doctorId as any,
+        canceldto.dates,
+        slotStartTimes,
+      );
+    await this.doctorSlotService.updateSlotStatuses(
+      canceldto.doctorId as any,
+      canceldto.dates,
+      allSlots,
+      DoctorSlotStatus.UNAVAILABLE,
+    );
+    for (const slot of bookedSlots) {
+      if (slot.appointmentID) {
+        const appointment = await this.appointmentModel.findById(
+          slot.appointmentID,
+        );
+        if (
+          appointment &&
+          appointment.status !==
+            AppointmentStatus.cancelled_by_staff_refund_required
+        ) {
+          if (appointment.status !== AppointmentStatus.pending_payment) {
+            const service = await this.serviceService.findOne(
+              appointment.serviceID as any,
+            );
+            const patient = await this.patientService.findOne(
+              appointment.patientID as any,
+            );
+            await this.patientService.refundWallet(
+              appointment.patientID.toString(),
+              service.price,
+            );
+            refundTotal += service.price;
+            await this.appointmentModel.updateOne(
+              { _id: appointment._id },
+              {
+                $set: {
+                  status: AppointmentStatus.cancelled_by_staff_refund_required,
+                  cancellationReason: canceldto.reason,
+                  canceledAt: new Date(),
+                  canceledBy: { _id: user._id, email: user.email },
+                },
+              },
+            );
+            countCancelled++;
+            await this.mailService.sendAppointmentCanceledEmail({
+              to: patient.contactEmails[0] || 'khoaldse184650@fpt.edu.vn',
+              patientName: patient.name || 'No Name',
+              appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
+              reason: canceldto.reason,
+              shift: format(appointment.startTime, 'HH:mm'),
+              refundAmount: service.price,
+            });
+          }
+        }
+      }
+    }
+    await this.doctorScheduleService.markSchedulesAsUnavailableFromList(
+      schedules,
+    );
+    return {
+      cancelledSchedules: schedules.length,
+      totalSlotsAffected: allSlots.length,
+      slotsBooked: bookedSlots.length,
+      appointmentsCancelled: countCancelled,
+      refundsIssued: refundTotal,
+      message: 'Đã huỷ lịch và hoàn tiền (nếu có) thành công.',
+    };
+  };
 }

@@ -20,15 +20,17 @@ export class DoctorSlotsService {
     @InjectModel(Doctor.name)
     private doctorModel: SoftDeleteModel<DoctorDocument>,
     private readonly serviceService: ServicesService,
-    private doctorService: DoctorsService
-  ) { }
+    private doctorService: DoctorsService,
+  ) {}
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {
     const { appointmentID } = createDoctorSlotDto;
     try {
       const slot = await this.doctorSlotModel.create({
         ...createDoctorSlotDto,
-        appointmentID: appointmentID ? new mongoose.Types.ObjectId(appointmentID) : null,
+        appointmentID: appointmentID
+          ? new mongoose.Types.ObjectId(appointmentID)
+          : null,
         createdBy: {
           _id: user._id,
           email: user.email,
@@ -45,7 +47,7 @@ export class DoctorSlotsService {
       path: 'doctorID',
       select: 'userID room degrees experiences',
       populate: { path: 'userID', select: 'name' },
-    });;
+    });
   }
   // async findAllByDoctor(doctorId: string) {
   //   return this.doctorSlotModel.find({
@@ -69,24 +71,30 @@ export class DoctorSlotsService {
   }
 
   async findByDoctorAndDate(doctorId: string, date: string) {
-    return this.doctorSlotModel.find({
-      doctorID: doctorId,
-      date: new Date(date),
-      isDeleted: false,
-      status: DoctorSlotStatus.AVAILABLE
-    })
+    return this.doctorSlotModel
+      .find({
+        doctorID: doctorId,
+        date: new Date(date),
+        isDeleted: false,
+        status: DoctorSlotStatus.AVAILABLE,
+      })
       .sort({ startTime: 1 });
   }
   async findByDoctorAndDateByToken(user: IUser, date: string) {
     const doctor = await this.doctorService.findByUserID(user._id);
-    return this.doctorSlotModel.find({
-      doctorID: doctor.id,
-      date: new Date(date),
-      isDeleted: false,
-    })
+    return this.doctorSlotModel
+      .find({
+        doctorID: doctor.id,
+        date: new Date(date),
+        isDeleted: false,
+      })
       .sort({ startTime: 1 });
   }
-  async update(id: string, updateDoctorSlotDto: UpdateDoctorSlotDto, user: IUser) {
+  async update(
+    id: string,
+    updateDoctorSlotDto: UpdateDoctorSlotDto,
+    user: IUser,
+  ) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Sai định dạng id`);
     }
@@ -100,7 +108,7 @@ export class DoctorSlotsService {
             email: user.email,
           },
         },
-        { new: true }
+        { new: true },
       );
       if (!updated) {
         throw new BadRequestException(`Không tìm thấy lịch với id=${id}`);
@@ -111,15 +119,17 @@ export class DoctorSlotsService {
     }
   }
   async findDoctorsBySlots(adjustedStart: Date) {
+    const slots = await this.doctorSlotModel
+      .find({
+        startTime: adjustedStart,
+        isDeleted: false,
+        status: DoctorSlotStatus.AVAILABLE,
+      })
+      .select('doctorID');
 
-    const slots = await this.doctorSlotModel.find({
-      startTime: adjustedStart,
-      isDeleted: false,
-      status: DoctorSlotStatus.AVAILABLE
-    }).select('doctorID');
-
-
-    return await this.doctorModel.find({ _id: { $in: slots.map(s => s.doctorID) } });
+    return await this.doctorModel.find({
+      _id: { $in: slots.map((s) => s.doctorID) },
+    });
   }
   async findSlotByService(serviceID: string, doctorID: string, date: Date) {
     // Lấy thông tin service để biết duration
@@ -128,12 +138,14 @@ export class DoctorSlotsService {
     const duration = service.durationMinutes; // phút
 
     // Lấy tất cả slot của bác sĩ trong ngày, đã sắp xếp theo startTime
-    const slots = await this.doctorSlotModel.find({
-      doctorID,
-      date,
-      isDeleted: false,
-      status: DoctorSlotStatus.AVAILABLE
-    }).sort({ startTime: 1 });
+    const slots = await this.doctorSlotModel
+      .find({
+        doctorID,
+        date,
+        isDeleted: false,
+        status: DoctorSlotStatus.AVAILABLE,
+      })
+      .sort({ startTime: 1 });
 
     const availableSlots = [];
 
@@ -142,7 +154,8 @@ export class DoctorSlotsService {
       let group = [];
       for (let j = i; j < slots.length; j++) {
         const slot = slots[j];
-        const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
+        const slotMinutes =
+          (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
 
         // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
         if (
@@ -166,11 +179,13 @@ export class DoctorSlotsService {
     return availableSlots;
   }
   async findSlotAvaliable(serviceID: string, date: Date) {
-    const slots = await this.doctorSlotModel.find({
-      date,
-      isDeleted: false,
-      status: DoctorSlotStatus.AVAILABLE
-    }).sort({ startTime: 1 });
+    const slots = await this.doctorSlotModel
+      .find({
+        date,
+        isDeleted: false,
+        status: DoctorSlotStatus.AVAILABLE,
+      })
+      .sort({ startTime: 1 });
     const service = await this.serviceService.findOne(serviceID);
     if (!service) throw new BadRequestException('Không tìm thấy dịch vụ');
     const duration = service.durationMinutes; // phút
@@ -181,7 +196,8 @@ export class DoctorSlotsService {
       let group = [];
       for (let j = i; j < slots.length; j++) {
         const slot = slots[j];
-        const slotMinutes = (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
+        const slotMinutes =
+          (slot.endTime.getTime() - slot.startTime.getTime()) / (60 * 1000);
 
         // Nếu là slot đầu tiên hoặc slot này nối tiếp slot trước
         if (
@@ -210,10 +226,9 @@ export class DoctorSlotsService {
       }
     }
 
-    return uniqueSlots.map(slot => slot.startTime
-    );
+    return uniqueSlots.map((slot) => slot.startTime);
   }
-   async findByDoctorAndStartTime(doctorId: string, startTime: Date) {
+  async findByDoctorAndStartTime(doctorId: string, startTime: Date) {
     return this.doctorSlotModel.findOne({
       doctorID: doctorId,
       startTime: startTime,
@@ -235,8 +250,44 @@ export class DoctorSlotsService {
   }
   async findSlotbyPrevious(slotID: string) {
     const slot = await this.findOne(slotID);
-    const time = slot.endTime
-    return this.doctorSlotModel.findOne({ startTime: time })
+    const time = slot.endTime;
+    return this.doctorSlotModel.findOne({ startTime: time });
   }
- 
+  async findBookedSlotsByStartTimes(
+    doctorID: string,
+    dateStrings: string[],
+    startTimes: Date[],
+  ) {
+    const dates = dateStrings.map((d) => new Date(d));
+
+    return this.doctorSlotModel.find({
+      doctorID,
+      date: { $in: dates },
+      startTime: { $in: startTimes },
+      appointmentID: { $ne: null },
+      isDeleted: { $ne: true },
+    });
+  }
+  async updateSlotStatuses(
+  doctorID: string,
+  dateStrings: string[],
+  slots: { startTime: Date; endTime: Date }[],
+  newStatus: DoctorSlotStatus,
+) {
+  const dates = dateStrings.map(d => new Date(d));
+  const startTimes = slots.map(slot => slot.startTime);
+  return await this.doctorSlotModel.updateMany(
+    {
+      doctorID,
+      date: { $in: dates },
+      startTime: { $in: startTimes },
+      isDeleted: { $ne: true },
+    },
+    {
+      $set: {
+        status: newStatus,
+      },
+    },
+  );
+}
 }
