@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    ArrayNotEmpty,
+  ArrayNotEmpty,
   IsArray,
   IsDate,
   IsDateString,
@@ -47,6 +47,23 @@ export class CancelAppointmentForDoctorDto {
   @IsDateString({}, { each: true })
   @Validate(UniqueArray)
   dates: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  reason: string;
+
+  @IsOptional()
+  @IsString()
+  note?: string;
+}
+export class CancelByDateDto {
+  @IsDateString()
+  @IsNotEmpty()
+  from: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  to: string;
 
   @IsString()
   @IsNotEmpty()

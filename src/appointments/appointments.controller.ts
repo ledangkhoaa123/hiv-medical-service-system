@@ -12,6 +12,7 @@ import {
 import { AppointmentsService } from './appointments.service';
 import {
   CancelAppointmentForDoctorDto,
+  CancelByDateDto,
   CreateAppointmentDto,
 } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -128,14 +129,26 @@ export class AppointmentsController {
   getAppointByPatientToken(@User() user: IUser) {
     return this.appointmentsService.getFromTokenPatient(user);
   }
-  @ApiOperation({ summary: 'Lấy Appointment theo patient token' })
+  @ApiOperation({ summary: 'Hủy lịch hẹn vì bác sĩ bận đột xuất' })
   @ResponseMessage('Get Appointment from Access Token')
-  @Post('cancle')
+  @Post('cancle/doctor')
   cancelAppointment(
     @Body() cancleAppointmentdto: CancelAppointmentForDoctorDto,
     @User() user: IUser,
   ) {
     return this.appointmentsService.cancelAppointment(
+      cancleAppointmentdto,
+      user,
+    );
+  }
+  @ApiOperation({ summary: 'Hủy lịch hẹn vì lí do khác' })
+  @ResponseMessage('Get Appointment from Access Token')
+  @Post('cancle')
+  cancelAppointmentForHospital(
+    @Body() cancleAppointmentdto: CancelByDateDto,
+    @User() user: IUser,
+  ) {
+    return this.appointmentsService.cancelAppointmentForHospital(
       cancleAppointmentdto,
       user,
     );

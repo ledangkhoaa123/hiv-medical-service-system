@@ -253,7 +253,7 @@ export class DoctorSlotsService {
     const time = slot.endTime;
     return this.doctorSlotModel.findOne({ startTime: time });
   }
-  async findBookedSlotsByStartTimes(
+  async findBookedSlotsByStartTimesByDoctor(
     doctorID: string,
     dateStrings: string[],
     startTimes: Date[],
@@ -268,26 +268,70 @@ export class DoctorSlotsService {
       isDeleted: { $ne: true },
     });
   }
+  async findBookedSlotsByStartTimesByDates(
+    from: string,
+    to: string,
+    slotStartTimes: Date[],
+  ): Promise<DoctorSlot[]> {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    return this.doctorSlotModel
+      .find({
+        date: { $gte: fromDate, $lte: toDate },
+        startTime: { $in: slotStartTimes },
+        appointmentID: { $ne: null },
+        isDeleted: { $ne: true },
+      })
+      .exec();
+  }
+
   async updateSlotStatuses(
-  doctorID: string,
-  dateStrings: string[],
-  slots: { startTime: Date; endTime: Date }[],
+    doctorID: string,
+    dateStrings: string[],
+    slots: { startTime: Date; endTime: Date }[],
+    newStatus: DoctorSlotStatus,
+  ) {
+    const dates = dateStrings.map((d) => new Date(d));
+    const startTimes = slots.map((slot) => slot.startTime);
+    return await this.doctorSlotModel.updateMany(
+      {
+        doctorID,
+        date: { $in: dates },
+        startTime: { $in: startTimes },
+        isDeleted: { $ne: true },
+      },
+      {
+        $set: {
+          status: newStatus,
+        },
+      },
+    );
+  }
+  async updateSlotStatusesByDates(
+  from: string,
+  to: string,
+  timeSlots: { startTime: Date; endTime: Date }[],
   newStatus: DoctorSlotStatus,
-) {
-  const dates = dateStrings.map(d => new Date(d));
-  const startTimes = slots.map(slot => slot.startTime);
-  return await this.doctorSlotModel.updateMany(
+): Promise<void> {
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+
+  const startTimes = timeSlots.map(slot => slot.startTime);
+
+  await this.doctorSlotModel.updateMany(
     {
-      doctorID,
-      date: { $in: dates },
+      date: { $gte: fromDate, $lte: toDate },
       startTime: { $in: startTimes },
       isDeleted: { $ne: true },
     },
     {
       $set: {
         status: newStatus,
+        updatedAt: new Date(),
       },
     },
   );
 }
+
 }
