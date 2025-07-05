@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   CancelAppointmentForDoctorDto,
+  CancelByDateDto,
   CreateAppointmentDto,
 } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -430,7 +431,7 @@ export class AppointmentsService {
 
     // Tìm các DoctorSlot đã được đặt
     const bookedSlots =
-      await this.doctorSlotService.findBookedSlotsByStartTimes(
+      await this.doctorSlotService.findBookedSlotsByStartTimesByDoctor(
         canceldto.doctorId as any,
         canceldto.dates,
         slotStartTimes,
@@ -448,8 +449,10 @@ export class AppointmentsService {
         );
         if (
           appointment &&
-          appointment.status !==
-            AppointmentStatus.cancelled_by_staff_refund_required
+          ![
+            AppointmentStatus.refunded_by_staff,
+            AppointmentStatus.cancelled_by_staff,
+          ].includes(appointment.status)
         ) {
           if (appointment.status !== AppointmentStatus.pending_payment) {
             const service = await this.serviceService.findOne(
@@ -467,14 +470,13 @@ export class AppointmentsService {
               { _id: appointment._id },
               {
                 $set: {
-                  status: AppointmentStatus.cancelled_by_staff_refund_required,
+                  status: AppointmentStatus.refunded_by_staff,
                   cancellationReason: canceldto.reason,
                   canceledAt: new Date(),
                   canceledBy: { _id: user._id, email: user.email },
                 },
               },
             );
-            countCancelled++;
             await this.mailService.sendAppointmentCanceledEmail({
               to: patient.contactEmails[0] || 'khoaldse184650@fpt.edu.vn',
               patientName: patient.name || 'No Name',
@@ -484,6 +486,139 @@ export class AppointmentsService {
               refundAmount: service.price,
             });
           }
+          else {
+            // Chỉ huỷ, không hoàn tiền
+            await this.appointmentModel.updateOne(
+              { _id: appointment._id },
+              {
+                $set: {
+                  status: AppointmentStatus.cancelled_by_staff,
+                  cancellationReason: canceldto.reason,
+                  canceledAt: new Date(),
+                  canceledBy: { _id: user._id, email: user.email },
+                },
+              },
+            );
+          }
+          countCancelled++;
+        }
+      }
+    }
+    await this.doctorScheduleService.markSchedulesAsUnavailableFromList(
+      schedules,
+    );
+    return {
+      cancelledSchedules: schedules.length,
+      totalSlotsAffected: allSlots.length,
+      slotsBooked: bookedSlots.length,
+      appointmentsCancelled: countCancelled,
+      refundsIssued: refundTotal,
+      message: 'Đã huỷ lịch và hoàn tiền (nếu có) thành công.',
+    };
+  };
+  cancelAppointmentForHospital = async (
+    canceldto: CancelByDateDto,
+    user: IUser,
+  ) => {
+    const fromDate = new Date(canceldto.from);
+    const toDate = new Date(canceldto.to);
+
+    if (fromDate > toDate) {
+      throw new BadRequestException(
+        'Ngày bắt đầu phải trước hoặc bằng ngày kết thúc',
+      );
+    }
+    let countCancelled = 0;
+    let refundTotal = 0;
+    const schedules = await this.doctorScheduleService.getScheduleByDateRange(
+      canceldto.from,
+      canceldto.to,
+    );
+    if (schedules.length == 0) {
+      throw new NotFoundException('Không tìm thấy lịch làm của bác sĩ');
+    }
+    const allSlots = schedules.flatMap((schedule) => {
+      const dateStr = schedule.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      return this.doctorScheduleService.generateTimeSlotsFromShift(
+        dateStr,
+        schedule.shiftName,
+      );
+    });
+    const slotStartTimes = allSlots.map((slot) => slot.startTime);
+
+    // Tìm các DoctorSlot đã được đặt
+    const bookedSlots =
+      await this.doctorSlotService.findBookedSlotsByStartTimesByDates(
+        canceldto.from,
+        canceldto.to,
+        slotStartTimes,
+      );
+    await this.doctorSlotService.updateSlotStatusesByDates(
+      canceldto.from,
+      canceldto.to,
+      allSlots,
+      DoctorSlotStatus.UNAVAILABLE,
+    );
+    for (const slot of bookedSlots) {
+      if (slot.appointmentID) {
+        const appointment = await this.appointmentModel.findById(
+          slot.appointmentID,
+        );
+        if (
+          appointment &&
+          ![
+            AppointmentStatus.refunded_by_staff,
+            AppointmentStatus.cancelled_by_staff,
+          ].includes(appointment.status)
+        ) {
+          if (appointment.status !== AppointmentStatus.pending_payment) {
+            const service = await this.serviceService.findOne(
+              appointment.serviceID as any,
+            );
+            const patient = await this.patientService.findOne(
+              appointment.patientID as any,
+            );
+            await this.patientService.refundWallet(
+              appointment.patientID.toString(),
+              service.price,
+            );
+            refundTotal += service.price;
+            await this.appointmentModel.updateOne(
+              { _id: appointment._id },
+              {
+                $set: {
+                  status: AppointmentStatus.refunded_by_staff,
+                  cancellationReason: canceldto.reason,
+                  canceledAt: new Date(),
+                  canceledBy: { _id: user._id, email: user.email },
+                },
+              },
+            );
+            
+            await this.mailService.sendAppointmentCanceledEmail({
+              to: patient.contactEmails?.[0] || 'khoaldse184650@fpt.edu.vn',
+              patientName: patient.name || 'No Name',
+              appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
+              reason: canceldto.reason,
+              shift: format(appointment.startTime, 'HH:mm'),
+              refundAmount: service.price,
+            });
+          } 
+          else {
+            // Chỉ huỷ, không hoàn tiền
+            await this.appointmentModel.updateOne(
+              { _id: appointment._id },
+              {
+                $set: {
+                  status: AppointmentStatus.cancelled_by_staff,
+                  cancellationReason: canceldto.reason,
+                  canceledAt: new Date(),
+                  canceledBy: { _id: user._id, email: user.email },
+                },
+              },
+            );
+          }
+          countCancelled++;
         }
       }
     }

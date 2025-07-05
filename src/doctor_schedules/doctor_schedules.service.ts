@@ -217,6 +217,22 @@ export class DoctorSchedulesService {
       })
       .sort({ date: 1, shiftStart: 1 });
   }
+    async getScheduleByDateRange(startDate: string, endDate: string) {
+    // Đảm bảo startDate, endDate là chuỗi ngày hợp lệ
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Lấy tất cả schedule của bác sĩ trong khoảng ngày
+    return this.doctorScheduleModel
+      .find({
+        date: {
+          $gte: start,
+          $lte: end,
+        },
+        isDeleted: false,
+      })
+      .sort({ date: 1, shiftStart: 1 });
+  }
   getScheduleByToken = async (
     user: IUser,
     startDate: string,
