@@ -18,6 +18,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { DoctorsService } from 'src/doctors/doctors.service';
 import { ConfigService } from '@nestjs/config';
+import { TestResultsService } from 'src/test-results/test-results.service';
 @Injectable()
 export class TreatmentsService {
   constructor(
@@ -26,7 +27,9 @@ export class TreatmentsService {
     private medicalRecordsService: MedicalRecordsService,
     private readonly mailService: MailService,
     private doctorsService: DoctorsService,
-    private readonly configService:ConfigService
+    private readonly configService: ConfigService,
+    
+    private testResultService: TestResultsService
   ) {
     const cronTime = this.configService.get<string>('TIME_SEND_MAIL_FOLLOWUP');
     const job = new CronJob(
@@ -34,7 +37,7 @@ export class TreatmentsService {
       () => this.sendFollowUpReminders(),
       null,
       true,
-      'Asia/Ho_Chi_Minh'
+      'Asia/Ho_Chi_Minh',
     );
     job.start();
   }
@@ -43,26 +46,33 @@ export class TreatmentsService {
     const medicalRecord = await this.medicalRecordsService.findOne(
       createTreatmentDto.medicalRecordID.toString(),
     );
-    const doctor = await this.doctorsService.findByUserID(user._id)
-    if(!doctor){
-      throw new BadRequestException(
-        `Doctor's token không hợp lệ`,
-      );
+    const doctor = await this.doctorsService.findByUserID(user._id);
+    if (!doctor) {
+      throw new BadRequestException(`Doctor's token không hợp lệ`);
     }
     if (!medicalRecord) {
       throw new BadRequestException(
         `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
       );
     }
+    const {testResults} = createTreatmentDto;
     const treatment = await this.treatmentModel.create({
       ...createTreatmentDto,
       doctorID: doctor.id,
       createdBy: { _id: user._id, email: user.email },
     });
-    this.medicalRecordsService.updateTreatmentId(
+    await this.medicalRecordsService.updateTreatmentId(
       createTreatmentDto.medicalRecordID,
       treatment._id as any,
     );
+    if (testResults?.length) {
+    for (const tr of testResults) {
+      await this.testResultService.create(
+        { ...tr, treatmentID: treatment._id as any },
+        user,
+      );
+    }
+  }
     return treatment;
   }
   async findAll() {
@@ -161,23 +171,28 @@ export class TreatmentsService {
 
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
-    const treatments = await this.treatmentModel.find({
-      followUpDate: { $gte: tomorrow, $lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000) },
-      isDeleted: false,
-    }).populate({
-      path: 'medicalRecordID',
-      populate: { path: 'patientID' }
-    })
+    const treatments = await this.treatmentModel
+      .find({
+        followUpDate: {
+          $gte: tomorrow,
+          $lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000),
+        },
+        isDeleted: false,
+      })
+      .populate({
+        path: 'medicalRecordID',
+        populate: { path: 'patientID' },
+      })
       .populate({
         path: 'doctorID',
         select: 'userID room',
-        populate: { path: 'userID', select: 'name' }
+        populate: { path: 'userID', select: 'name' },
       });
     for (const treatment of treatments) {
       const medicalRecord: any = treatment.medicalRecordID;
       const patient: any = medicalRecord?.patientID;
       const doctor: any = treatment.doctorID;
-      const date = new Date(treatment.followUpDate)
+      const date = new Date(treatment.followUpDate);
       const vietnamDate = new Date(date.getTime() - 7 * 60 * 60 * 1000);
       const yyyy = vietnamDate.getFullYear();
       const mm = String(vietnamDate.getMonth() + 1).padStart(2, '0');
@@ -190,7 +205,7 @@ export class TreatmentsService {
         patientName: patient.name || 'Quý khách',
         doctorName: doctor?.userID?.name || '',
         room: doctor?.room || '',
-        followUpDate: formatted
+        followUpDate: formatted,
       });
     }
   }

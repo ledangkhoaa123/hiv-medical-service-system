@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -17,6 +19,7 @@ export class TestResultsService {
   constructor(
     @InjectModel(TestResult.name)
     private testResultModel: SoftDeleteModel<TestResultDocument>,
+    @Inject(forwardRef(() => TreatmentsService))
     private treatmentsService: TreatmentsService,
   ) {}
 

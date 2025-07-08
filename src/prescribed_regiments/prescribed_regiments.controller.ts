@@ -79,6 +79,6 @@ export class PrescribedRegimentsController {
   @ApiOperation({ summary: 'Gợi ý Regiment cá nhân theo testResults' })
   @ResponseMessage('Suggest PrescribedRegiments by TestResults')
   async suggestRegiment(@Body() dto: SuggestRegimentDto) {
-    return this.prescribedRegimentsService.suggestRegiment(dto.testResults);
+    return this.prescribedRegimentsService.suggestRegiment(dto.treatmentID);
   }
 }

@@ -16,6 +16,7 @@ import { TestType } from 'src/enums/all_enums';
 import { IUser } from 'src/users/user.interface';
 import { TreatmentsService } from 'src/treatments/treatments.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { TestResult, TestResultDocument } from 'src/test-results/schemas/test-result.schema';
 
 @Injectable()
 export class PrescribedRegimentsService {
@@ -24,6 +25,8 @@ export class PrescribedRegimentsService {
     private prescribedRegimentModel: SoftDeleteModel<PrescribedRegimentDocument>,
     private treatmentsService: TreatmentsService,
     private arvRegimentsService: ArvRegimentsService,
+    @InjectModel(TestResult.name)
+    private testResultModel: SoftDeleteModel<TestResultDocument>
   ) {}
 
   async create(
@@ -144,57 +147,45 @@ export class PrescribedRegimentsService {
     });
   }
 
-  async suggestRegiment(
-    testResults: { test_type: TestType; test_results: number | string }[],
-  ) {
-    const baseRegiments = await this.arvRegimentsService.findAll();
+async suggestRegiment(treatmentID: string) {
+  const [baseRegiments, testResults] = await Promise.all([
+    this.arvRegimentsService.findAll(),
+    this.testResultModel.find({ treatmentID }).lean(),
+  ]);
 
-    // Hàm so sánh giá trị
-    function compare(
-      val1: number | string,
-      op: string,
-      val2: number | string,
-    ): boolean {
-      if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
-        const a = Number(val1),
-          b = Number(val2);
-        switch (op) {
-          case '<':
-            return a < b;
-          case '<=':
-            return a <= b;
-          case '=':
-            return a === b;
-          case '>=':
-            return a >= b;
-          case '>':
-            return a > b;
-          case '!=':
-            return a !== b;
-          default:
-            return false;
-        }
+  function compare(val1: number | string, op: string, val2: number | string): boolean {
+    if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+      const a = Number(val1), b = Number(val2);
+      switch (op) {
+        case '<': return a < b;
+        case '<=': return a <= b;
+        case '=': return a === b;
+        case '>=': return a >= b;
+        case '>': return a > b;
+        case '!=': return a !== b;
+        default: return false;
       }
-      if (typeof val1 === 'string' && typeof val2 === 'string') {
-        switch (op) {
-          case '=':
-            return val1 === val2;
-          case '!=':
-            return val1 !== val2;
-          default:
-            return false;
-        }
-      }
-      return false;
     }
 
-    return baseRegiments.filter(
-      (regiment) =>
-        regiment.criteria.every((cri) => {
-          const test = testResults.find((t) => t.test_type === cri.test_type);
-          if (!test) return false;
-          return compare(test.test_results, cri.operator, cri.value);
-        }),
-    );
+    if (typeof val1 === 'string' && typeof val2 === 'string') {
+      switch (op) {
+        case '=': return val1 === val2;
+        case '!=': return val1 !== val2;
+        default: return false;
+      }
+    }
+
+    return false;
   }
+
+  return baseRegiments.filter(regiment =>
+    regiment.criteria.every(cri => {
+      const matchedTest = testResults.find(t => t.test_type === cri.test_type);
+      if (!matchedTest) return false;
+      return compare(matchedTest.test_results, cri.operator, cri.value);
+    })
+  );
+}
+
+
 }
