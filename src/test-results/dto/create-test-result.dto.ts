@@ -29,3 +29,20 @@ export class CreateTestResultDto {
   @IsNotEmpty({ message: 'Mô tả không được để trống' })
   description: string;
 }
+export class CreateTestResultForTreatmentDto {
+
+  @IsString()
+  @IsNotEmpty({ message: 'Loại xét nghiệm không được để trống' })
+  @IsEnum(TestType, {
+    message: 'Loại xét nghiệm không hợp lệ',
+  })
+  test_type: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Kết quả xét nghiệm không được để trống' })
+  test_results: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Mô tả không được để trống' })
+  description: string;
+}
