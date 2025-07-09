@@ -122,6 +122,9 @@ export class UsersService {
         contactEmails: registerUserDTO.email ? [registerUserDTO.email] : [],
         contactPhones: registerUserDTO.phone ? [registerUserDTO.phone] : [],
         wallet: 0,
+        name,
+        gender,
+        dob,
       };
       await this.patientService.createCustomer(patient);
       const token = this.jwtService.sign(

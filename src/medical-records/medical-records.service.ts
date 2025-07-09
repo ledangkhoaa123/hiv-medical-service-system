@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel, Schema } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
+import { CreateMedicalRecordDto, CreateMedicalRecordPersonalIdDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import {
   MedicalRecord,
@@ -53,13 +53,41 @@ export class MedicalRecordsService {
         select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
-    ])
+    ]);
   }
 
+  createByPersonalID = async (createMedicalRecordDto: CreateMedicalRecordPersonalIdDto, user: IUser, id: string) => {
+    const patient = await this.patientsService.findOneByPersonalID(
+      id,
+    );
+    if (!patient) {
+      throw new NotFoundException(
+        `Patient  ID ${id} không tồn tại`,
+      );
+    }
+    const medicalRecord = await this.medicalRecordModel.create({
+      patientID: patient._id,
+      ...createMedicalRecordDto,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+      },
+    });
+    await this.patientsService.updateMedicalRecord(
+      patient.id,
+      medicalRecord._id as any,
+    );
+    return medicalRecord.populate([
+      {
+        path: 'patientID',
+        select: 'name personalID userID',
+        populate: { path: 'userID', select: 'name' },
+      },
+    ]);
+  };
+
   async findAll(): Promise<MedicalRecord[]> {
-    return this.medicalRecordModel
-      .find()
-      .populate([
+    return this.medicalRecordModel.find().populate([
       {
         path: 'patientID',
         select: 'name personalID userID',
@@ -73,9 +101,7 @@ export class MedicalRecordsService {
         'Không tìm thấy hồ sơ y tế, kiểm tra lại ID',
       );
     }
-    const record = await this.medicalRecordModel
-      .findOne({ _id: id })
-      .populate([
+    const record = await this.medicalRecordModel.findOne({ _id: id }).populate([
       {
         path: 'patientID',
         select: 'name personalID userID',
@@ -120,12 +146,12 @@ export class MedicalRecordsService {
     return await this.medicalRecordModel
       .findOne({ patientID })
       .populate([
-      {
-        path: 'patientID',
-        select: 'name personalID userID',
-        populate: { path: 'userID', select: 'name' },
-      },
-    ])
+        {
+          path: 'patientID',
+          select: 'name personalID userID',
+          populate: { path: 'userID', select: 'name' },
+        },
+      ])
       .sort({ createdAt: -1 });
   }
 

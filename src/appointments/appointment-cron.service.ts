@@ -45,7 +45,9 @@ async cancelExpiredAppointments() {
   // Giả sử bạn đã inject doctorSlotModel
   await this.doctorSlotModel.updateMany(
     { _id: { $in: slotIds } },
-    { $set: { status: DoctorSlotStatus.AVAILABLE } }
+    { $set: { status: DoctorSlotStatus.AVAILABLE },
+      appointmentID: null
+  }
   );
 
   this.logger.log(`Đã huỷ ${result.modifiedCount} appointment quá hạn thanh toán và cập nhật lại doctor slots.`);

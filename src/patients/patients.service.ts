@@ -255,4 +255,21 @@ export class PatientsService {
     contactEmails: email
   });
 }
+
+  refundWallet = async (id: string, amount: number) => {
+    const patient = await this.findOne(id);
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy patient');
+    }
+    if (typeof patient.wallet !== 'number') {
+      throw new BadRequestException('Ví chưa khởi tạo hoặc không hợp lệ');
+    }
+    if (amount <= 0) {
+      throw new BadRequestException('Số tiền hoàn không hợp lệ');
+    }
+    return await this.patientModel.updateOne(
+      { _id: id },
+      { $inc: { wallet: amount } },
+    );
+  };
 }
