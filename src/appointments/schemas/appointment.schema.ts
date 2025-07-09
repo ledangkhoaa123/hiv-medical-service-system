@@ -56,6 +56,16 @@ export class Appointment {
   @Prop({ required: true })
   startTime: Date;
 
+  @Prop()
+  cancellationReason?: string;
+  @Prop()
+  canceledAt?: Date;
+  @Prop({ type: Object })
+  canceledBy?: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+  };
+
   @Prop({ type: Object })
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;

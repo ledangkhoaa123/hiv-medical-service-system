@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
-import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
+import { CreateMedicalRecordDto, CreateMedicalRecordPersonalIdDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import { MedicalRecord } from './schemas/medical-record.schema';
 import { ResponseMessage, User } from 'src/decorator/customize';
@@ -29,6 +29,17 @@ export class MedicalRecordsController {
     @User() user: IUser,
   ) {
     return this.medicalRecordsService.create(createMedicalRecordDto, user);
+  }
+
+  @Post(':personalId')
+  @ApiOperation({ summary: 'Tạo hồ sơ bệnh án mới' })
+  @ResponseMessage('Create a new medical record')
+  async createByPersonalID(
+    @Body() createMedicalRecordDto: CreateMedicalRecordPersonalIdDto,
+    @User() user: IUser,
+    @Param('personalId') id: string
+  ) {
+    return this.medicalRecordsService.createByPersonalID(createMedicalRecordDto, user, id);
   }
 
   @Get()

@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/mongoose';
 import { Appointment, AppointmentDocument } from './schemas/appointment.schema';
 import { Model } from 'mongoose';
-import { AppointmentStatus } from 'src/enums/all_enums';
+import { AppointmentStatus, DoctorSlotStatus } from 'src/enums/all_enums';
 import { DoctorSlot, DoctorSlotDocument } from 'src/doctor_slots/schemas/doctor_slot.schema';
 
 @Injectable()
@@ -45,7 +45,9 @@ async cancelExpiredAppointments() {
   // Giả sử bạn đã inject doctorSlotModel
   await this.doctorSlotModel.updateMany(
     { _id: { $in: slotIds } },
-    { $set: { status: 'available' } }
+    { $set: { status: DoctorSlotStatus.AVAILABLE },
+      appointmentID: null
+  }
   );
 
   this.logger.log(`Đã huỷ ${result.modifiedCount} appointment quá hạn thanh toán và cập nhật lại doctor slots.`);

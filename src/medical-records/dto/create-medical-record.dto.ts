@@ -18,3 +18,16 @@ export class CreateMedicalRecordDto {
   @IsString()
   clinicalNotes: string;
 }
+export class CreateMedicalRecordPersonalIdDto {
+  @IsNotEmpty({message: 'chẩn đoán không được để trống'})
+  @IsString()
+  diagnosis: string;
+
+  @IsNotEmpty({message: 'triệu chứng không được để trống'})
+  @IsString()
+  symptoms: string;
+
+  @IsOptional()
+  @IsString()
+  clinicalNotes: string;
+}

@@ -8,6 +8,7 @@ import {
   IsMongoId,
   ValidateNested,
   IsEnum,
+  ArrayNotEmpty,
 } from 'class-validator';
 import mongoose from 'mongoose';
 import { DrugRegiment } from 'src/arv_regiments/dto/create-arv_regiment.dto';
@@ -46,11 +47,9 @@ export class CreatePrescribedRegimentDto {
   @IsOptional()
   endDate: string;
 }
-export class SuggestRegimentDto {
 
-  @IsNotEmpty({message: "testResults không được trống"})
-  @IsArray({ message: 'Drugs phải là một mảng' })
-  @ValidateNested({ each: true })
-  @Type(() => Tests)
-  testResults: Tests[];
+
+export class SuggestRegimentDto {
+  @IsMongoId({ message: 'treatmentID phải là ObjectId hợp lệ' })
+  treatmentID: string;
 }

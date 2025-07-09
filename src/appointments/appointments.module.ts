@@ -11,6 +11,8 @@ import { MailModule } from "src/mail/mail.module";
 import { PatientsModule } from "src/patients/patients.module";
 import { DoctorsModule } from "src/doctors/doctors.module";
 import { AppointmentCronService } from "./appointment-cron.service";
+import { DoctorSchedulesModule } from "src/doctor_schedules/doctor_schedules.module";
+import { UsersModule } from "src/users/users.module";
 
 
 @Module({
@@ -19,7 +21,7 @@ import { AppointmentCronService } from "./appointment-cron.service";
       { name: Appointment.name, schema: AppointmentSchema },
       { name: DoctorSlot.name, schema: DoctorSlotSchema }
     ]),
-    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule,
+    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule, DoctorSchedulesModule, UsersModule
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService,AppointmentCronService],
