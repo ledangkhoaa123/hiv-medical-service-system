@@ -250,4 +250,9 @@ export class PatientsService {
       { $inc: { wallet: -amount } },
     );
   };
+  async findOneByContactEmail(email: string) {
+  return await this.patientModel.findOne({
+    contactEmails: email
+  });
+}
 }

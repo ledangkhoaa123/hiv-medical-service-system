@@ -17,4 +17,5 @@ export interface IUser {
     apiPath: string;
     module: string;
   }[];
+  isVerified: boolean;
 }

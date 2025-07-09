@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { verify } from 'crypto';
 
 @Injectable()
 export class MailService {
@@ -38,9 +39,28 @@ export class MailService {
             context: {
                 patientName: data.patientName,
                 followUpDate: data.followUpDate,
-                doctorName:data.doctorName,
-                room:data.room
+                doctorName: data.doctorName,
+                room: data.room
             },
         });
     }
+    async sendVerifyEmail(data: { to: string; verifyLink: string }) {
+       
+        await this.mailerService.sendMail({
+            to: data.to,
+            subject: 'Xác thực tài khoản email',
+            template: 'verifyEmail', 
+            context: {
+                verifyLink: data.verifyLink,
+            },
+        });
+    }
+    async sendResetPasswordEmail(data: { to: string; resetLink: string }) {
+  await this.mailerService.sendMail({
+    to: data.to,
+    subject: 'Đặt lại mật khẩu',
+    template: 'resetPassword',
+    context: { resetLink: data.resetLink },
+  });
+}
 }

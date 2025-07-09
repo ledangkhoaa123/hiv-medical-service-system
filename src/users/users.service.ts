@@ -19,6 +19,8 @@ import {
   CreatePatientDto,
   UpgradeFromGuestDto,
 } from 'src/patients/dto/create-patient.dto';
+import { MailService } from 'src/mail/mail.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +28,10 @@ export class UsersService {
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
     @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
     private patientService: PatientsService,
-  ) {}
+    private readonly mailService: MailService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) { }
   async create(createUserDto: CreateUserDto, user: IUser) {
     const isExist = await this.userModel.findOne({
       email: createUserDto.email,
@@ -34,7 +39,7 @@ export class UsersService {
     if (isExist) {
       throw new BadRequestException('Email đã tồn tại!');
     }
-    if (!(await this.roleModel.findOne({_id: createUserDto.role})) || !createUserDto.role) {
+    if (!(await this.roleModel.findOne({ _id: createUserDto.role })) || !createUserDto.role) {
       throw new NotFoundException("Không tìm thấy role")
     }
     const { email, password, dob, gender, name, phone, address, role } =
@@ -109,6 +114,7 @@ export class UsersService {
         address,
         role: userRole,
       });
+
       const patient: CreatePatientDto = {
         personalID: registerUserDTO.personalID,
         userID: user._id as any,
@@ -118,12 +124,22 @@ export class UsersService {
         wallet: 0,
       };
       await this.patientService.createCustomer(patient);
+      const token = this.jwtService.sign(
+        { userId: user._id },
+        { expiresIn: '1d' }
+      );
+      const port= this.configService.get<string>('PORT')
+      const verifyLink = `http://localhost:${port}/auth/verify-email?token=${token}`;
+     
+      await this.mailService.sendVerifyEmail({ to: user.email, verifyLink });
+      
       return {
         user: {
           _id: user._id,
           name: user.name,
           createAt: user.createdAt,
         },
+        message: 'Đăng ký thành công, vui lòng kiểm tra email để xác thực!'
       };
     } catch (error) {
       if (error.code === 11000) {
@@ -136,6 +152,7 @@ export class UsersService {
       }
     }
   }
+
 
   async upgradeFromGuest(upgradeDTO: UpgradeFromGuestDto) {
     const { email, password, personalID } = upgradeDTO;
@@ -253,4 +270,10 @@ export class UsersService {
       select: { name: 1 },
     });
   };
+  async verifyUser(userId: string) {
+    await this.userModel.updateOne(
+      { _id: userId },
+      { isVerified: true }
+    );
+  }
 }
