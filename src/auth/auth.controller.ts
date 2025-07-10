@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './local-auth-guard';
 import { AuthService } from './auth.service';
@@ -18,7 +18,7 @@ export class AuthController {
     private authService: AuthService,
     private readonly usersService: UsersService,
     private rolesService: RolesService,
-  ) {}
+  ) { }
 
   @Public()
   @Post('/login')
@@ -31,7 +31,7 @@ export class AuthController {
   }
   @Public()
   @ApiOperation({ summary: 'Đăng ký tài khoản mới (user)' })
-  @ResponseMessage('Register a new user')
+  //@ResponseMessage('Register a new user')
   @Post('/register')
   handleRegister(@Body() registerUserDTO: RegisterUserDto) {
     return this.usersService.register(registerUserDTO);
@@ -63,7 +63,58 @@ export class AuthController {
     const refreshToken = request.cookies['refresh_Token'];
     return this.authService.processNewToken(refreshToken, response);
   }
+  @Public()
+  @Get('/verify-email')
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+  @Public()
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'example@gmail.com' },
+      },
+      required: ['email'],
+    },
+  })
+  @Post('/forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
 
+  @Public()
+  @Post('/reset-password')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        token: { type: 'string', example: 'jwt-token' },
+        newPassword: { type: 'string', example: 'yourNewPassword123' },
+      },
+      required: ['token', 'newPassword'],
+    },
+  })
+  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+    return this.authService.resetPassword(body.token, body.newPassword);
+  }
+  @Post('/change-password')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        oldPassword: { type: 'string', example: 'oldPassword123' },
+        newPassword: { type: 'string', example: 'newPassword456' },
+      },
+      required: ['oldPassword', 'newPassword'],
+    },
+  })
+  async changePassword(
+    @User() user: IUser,
+    @Body() body: { oldPassword: string; newPassword: string }
+  ) {
+    return this.authService.changePassword(user, body.oldPassword, body.newPassword);
+  }
   @ResponseMessage('User logout')
   @ApiOperation({ summary: 'Đăng xuất người dùng' })
   @Post('/logout')
@@ -73,4 +124,5 @@ export class AuthController {
   ) {
     return this.authService.logout(response, user);
   }
+
 }

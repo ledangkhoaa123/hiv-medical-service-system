@@ -2,21 +2,29 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { log } from 'console';
+import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import ms from 'ms';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { User } from 'src/users/schemas/user.schema';
+import { RoleName } from 'src/enums/all_enums';
+import { MailService } from 'src/mail/mail.service';
 import { RolesService } from 'src/roles/roles.service';
+import { UserDocument } from 'src/users/schemas/user.schema';
 import { IUser } from 'src/users/user.interface';
 import { UsersService } from 'src/users/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private rolesService: RolesService
-  ) {}
+    private rolesService: RolesService,
+    private mailService: MailService
+  ) { }
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(username);
@@ -34,6 +42,9 @@ export class AuthService {
   }
 
   async signIn(user: IUser, res: Response) {
+    if (user.role.name === RoleName.CUSTOMER_ROLE && !user.isVerified) {
+      throw new BadRequestException('Tài khoản chưa xác thực email!');
+    }
     const { _id, email, name, role, permissions, address, gender, avatarURL } = user;
     const payload = {
       iss: 'Form Server',
@@ -48,7 +59,7 @@ export class AuthService {
     };
     const refreshToken = this.createRefreshToken({ name: name });
     //Update refreshToken in DB
-    this.usersService.updateUserRefreshToken(refreshToken, _id); 
+    this.usersService.updateUserRefreshToken(refreshToken, _id);
     res.cookie('refresh_Token', refreshToken, {
       httpOnly: true,
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
@@ -134,4 +145,63 @@ export class AuthService {
     response.clearCookie('refresh_Token');
     return 'Ok';
   };
+  async verifyEmail(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      await this.usersService.verifyUser(payload.userId);
+      return { message: 'Xác thực email thành công!' };
+    } catch (e) {
+      throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn');
+    }
+  }
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new BadRequestException('Email không tồn tại');
+    const token = this.jwtService.sign(
+      { userId: user._id },
+      { expiresIn: '15m' }
+    );
+    const port = this.configService.get<string>('PORT');
+    const resetLink = `http://localhost${port}/auth/reset-password?token=${token}`;
+    await this.mailService.sendResetPasswordEmail({ to: email, resetLink });
+    return { message: 'Đã gửi email đặt lại mật khẩu!' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      const hashPassword = this.usersService.getHashPassword(newPassword);
+      await this.userModel.updateOne(
+        { _id: payload.userId },
+        { password: hashPassword }
+      );
+      return { message: 'Đặt lại mật khẩu thành công!' };
+    } catch (e) {
+      throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn');
+    }
+  }
+  async changePassword(users: IUser, oldPassword: string, newPassword: string) {
+    const user = await this.usersService.findByEmail(users.email);
+    const isMatch = await this.isValidPassword(
+      oldPassword,
+      user.password,
+    );
+
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu cũ không đúng');
+    }
+    const hashPassword = this.usersService.getHashPassword(newPassword);
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { password: hashPassword },
+    );
+
+    return { message: 'Đổi mật khẩu thành công!' };
+  }
+  async isValidPassword(inputPass: string, dbPass: string): Promise<boolean> {
+    if (!inputPass || !dbPass) {
+      return false;
+    }
+    return bcrypt.compare(inputPass, dbPass);
+  }
 }

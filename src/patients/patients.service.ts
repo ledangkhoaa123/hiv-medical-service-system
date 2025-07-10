@@ -250,6 +250,12 @@ export class PatientsService {
       { $inc: { wallet: -amount } },
     );
   };
+  async findOneByContactEmail(email: string) {
+  return await this.patientModel.findOne({
+    contactEmails: email
+  });
+}
+
   refundWallet = async (id: string, amount: number) => {
     const patient = await this.findOne(id);
     if (!patient) {

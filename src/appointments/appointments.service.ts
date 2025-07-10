@@ -45,7 +45,7 @@ export class AppointmentsService {
     private readonly patientService: PatientsService,
     private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
-  ) {}
+  ) { }
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
@@ -106,6 +106,7 @@ export class AppointmentsService {
 
     return createApp;
   }
+  
 
   findAll() {
     return this.appointmentModel.find().populate([
@@ -184,8 +185,12 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
+
+     
   }
 
+
+  
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
     const end = new Date(endDate + 'T23:59:59.999Z');
@@ -327,7 +332,9 @@ export class AppointmentsService {
     if (updateAppointment.modifiedCount > 0) {
       await this.doctorSlotModel.updateMany(
         { _id: { $in: appointment.doctorSlotID } },
-        { $set: { status: DoctorSlotStatus.BOOKED, appointmentID: id } },
+        { $set: { status: DoctorSlotStatus.BOOKED,
+          appointmentID: id
+         } },
       );
     }
 
