@@ -97,8 +97,8 @@ export class AuthService {
         //Update refreshToken in DB
         this.usersService.updateUserRefreshToken(refreshToken, _id.toString());
 
-        // const userRole = user.role as unknown as { _id: string; name: string };
-        // const tempRole = await this.rolesService.findOne(userRole._id);
+        const userRole = user.role as unknown as { _id: string; name: string };
+        const tempRole = await this.rolesService.findOne(userRole._id);
 
         //Xóa cho chắc thui
         response.clearCookie('refresh_Token');
@@ -116,8 +116,8 @@ export class AuthService {
             _id,
             email,
             name,
-            //role,
-            //permissions: tempRole?. permissions ?? []
+            role: userRole as any,
+            permissions: tempRole?. permissions ?? []
           },
         };
       } else {

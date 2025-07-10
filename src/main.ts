@@ -8,6 +8,7 @@ import { TransformInterceptor } from './core/transform.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { engine } from 'express-handlebars';
 import { join } from 'path';
+import { PermissionScannerService } from './permissions/permission-scanner.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,7 +21,9 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
-
+  if (process.env.SHOULD_SCAN_PERMISSIONS === 'true') {
+  await app.get(PermissionScannerService).scanAndCreatePermissions();
+}
   //congif engine
   app.engine('hbs', engine({ extname: 'hbs', defaultLayout: null }));
   app.setViewEngine('hbs');

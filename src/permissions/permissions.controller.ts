@@ -7,11 +7,12 @@ import {
   Param,
   Delete,
   Query,
+  Put,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { ResponseMessage, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -70,5 +71,11 @@ export class PermissionsController {
   @ResponseMessage('Delete a permission by id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.permissionsService.remove(id, user);
+  }
+  @Put('log-module-count')
+  @Public()
+  async testModuleCount() {
+    await this.permissionsService.logDistinctModulesCount();
+    return { message: 'Đã log ra số lượng module.' };
   }
 }

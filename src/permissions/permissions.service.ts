@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,10 +11,35 @@ import mongoose from 'mongoose';
 
 @Injectable()
 export class PermissionsService {
+  private readonly logger = new Logger(PermissionsService.name)
   constructor(
     @InjectModel(Permission.name)
     private permissionModel: SoftDeleteModel<PermissionDocument>,
+    
   ) {}
+  async createIfNotExists(dto: {
+    name: string;
+    apiPath: string;
+    method: string;
+    module: string;
+  }) {
+    const exists = await this.permissionModel.findOne({
+      apiPath: dto.apiPath,
+      method: dto.method,
+    });
+
+    if (!exists) {
+      await this.permissionModel.create({
+        ...dto,
+      });
+    }
+  }
+  async logDistinctModulesCount(): Promise<void> {
+    const distinctModules = await this.permissionModel.distinct('module');
+    const count = distinctModules.length;
+    this.logger.log(`Số lượng module khác nhau: ${count}`);
+    this.logger.log(`Các module: ${distinctModules.join(', ')}`);
+  }
   async create(createPermissionDto: CreatePermissionDto, user: IUser) {
     const { apiPath, method, module, name } = createPermissionDto;
     const IsExist = await this.permissionModel.findOne({
@@ -74,7 +99,9 @@ export class PermissionsService {
 
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Không tìm thấy permission, kiểm tra lại ID');
+      throw new BadRequestException(
+        'Không tìm thấy permission, kiểm tra lại ID',
+      );
     }
     return this.permissionModel.findOne({ _id: id });
   }
