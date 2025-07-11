@@ -12,6 +12,7 @@ import {
 import { AppointmentsService } from './appointments.service';
 import {
   AppointmentPersonalIDDto,
+  CancelAppointmentDto,
   CancelAppointmentForDoctorDto,
   CancelByDateDto,
   CreateAppointmentDto,
@@ -136,19 +137,19 @@ export class AppointmentsController {
     return this.appointmentsService.getFromPersonalID(personalIDdto.personalID);
   }
   @ApiOperation({ summary: 'Hủy lịch hẹn vì bác sĩ bận đột xuất' })
-  @ResponseMessage('Get Appointment from Access Token')
+  @ResponseMessage('Cancle appointment for doctor')
   @Post('cancle/doctor')
-  cancelAppointment(
+  cancelAppointmentForDoctor(
     @Body() cancleAppointmentdto: CancelAppointmentForDoctorDto,
     @User() user: IUser,
   ) {
-    return this.appointmentsService.cancelAppointment(
+    return this.appointmentsService.cancelAppointmentForDoctor(
       cancleAppointmentdto,
       user,
     );
   }
   @ApiOperation({ summary: 'Hủy lịch hẹn vì lí do khác' })
-  @ResponseMessage('Get Appointment from Access Token')
+  @ResponseMessage('Cancle appointment by date')
   @Post('cancle')
   cancelAppointmentForHospital(
     @Body() cancleAppointmentdto: CancelByDateDto,
@@ -156,6 +157,18 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.cancelAppointmentForHospital(
       cancleAppointmentdto,
+      user,
+    );
+  }
+  @ApiOperation({ summary: 'Hủy lịch hẹn' })
+  @ResponseMessage('Cancle appointment')
+  @Post('cancle/appointment')
+  cancelAppointment(
+    @Body() cancleAppointmentdto: CancelAppointmentDto,
+    @User() user: IUser,
+  ) {
+    return this.appointmentsService.cancelAppointment(
+      cancleAppointmentdto.appoinmentId as any,
       user,
     );
   }
