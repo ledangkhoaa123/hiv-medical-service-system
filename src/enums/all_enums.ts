@@ -57,6 +57,7 @@ export enum AppointmentStatus {
   pending = 'Đang xét duyệt',
   pending_payment = 'Chờ thanh toán',
   confirmed = 'Hoàn tất đặt lịch',
+  checkin = 'Khách hàng đã checkin',
   payment_failed = 'Thanh toán thất bại',
   cancelled_by_user = 'Hủy bởi người khách hàng',
   cancelled_by_staff = 'Hủy bởi nhân viên',
