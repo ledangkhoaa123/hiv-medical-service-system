@@ -272,4 +272,11 @@ export class PatientsService {
       { $inc: { wallet: amount } },
     );
   };
+  async removeMedicalRecordFromPatient(patientId: string, medicalRecordId: string) {
+  return this.patientModel.updateOne(
+    { _id: patientId },
+    { $pull: { medicalRecords: medicalRecordId } },
+  );
+}
+
 }

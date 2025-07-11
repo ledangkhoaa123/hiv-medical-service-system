@@ -65,7 +65,7 @@ export class MedicalRecordsController {
     return this.medicalRecordsService.findOne(id);
   }
   @Get('/personalID')
-  @ApiOperation({ summary: 'Lấy hồ sơ bệnh án theo ID' })
+  @ApiOperation({ summary: 'Lấy hồ sơ bệnh án theo PersonalID' })
   @ResponseMessage('Get medical record by ID')
   async findOnePersonalID(
     @Query('personalId') id: string

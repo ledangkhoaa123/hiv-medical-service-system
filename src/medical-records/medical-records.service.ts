@@ -20,6 +20,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
 import { PatientsService } from 'src/patients/patients.service';
 import { create } from 'domain';
+import { TreatmentsService } from 'src/treatments/treatments.service';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -28,6 +29,8 @@ export class MedicalRecordsService {
     private medicalRecordModel: SoftDeleteModel<MedicalRecordDocument>,
 
     private patientsService: PatientsService,
+
+    private treatmentsService: TreatmentsService
   ) {}
 
   async create(createMedicalRecordDto: CreateMedicalRecordDto, user: IUser) {
@@ -207,23 +210,29 @@ export class MedicalRecordsService {
     }
   };
 
-  async remove(id: string, user: IUser) {
-    if (!(await this.findOne(id))) {
-      throw new BadRequestException(`Không tìm thấy hồ sơ y tế với id=${id}`);
-    }
-    await this.medicalRecordModel.updateOne(
-      {
-        _id: id,
-      },
-      {
-        deletedBy: {
-          _id: user._id,
-          email: user.email,
-        },
-      },
-    );
-    return this.medicalRecordModel.softDelete({
-      _id: id,
-    });
+async remove(id: string, user: IUser) {
+  // 1. Kiểm tra MedicalRecord tồn tại
+  const medical = await this.medicalRecordModel.findById(id);
+  if (!medical) {
+    throw new BadRequestException(`Không tìm thấy hồ sơ y tế với id=${id}`);
   }
+
+  // 2. Gọi PatientService để xóa reference trong patient.medicalRecords[]
+  await this.patientsService.removeMedicalRecordFromPatient(
+    medical.patientID.toString(),
+    id,
+  );
+
+  // 3. Gọi TreatmentService để xóa tất cả treatment có liên kết
+  await this.treatmentsService.deleteAllByMedicalRecordId(id);
+
+  // 4. Xóa luôn bản ghi medical record
+  await this.medicalRecordModel.deleteOne({ _id: id });
+
+  return {
+    message: 'Đã xóa hồ sơ bệnh án và các điều trị liên quan',
+    medicalRecordId: id,
+  };
+}
+
 }

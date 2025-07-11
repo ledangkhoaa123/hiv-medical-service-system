@@ -11,7 +11,8 @@ import { TestResultsModule } from 'src/test-results/test-results.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Treatment', schema: TreatmentSchema }]),
-    MedicalRecordsModule, DoctorsModule,MailModule, 
+    forwardRef(() => MedicalRecordsModule),
+    DoctorsModule,MailModule, 
     forwardRef(() => TestResultsModule)
     // Assuming MedicalRecordsModule is defined elsewhere
   ],

@@ -1,6 +1,8 @@
 import { IsMongoId } from 'class-validator';
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -24,6 +26,7 @@ export class TreatmentsService {
   constructor(
     @InjectModel(Treatment.name)
     private treatmentModel: SoftDeleteModel<TreatmentDocument>,
+    @Inject(forwardRef(() => MedicalRecordsService))
     private medicalRecordsService: MedicalRecordsService,
     private readonly mailService: MailService,
     private doctorsService: DoctorsService,
@@ -209,4 +212,8 @@ export class TreatmentsService {
       });
     }
   }
+  async deleteAllByMedicalRecordId(medicalRecordId: string) {
+  return this.treatmentModel.deleteMany({ medicalRecordID: medicalRecordId });
+}
+
 }
