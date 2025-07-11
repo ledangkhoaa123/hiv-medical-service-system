@@ -9,12 +9,15 @@ import {
   Query,
 } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
-import { CreateMedicalRecordDto, CreateMedicalRecordPersonalIdDto } from './dto/create-medical-record.dto';
+import {
+  CreateMedicalRecordDto,
+  CreateMedicalRecordPersonalIdDto,
+} from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import { MedicalRecord } from './schemas/medical-record.schema';
 import { ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('medical-records')
 @Controller('medicalrecords')
@@ -37,9 +40,15 @@ export class MedicalRecordsController {
   async createByPersonalID(
     @Body() createMedicalRecordDto: CreateMedicalRecordPersonalIdDto,
     @User() user: IUser,
-    @Param('personalId') id: string
+    @Param('personalId') id: string,
+    @Query('serviceId') serviceId: string,
   ) {
-    return this.medicalRecordsService.createByPersonalID(createMedicalRecordDto, user, id);
+    return this.medicalRecordsService.createByPersonalID(
+      createMedicalRecordDto,
+      user,
+      id,
+      serviceId
+    );
   }
 
   @Get()
@@ -58,7 +67,9 @@ export class MedicalRecordsController {
   @Get('/personalID')
   @ApiOperation({ summary: 'Lấy hồ sơ bệnh án theo ID' })
   @ResponseMessage('Get medical record by ID')
-  async findOnePersonalID(@Query('personalId') id: string): Promise<MedicalRecord> {
+  async findOnePersonalID(
+    @Query('personalId') id: string
+  ): Promise<MedicalRecord> {
     return this.medicalRecordsService.findOnePersonalID(id);
   }
   @Put(':id')
