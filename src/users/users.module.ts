@@ -8,15 +8,19 @@ import { PatientsModule } from 'src/patients/patients.module';
 import { MailModule } from 'src/mail/mail.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Patient, PatientSchema } from 'src/patients/schemas/patient.schema';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
-      { name: Role.name, schema: RoleSchema }
+      { name: Role.name, schema: RoleSchema },
+      { name: Patient.name, schema: PatientSchema },
     ]),
     PatientsModule,
     MailModule,
+    RolesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
