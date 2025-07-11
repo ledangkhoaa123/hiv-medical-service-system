@@ -22,14 +22,18 @@ export class User {
   phone: string;
   @Prop()
   address: string;
-  @Prop({default: ''})
+  @Prop({ default: '' })
   avatarURL: string;
 
-  @Prop({type: mongoose.Schema.Types.ObjectId, ref: Role.name })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
   role: mongoose.Schema.Types.ObjectId;
 
   @Prop()
   refreshToken: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
+
 
   @Prop({ type: Object })
   createdBy: {
