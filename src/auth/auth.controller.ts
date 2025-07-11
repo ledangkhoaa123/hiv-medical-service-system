@@ -72,7 +72,7 @@ export class AuthController {
   ) {
     try {
       await this.authService.verifyEmail(token);
-      return res.redirect('http://localhost:5173/signin');
+      return res.redirect('http://localhost:5173/verification');
     } catch (error) {
       return res.status(400).send('Token không hợp lệ hoặc đã hết hạn');
     }

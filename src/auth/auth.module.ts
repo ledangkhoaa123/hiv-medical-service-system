@@ -29,7 +29,7 @@ import { UserSchema } from 'src/users/schemas/user.schema';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: "1h",
+          expiresIn: "1d",
         },
       }),
       inject: [ConfigService],
