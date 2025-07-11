@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { pick } from 'lodash';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   CreateUserDto,
   RegisterUserDto,
@@ -21,16 +21,25 @@ import {
 } from 'src/patients/dto/create-patient.dto';
 import { MailService } from 'src/mail/mail.service';
 import { JwtService } from '@nestjs/jwt';
+import { RoleName } from 'src/enums/all_enums';
+import { RolesService } from 'src/roles/roles.service';
+import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
+import { last } from 'rxjs';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
     @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
+    @InjectModel(Patient.name) private patientModel: SoftDeleteModel<PatientDocument>,
+
     private patientService: PatientsService,
     private readonly mailService: MailService,
     private readonly jwtService: JwtService,
+    private readonly roleService: RolesService,
+
     private readonly configService: ConfigService,
+
   ) { }
   async create(createUserDto: CreateUserDto, user: IUser) {
     const isExist = await this.userModel.findOne({
@@ -131,11 +140,11 @@ export class UsersService {
         { userId: user._id },
         { expiresIn: '1d' }
       );
-      const port= this.configService.get<string>('PORT')
+      const port = this.configService.get<string>('PORT')
       const verifyLink = `http://localhost:${port}/auth/verify-email?token=${token}`;
-     
+
       await this.mailService.sendVerifyEmail({ to: user.email, verifyLink });
-      
+
       return {
         user: {
           _id: user._id,
@@ -223,21 +232,84 @@ export class UsersService {
     // });
   }
 
+  // file: users.service.ts
+
   async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
-    const updatedBy = pick(user, ['_id', 'email']);
-    if (!(await this.findOne(id))) {
-      throw new BadRequestException('ID người dùng không tồn tại');
-    }
-    if (await this.findByEmail(updateUserDto.email)) {
-      throw new BadRequestException(
-        `${updateUserDto.email} đã tồn tại, vui lòng sử dụng email khác`,
-      );
+    // Lấy thông tin người dùng cần cập nhật
+
+    const userToUpdate = await this.userModel.findById(id);
+
+    if (!userToUpdate) {
+      throw new NotFoundException('Không tìm thấy người dùng để cập nhật.');
     }
 
-    return this.userModel.updateOne(
-      { _id: id },
-      { ...updateUserDto, updatedBy },
-    );
+    const actorRoleName = user.role.name;
+
+    const targetRoleObject = await this.roleService.findOne(userToUpdate.role as any);
+    if (!targetRoleObject) {
+      throw new NotFoundException('Vai trò của người dùng không hợp lệ.');
+    }
+    const targetRoleName = targetRoleObject.name;
+
+    switch (actorRoleName) {
+      case RoleName.ADMIN_ROLE:
+
+        break;
+
+      case RoleName.MANAGER_ROLE:
+        if (targetRoleName === RoleName.ADMIN_ROLE || targetRoleName === RoleName.MANAGER_ROLE) {
+          throw new ForbiddenException('Bạn không có quyền cập nhật người dùng có vai trò này.');
+        }
+        if (updateUserDto.role) {
+          const newRoleObject = await this.roleService.findOne(updateUserDto.role as any);
+          if (newRoleObject?.name === RoleName.ADMIN_ROLE) {
+            throw new ForbiddenException('Bạn không thể gán vai trò Admin.');
+          }
+        }
+        break;
+
+      default:
+        if (user._id !== id) {
+          throw new ForbiddenException('Bạn chỉ có thể cập nhật thông tin của chính mình.');
+        }
+        if (updateUserDto.role && updateUserDto.role.toString() !== userToUpdate.role.toString()) {
+          throw new ForbiddenException('Bạn không được phép thay đổi vai trò của mình.');
+        }
+        break;
+    }
+
+    const updatedUserResult = await this.userModel.updateOne({ _id: id }, { ...updateUserDto });
+
+
+    const patientSetData: Partial<Patient> = {};
+    if (updateUserDto.name) patientSetData.name = updateUserDto.name;
+    if (updateUserDto.gender) patientSetData.gender = updateUserDto.gender;
+    if (updateUserDto.dob) patientSetData.dob = updateUserDto.dob;
+
+    const addToSetData: any = {};
+    if (updateUserDto.email) {
+      addToSetData.contactEmails = updateUserDto.email;
+    }
+    if (updateUserDto.phone) {
+      addToSetData.contactPhones = updateUserDto.phone;
+    }
+
+    const updatePayload: any = {};
+
+    if (Object.keys(patientSetData).length > 0) {
+      updatePayload.$set = patientSetData;
+    }
+    if (Object.keys(addToSetData).length > 0) {
+      updatePayload.$addToSet = addToSetData;
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      await this.patientModel.updateOne(
+        { userID: id },
+        updatePayload, 
+      );
+    }
+    return updatedUserResult;
   }
 
   async remove(id: string, userDelete: IUser) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './local-auth-guard';
 import { AuthService } from './auth.service';
@@ -10,6 +10,7 @@ import { IUser } from 'src/users/user.interface';
 import { log } from 'console';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UpgradeFromGuestDto } from 'src/patients/dto/create-patient.dto';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 
 @ApiTags("auth")
 @Controller('auth')
@@ -63,19 +64,19 @@ export class AuthController {
     const refreshToken = request.cookies['refresh_Token'];
     return this.authService.processNewToken(refreshToken, response);
   }
- @Public()
-@Get('/verify-email')
-async verifyEmail(
-  @Query('token') token: string,
-  @Res() res: Response
-) {
-  try {
-    await this.authService.verifyEmail(token);
-    return res.redirect('http://localhost:5173/signin'); 
-  } catch (error) {
-    return res.status(400).send('Token không hợp lệ hoặc đã hết hạn');
+  @Public()
+  @Get('/verify-email')
+  async verifyEmail(
+    @Query('token') token: string,
+    @Res() res: Response
+  ) {
+    try {
+      await this.authService.verifyEmail(token);
+      return res.redirect('http://localhost:5173/signin');
+    } catch (error) {
+      return res.status(400).send('Token không hợp lệ hoặc đã hết hạn');
+    }
   }
-}
   @Public()
   @ApiBody({
     schema: {
@@ -131,6 +132,13 @@ async verifyEmail(
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.logout(response, user);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Cập nhật thông tin người dùng theo ID' })
+  @ResponseMessage("Update user by ID")
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
+    return this.usersService.update(id, updateUserDto, user);
   }
 
 }
