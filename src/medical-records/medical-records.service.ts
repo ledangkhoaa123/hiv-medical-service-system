@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel, Schema } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { CreateMedicalRecordDto, CreateMedicalRecordPersonalIdDto } from './dto/create-medical-record.dto';
+import {
+  CreateMedicalRecordDto,
+  CreateMedicalRecordPersonalIdDto,
+} from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import {
   MedicalRecord,
@@ -56,18 +59,20 @@ export class MedicalRecordsService {
     ]);
   }
 
-  createByPersonalID = async (createMedicalRecordDto: CreateMedicalRecordPersonalIdDto, user: IUser, id: string) => {
-    const patient = await this.patientsService.findOneByPersonalID(
-      id,
-    );
+  createByPersonalID = async (
+    createMedicalRecordDto: CreateMedicalRecordPersonalIdDto,
+    user: IUser,
+    id: string,
+    serviceId: string,
+  ) => {
+    const patient = await this.patientsService.findOneByPersonalID(id);
     if (!patient) {
-      throw new NotFoundException(
-        `Patient  ID ${id} không tồn tại`,
-      );
+      throw new NotFoundException(`Patient  ID ${id} không tồn tại`);
     }
     const medicalRecord = await this.medicalRecordModel.create({
       patientID: patient._id,
       ...createMedicalRecordDto,
+      tempServiceID: serviceId,
       createdBy: {
         _id: user._id,
         email: user.email,
@@ -82,6 +87,10 @@ export class MedicalRecordsService {
         path: 'patientID',
         select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
+      },
+      {
+        path: 'tempServiceID',
+        select: 'name price durationMinutes',
       },
     ]);
   };
@@ -117,19 +126,29 @@ export class MedicalRecordsService {
         `Không tìm thấy bệnh nhân với personalId: ${id}`,
       );
     }
-    const medical = this.medicalRecordModel.findOne({ patientID: patient.id });
+    const medical = await this.medicalRecordModel
+      .findOne({
+        patientID: patient.id,
+      })
+      .sort({ createdAt: -1 })
+      .populate([
+        {
+          path: 'patientID',
+          select: 'name personalID userID',
+          populate: { path: 'userID', select: 'name' },
+        },
+        {
+          path: 'tempServiceID',
+          select: 'name price durationMinutes',
+        },
+      ]);
     if (!medical) {
       throw new NotFoundException(
         `Không tìm thấy bệnh án với personalId: ${id}`,
       );
     }
-    return medical.populate([
-      {
-        path: 'patientID',
-        select: 'name personalID userID',
-        populate: { path: 'userID', select: 'name' },
-      },
-    ]);
+
+    return medical;
   };
   async findAllByPatientId(patientID: mongoose.Schema.Types.ObjectId) {
     return await this.medicalRecordModel.find({ patientID }).populate([

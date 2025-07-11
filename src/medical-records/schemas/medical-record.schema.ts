@@ -20,6 +20,13 @@ export class MedicalRecord extends Document {
   })
   patientID: mongoose.Schema.Types.ObjectId;
 
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: () => 'Service',
+    required: false,
+  })
+  tempServiceID: mongoose.Schema.Types.ObjectId;
+
   @Prop({ type: String })
   diagnosis: string;
 
