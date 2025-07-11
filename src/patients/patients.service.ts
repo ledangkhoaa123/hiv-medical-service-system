@@ -273,9 +273,9 @@ export class PatientsService {
     );
   };
   async removeMedicalRecordFromPatient(patientId: string, medicalRecordId: string) {
-  return this.patientModel.updateOne(
+  return await this.patientModel.updateOne(
     { _id: patientId },
-    { $pull: { medicalRecords: medicalRecordId } },
+    { $pull: { medicalRecordID: medicalRecordId } },
   );
 }
 
