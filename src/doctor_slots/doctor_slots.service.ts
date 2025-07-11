@@ -333,5 +333,13 @@ export class DoctorSlotsService {
     },
   );
 }
-
+async updateManySlotStatuses(
+    slotIds: (string)[],
+    status: DoctorSlotStatus,
+  ) {
+    return this.doctorSlotModel.updateMany(
+      { _id: { $in: slotIds } },
+      { $set: { status } },
+    );
+  }
 }

@@ -45,7 +45,7 @@ export class AppointmentsService {
     private readonly patientService: PatientsService,
     private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
-  ) { }
+  ) {}
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
@@ -106,7 +106,6 @@ export class AppointmentsService {
 
     return createApp;
   }
-  
 
   findAll() {
     return this.appointmentModel.find().populate([
@@ -185,12 +184,8 @@ export class AppointmentsService {
           populate: { path: 'userID', select: 'name' },
         },
       ]);
-
-     
   }
 
-
-  
   async findByDateRange(startDate: string, endDate: string) {
     const start = new Date(startDate + 'T00:00:00.000Z');
     const end = new Date(endDate + 'T23:59:59.999Z');
@@ -332,9 +327,7 @@ export class AppointmentsService {
     if (updateAppointment.modifiedCount > 0) {
       await this.doctorSlotModel.updateMany(
         { _id: { $in: appointment.doctorSlotID } },
-        { $set: { status: DoctorSlotStatus.BOOKED,
-          appointmentID: id
-         } },
+        { $set: { status: DoctorSlotStatus.BOOKED, appointmentID: id } },
       );
     }
 
@@ -413,7 +406,7 @@ export class AppointmentsService {
         },
       ]);
   };
-  cancelAppointment = async (
+  cancelAppointmentForDoctor = async (
     canceldto: CancelAppointmentForDoctorDto,
     user: IUser,
   ) => {
@@ -522,6 +515,86 @@ export class AppointmentsService {
       message: 'Đã huỷ lịch và hoàn tiền (nếu có) thành công.',
     };
   };
+cancelAppointment = async (
+  appointmentId: string,
+  user: IUser,
+) => {
+  const appointment = await this.appointmentModel.findById(appointmentId);
+
+  if (!appointment) {
+    throw new NotFoundException('Không tìm thấy lịch hẹn');
+  }
+
+  // Chỉ cho phép huỷ nếu đã được xác nhận và thanh toán
+  if (
+    appointment.status !== AppointmentStatus.confirmed &&
+    appointment.status !== AppointmentStatus.completed
+  ) {
+    throw new BadRequestException('Chỉ được huỷ lịch đã xác nhận và thanh toán');
+  }
+
+  // Kiểm tra slot liên quan
+  const slotIds = appointment.doctorSlotID;
+  if (!slotIds || slotIds.length === 0) {
+    throw new NotFoundException('Không tìm thấy các slot trong lịch hẹn');
+  }
+
+  // Hoàn tiền nếu cần
+  const service = await this.serviceService.findOne(appointment.serviceID as any);
+  const patient = await this.patientService.findOne(appointment.patientID as any);
+  let refundTotal = 0;
+
+  if (appointment.status === AppointmentStatus.confirmed) {
+    await this.patientService.refundWallet(
+      appointment.patientID.toString(),
+      service.price,
+    );
+    refundTotal = service.price;
+  }
+
+  // Cập nhật appointment status
+  const updatedStatus =
+    appointment.status === AppointmentStatus.confirmed
+      ? AppointmentStatus.refunded_by_staff
+      : AppointmentStatus.cancelled_by_staff;
+
+  await this.appointmentModel.updateOne(
+    { _id: appointmentId },
+    {
+      $set: {
+        status: updatedStatus,
+        cancellationReason: 'Được huỷ bởi nhân viên',
+        canceledAt: new Date(),
+        canceledBy: { _id: user._id, email: user.email },
+      },
+    },
+  );
+
+  // Cập nhật trạng thái các slot thành UNAVAILABLE
+  await this.doctorSlotService.updateManySlotStatuses(
+    slotIds as any,
+    DoctorSlotStatus.UNAVAILABLE,
+  );
+
+  // Gửi email
+  await this.mailService.sendAppointmentCanceledEmail({
+    to: patient.contactEmails[0] || 'lekhoa6a7cva@gmail.com',
+    patientName: patient.name || 'No Name',
+    appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
+    reason: 'Được huỷ bởi nhân viên',
+    shift: format(appointment.startTime, 'HH:mm'),
+    refundAmount: refundTotal,
+  });
+
+  return {
+    appointmentId,
+    slotsAffected: slotIds.length,
+    refundedAmount: refundTotal,
+    message: `Đã huỷ lịch hẹn thành công${refundTotal ? ' và hoàn tiền' : ''}.`,
+  };
+};
+
+
   cancelAppointmentForHospital = async (
     canceldto: CancelByDateDto,
     user: IUser,
