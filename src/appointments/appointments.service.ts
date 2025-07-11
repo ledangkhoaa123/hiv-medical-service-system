@@ -485,8 +485,7 @@ export class AppointmentsService {
               shift: format(appointment.startTime, 'HH:mm'),
               refundAmount: service.price,
             });
-          }
-          else {
+          } else {
             // Chỉ huỷ, không hoàn tiền
             await this.appointmentModel.updateOne(
               { _id: appointment._id },
@@ -594,7 +593,7 @@ export class AppointmentsService {
                 },
               },
             );
-            
+
             await this.mailService.sendAppointmentCanceledEmail({
               to: patient.contactEmails?.[0] || 'khoaldse184650@fpt.edu.vn',
               patientName: patient.name || 'No Name',
@@ -603,8 +602,7 @@ export class AppointmentsService {
               shift: format(appointment.startTime, 'HH:mm'),
               refundAmount: service.price,
             });
-          } 
-          else {
+          } else {
             // Chỉ huỷ, không hoàn tiền
             await this.appointmentModel.updateOne(
               { _id: appointment._id },
@@ -634,4 +632,72 @@ export class AppointmentsService {
       message: 'Đã huỷ lịch và hoàn tiền (nếu có) thành công.',
     };
   };
+  getFromPersonalID = async (personalID: string) => {
+    const patient = await this.patientService.findOneByPersonalID(personalID);
+
+    if (!patient) {
+      throw new BadRequestException(
+        'Không tìm thấy patient bằng userID ở Token',
+      );
+    }
+
+    return await this.appointmentModel
+      .find({
+        patientID: patient._id,
+        status: AppointmentStatus.confirmed,
+      })
+      .sort({ date: -1 })
+      .populate([
+        {
+          path: 'serviceID',
+          select: 'name price durationMinutes',
+        },
+        {
+          path: 'patientID',
+          select: 'name personalID userID',
+          populate: { path: 'userID', select: 'name' },
+        },
+        {
+          path: 'doctorID',
+          select: 'userID room',
+          populate: { path: 'userID', select: 'name' },
+        },
+      ]);
+  };
+  async checkinAppointment(id: string, user: IUser) {
+    const appointment = await this.appointmentModel.findById({
+      _id: id,
+      isDeleted: true,
+    });
+    if (!appointment) {
+      throw new BadRequestException('Không tìm thấy lịch hẹn!');
+    }
+
+    if (appointment.status !== AppointmentStatus.confirmed) {
+      throw new BadRequestException('Lịch hẹn chưa được xác nhận!');
+    }
+    const updateResult = await this.appointmentModel.updateOne(
+      { _id: id },
+      {
+        status: AppointmentStatus.checkin,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
+    if (updateResult.modifiedCount === 0) {
+      throw new InternalServerErrorException(
+        'Check-in thất bại, không thể cập nhật trạng thái!',
+      );
+    }
+    const patientI4 = await this.patientService.findOne(
+      appointment.patientID as any,
+    );
+    if (!patientI4) {
+      throw new NotFoundException('Không tìm thấy bệnh nhân!');
+    }
+
+    return { message: `Bệnh nhân ${patientI4.name} đã đến khám` };
+  }
 }

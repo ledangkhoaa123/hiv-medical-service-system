@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import {
+  AppointmentPersonalIDDto,
   CancelAppointmentForDoctorDto,
   CancelByDateDto,
   CreateAppointmentDto,
@@ -37,7 +38,6 @@ export class AppointmentsController {
   create(@Body() createappointmentDto: CreateAppointmentDto) {
     return this.appointmentsService.create(createappointmentDto);
   }
-  @Public()
   @ResponseMessage('Xem tất cả lịch hẹn')
   @ApiOperation({ summary: 'Lấy tất cả lịch hẹn' })
   @Get()
@@ -129,6 +129,12 @@ export class AppointmentsController {
   getAppointByPatientToken(@User() user: IUser) {
     return this.appointmentsService.getFromTokenPatient(user);
   }
+  @ApiOperation({ summary: 'Lấy Appointment theo personalID' })
+  @ResponseMessage('Get Appointment from PersonalID')
+  @Post('personalID')
+  getAppointByPersonalID(@Body() personalIDdto: AppointmentPersonalIDDto) {
+    return this.appointmentsService.getFromPersonalID(personalIDdto.personalID);
+  }
   @ApiOperation({ summary: 'Hủy lịch hẹn vì bác sĩ bận đột xuất' })
   @ResponseMessage('Get Appointment from Access Token')
   @Post('cancle/doctor')
@@ -152,5 +158,12 @@ export class AppointmentsController {
       cancleAppointmentdto,
       user,
     );
+  }
+  @Patch(':id/checkin')
+  @ApiOperation({ summary: 'Checkin lịch hẹn' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
+  @ResponseMessage('Checkin hẹn thành công')
+  checkinAppointment(@Param('id') id: string, @User() user: IUser) {
+    return this.appointmentsService.checkinAppointment(id, user);
   }
 }

@@ -73,3 +73,8 @@ export class CancelByDateDto {
   @IsString()
   note?: string;
 }
+export class AppointmentPersonalIDDto {
+  @IsString()
+  @IsNotEmpty()
+  personalID: string;
+}
