@@ -63,11 +63,19 @@ export class AuthController {
     const refreshToken = request.cookies['refresh_Token'];
     return this.authService.processNewToken(refreshToken, response);
   }
-  @Public()
-  @Get('/verify-email')
-  async verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+ @Public()
+@Get('/verify-email')
+async verifyEmail(
+  @Query('token') token: string,
+  @Res() res: Response
+) {
+  try {
+    await this.authService.verifyEmail(token);
+    return res.redirect('http://localhost:5173/signin'); 
+  } catch (error) {
+    return res.status(400).send('Token không hợp lệ hoặc đã hết hạn');
   }
+}
   @Public()
   @ApiBody({
     schema: {
