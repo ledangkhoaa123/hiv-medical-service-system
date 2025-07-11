@@ -34,23 +34,26 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
     //check permission
     const targetMethod = request.method;
-    const targetEndPoint = request.route?.path as string + "/";
+    const targetEndPoint = request.route?.path as string;
 
     const permissions = user?.permissions ?? [];
 
-    let isExist = permissions.find(
-      (permission) =>
-        targetEndPoint === permission.apiPath &&
-        targetMethod === permission.method,
-    );
-    if(targetEndPoint.startsWith('/auth')) isExist = true;
+    let isExist = permissions.find((permission) => {
+      const apiPath = permission.apiPath;
+      const matchPath =
+        targetEndPoint === apiPath ||
+        targetEndPoint === apiPath + '/' ||
+        targetEndPoint + '/' === apiPath;
+      return matchPath && targetMethod === permission.method;
+    });
+    if (targetEndPoint.startsWith('/auth')) isExist = true;
     //Tạm tắt Permission
 
     const isPublicPermission = this.reflector.getAllAndOverride<boolean>(
       IS_PUBLIC_PERMISSION,
       [context.getHandler(), context.getClass()],
     );
-     if (!isExist && !isPublicPermission) {
+    if (!isExist && !isPublicPermission) {
       throw new ForbiddenException(
         'Bạn không có quyền để truy cập EndPoint này',
       );
