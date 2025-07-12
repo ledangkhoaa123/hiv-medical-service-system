@@ -148,12 +148,11 @@ export class PrescribedRegimentsService {
   }
 
 async suggestRegiment(treatmentID: string) {
-  const [baseRegiments, testResults] = await Promise.all([
-    this.arvRegimentsService.findAll(),
-    this.testResultModel.find({ treatmentID }).lean(),
-  ]);
+  const baseRegiments = await this.arvRegimentsService.findAll();
+  const testResults = await this.testResultModel.find({ treatmentID }).lean();
 
   function compare(val1: number | string, op: string, val2: number | string): boolean {
+    if (op === 'any') return true;
     if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
       const a = Number(val1), b = Number(val2);
       switch (op) {

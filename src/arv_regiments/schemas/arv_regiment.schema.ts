@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, HydratedDocument } from 'mongoose';
 import { ArvDrug } from 'src/arv_drugs/schemas/arv_drug.schema';
-import { RegimenType, TestType } from 'src/enums/all_enums';
+import { Operator, RegimenType, TestType } from 'src/enums/all_enums';
 
 export type ArvRegimentDocument = HydratedDocument<ArvRegiment>;
 
@@ -21,12 +21,12 @@ export class ArvRegiment extends Document {
 
  @Prop({ type: [{
       test_type: { type: String, enum: TestType, required: true },
-      operator: { type: String, enum: ['<', '<=', '=', '>=', '>', '!='], required: true },
+      operator: { type: String, enum: Operator, required: true },
       value: { type: mongoose.Schema.Types.Mixed, required: true },
     }], default: [] })
   criteria: {
     test_type: TestType;
-    operator: string; // '<', '>', '=', '<=', '>='
+    operator: Operator;
     value: number | string; 
   }[];
 

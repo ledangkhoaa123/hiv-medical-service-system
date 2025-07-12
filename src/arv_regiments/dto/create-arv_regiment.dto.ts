@@ -6,13 +6,13 @@ import {
   IsArray,
   ValidateNested,
   IsMongoId,
-  IsEmail,
-  IsObject,
   IsEnum,
+  ValidateIf,
+  IsNumber,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import mongoose from 'mongoose';
-import { RegimenType, TestType } from 'src/enums/all_enums';
+import { Operator, RegimenType, TestType } from 'src/enums/all_enums';
 
 export class DrugRegiment {
   @IsMongoId()
@@ -36,13 +36,22 @@ export class CriteriaDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Operator không được để trống' })
-  @IsEnum(['<', '>', '=', '<=', '>='], {
-    message: 'Operator chỉ nhận các giá trị: <, >, =, <=, >='
+  @IsEnum(Operator, {
+    message: 'Operator chỉ nhận các giá trị: <, >, =, <=, >=, any'
   })
   operator: string;
 
-  @IsNotEmpty({ message: 'Value không được để trống' })
-  value: number | string;
+@ValidateIf((o) => o.operator !== 'any')
+@IsNotEmpty({ message: 'Value không được để trống khi operator không phải "any"' })
+@Transform(({ value }) => {
+  const num = parseFloat(value);
+  return isNaN(num) ? value : num;
+})
+@ValidateIf((o) => typeof o.value === 'string')
+@IsString({ message: 'Value phải là chuỗi' })
+@ValidateIf((o) => typeof o.value === 'number')
+@IsNumber({}, { message: 'Value phải là số' })
+value?: string | number;
 }
 
 export class CreateArvRegimentDto {
