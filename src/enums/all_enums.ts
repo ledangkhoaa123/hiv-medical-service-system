@@ -27,6 +27,7 @@ export enum TestType {
   HepatitisB = 'HepatitisB',
   HepatitisC = 'HepatitisC',
   PregnancyTest = 'PregnancyTest',
+  AgeGroup = 'AgeGroup',
 }
 export enum RegimenType {
   FirstLine = 'FirstLine',
@@ -49,9 +50,10 @@ export enum DoctorSlotStatus {
   UNAVAILABLE = ' Không khả dụng',
 }
 export enum ServiceName {
-  BASIC_CHECKUP = 'Basic Checkup',
-  HIV_TREATMENT = 'HIV Treatment',
-  FOLLOW_UP = 'Follow Up',
+  BASIC_CHECKUP = 'Kiểm tra tổng quát',
+  HIV_TREATMENT = 'Đăng Kí Điều Trị',
+  FOLLOW_UP = 'Đăng Kí Tái Khám',
+  ANNOYMOUS = 'Đăng Kí Khám Ẩn Danh'
 }
 export enum AppointmentStatus {
   pending = 'Đang xét duyệt',
@@ -79,4 +81,13 @@ export enum RoleName {
 export enum WalletType {
   REFUND = 'Giao dịch hoàn trả',
   PAYMENT = 'Giao dịch thanh toán'
+}
+export enum Operator {
+  ANY = 'any',
+  EQUAL = '=',
+  NOT_EQUAL = '!=',
+  GREATER_THAN = '>',
+  GREATER_THAN_OR_EQUAL = '>=',
+  LESS_THAN = '<',
+  LESS_THAN_OR_EQUAL = '<=',
 }
