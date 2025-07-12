@@ -96,7 +96,7 @@ export class TreatmentsService {
     const treatment = await this.treatmentModel.findOne({ _id: id }).populate([
       {
         path: 'testResultID',
-        select: '_id, test_type, test_results, test_date',
+        select: '_id test_type test_results test_date',
       },
       { path: 'prescribedRegimentID', select: '_id' },
       { path: 'previousTreatmentID', select: '_id' },
