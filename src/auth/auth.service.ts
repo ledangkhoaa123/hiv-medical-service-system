@@ -161,8 +161,8 @@ export class AuthService {
       { userId: user._id },
       { expiresIn: '15m' }
     );
-    const port = this.configService.get<string>('PORT');
-    const resetLink = `http://localhost${port}/auth/reset-password?token=${token}`;
+    const port = this.configService.get<string>('PORT_WEB') || '5173';
+    const resetLink = `http://localhost${port}/reset-password?token=${token}`;
     await this.mailService.sendResetPasswordEmail({ to: email, resetLink });
     return { message: 'Đã gửi email đặt lại mật khẩu!' };
   }
