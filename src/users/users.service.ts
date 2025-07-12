@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { pick } from 'lodash';
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateUserDto,
   RegisterUserDto,
@@ -25,6 +25,7 @@ import { RoleName } from 'src/enums/all_enums';
 import { RolesService } from 'src/roles/roles.service';
 import { Patient, PatientDocument } from 'src/patients/schemas/patient.schema';
 import { last } from 'rxjs';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class UsersService {
@@ -306,7 +307,7 @@ export class UsersService {
     if (Object.keys(updatePayload).length > 0) {
       await this.patientModel.updateOne(
         { userID: id },
-        updatePayload, 
+        updatePayload,
       );
     }
     return updatedUserResult;
@@ -350,5 +351,14 @@ export class UsersService {
       { _id: userId },
       { isVerified: true }
     );
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async handleCronDeleteUnverifiedUsers() {
+    const fifteenMinutesAgo = new Date(Date.now() - 24*60 * 60 * 1000);
+      const result = await this.userModel.deleteMany({
+        isVerified: false,
+        createdAt: { $lte: fifteenMinutesAgo },
+      });
   }
 }
