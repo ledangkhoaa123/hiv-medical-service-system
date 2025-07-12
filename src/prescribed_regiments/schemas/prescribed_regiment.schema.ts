@@ -45,6 +45,7 @@ export class PrescribedRegiment extends Document {
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
+    name: string;
   };
 
   @Prop({ type: Object })
