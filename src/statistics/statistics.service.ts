@@ -22,7 +22,7 @@ export class StatisticsService {
 
     return this.appointmentModel.aggregate([
       { $match: { isDeleted: false,
-        status:"Khách hàng đã checkin"  
+        status: AppointmentStatus.checkin 
        } },
       { $group: {
           _id: groupByFormat[filter],
@@ -44,7 +44,7 @@ export class StatisticsService {
     {
       $match: {
         isDeleted: false,
-        status: 'Hoàn tất đặt lịch',
+        status: AppointmentStatus.confirmed,
       },
     },
     {
