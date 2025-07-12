@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  CancelAppointmentDto,
   CancelAppointmentForDoctorDto,
   CancelByDateDto,
   CreateAppointmentDto,
@@ -21,7 +22,11 @@ import {
   DoctorSlotDocument,
 } from 'src/doctor_slots/schemas/doctor_slot.schema';
 import { DoctorSlotsService } from 'src/doctor_slots/doctor_slots.service';
-import { AppointmentStatus, DoctorSlotStatus } from 'src/enums/all_enums';
+import {
+  AppointmentStatus,
+  DoctorSlotStatus,
+  WalletType,
+} from 'src/enums/all_enums';
 import { ServicesService } from 'src/services/services.service';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/mail/mail.service';
@@ -30,6 +35,7 @@ import { DoctorsService } from 'src/doctors/doctors.service';
 import { DoctorSchedulesService } from 'src/doctor_schedules/doctor_schedules.service';
 import { UsersService } from 'src/users/users.service';
 import { format } from 'date-fns';
+import { PaymentsService } from 'src/payments/payments.service';
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -45,6 +51,7 @@ export class AppointmentsService {
     private readonly patientService: PatientsService,
     private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
+    private paymentsService: PaymentsService,
   ) {}
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
@@ -361,9 +368,10 @@ export class AppointmentsService {
       .find({
         doctorID: doctor._id,
         status: {
-          $in: [AppointmentStatus.confirmed, AppointmentStatus.completed],
+          $in: [AppointmentStatus.checkin, AppointmentStatus.completed],
         },
       })
+      .sort({ createdAt: -1 })
       .populate([
         {
           path: 'serviceID',
@@ -389,6 +397,7 @@ export class AppointmentsService {
       .find({
         patientID: patient._id,
       })
+      .sort({ createdAt: -1 })
       .populate([
         {
           path: 'serviceID',
@@ -461,6 +470,19 @@ export class AppointmentsService {
             const patient = await this.patientService.findOne(
               appointment.patientID as any,
             );
+            const transaction =
+              await this.paymentsService.createWalletTransaction(
+                patient._id as any,
+                service.price,
+                WalletType.REFUND,
+                canceldto.reason,
+                appointment._id as any,
+              );
+            if (!transaction) {
+              throw new InternalServerErrorException(
+                'Không thể tạo giao dịch hoàn tiền',
+              );
+            }
             await this.patientService.refundWallet(
               appointment.patientID.toString(),
               service.price,
@@ -477,6 +499,7 @@ export class AppointmentsService {
                 },
               },
             );
+
             await this.mailService.sendAppointmentCanceledEmail({
               to: patient.contactEmails[0] || 'khoaldse184650@fpt.edu.vn',
               patientName: patient.name || 'No Name',
@@ -515,85 +538,106 @@ export class AppointmentsService {
       message: 'Đã huỷ lịch và hoàn tiền (nếu có) thành công.',
     };
   };
-cancelAppointment = async (
-  appointmentId: string,
-  user: IUser,
-) => {
-  const appointment = await this.appointmentModel.findById(appointmentId);
+  cancelAppointment = async (canceldto: CancelAppointmentDto, user: IUser) => {
+    const appointment = await this.appointmentModel.findById(
+      canceldto.appoinmentId,
+    );
 
-  if (!appointment) {
-    throw new NotFoundException('Không tìm thấy lịch hẹn');
-  }
+    if (!appointment) {
+      throw new NotFoundException('Không tìm thấy lịch hẹn');
+    }
 
-  // Chỉ cho phép huỷ nếu đã được xác nhận và thanh toán
-  if (
-    appointment.status !== AppointmentStatus.confirmed &&
-    appointment.status !== AppointmentStatus.completed
-  ) {
-    throw new BadRequestException('Chỉ được huỷ lịch đã xác nhận và thanh toán');
-  }
+    // Chỉ cho phép huỷ nếu đã được xác nhận và thanh toán
+    if (
+      ![AppointmentStatus.pending, AppointmentStatus.confirmed].includes(
+        appointment.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'Chỉ được huỷ lịch đã thanh toán và chưa khám',
+      );
+    }
 
-  // Kiểm tra slot liên quan
-  const slotIds = appointment.doctorSlotID;
-  if (!slotIds || slotIds.length === 0) {
-    throw new NotFoundException('Không tìm thấy các slot trong lịch hẹn');
-  }
+    // Kiểm tra slot liên quan
+    const slotIds = appointment.doctorSlotID;
+    if (!slotIds || slotIds.length === 0) {
+      throw new NotFoundException('Không tìm thấy các slot trong lịch hẹn');
+    }
 
-  // Hoàn tiền nếu cần
-  const service = await this.serviceService.findOne(appointment.serviceID as any);
-  const patient = await this.patientService.findOne(appointment.patientID as any);
-  let refundTotal = 0;
-
-  if (appointment.status === AppointmentStatus.confirmed) {
+    // Hoàn tiền nếu cần
+    const service = await this.serviceService.findOne(
+      appointment.serviceID as any,
+    );
+    const patient = await this.patientService.findOne(
+      appointment.patientID as any,
+    );
+    let refundTotal = 0;
+    if (!service) {
+      throw new NotFoundException(
+        'Không tìm thấy dịch vụ liên quan đến lịch hẹn',
+      );
+    }
+    if (!patient) {
+      throw new NotFoundException(
+        'Không tìm thấy bệnh nhân liên quan đến lịch hẹn',
+      );
+    }
+    const transaction = await this.paymentsService.createWalletTransaction(
+      patient._id as any,
+      service.price,
+      WalletType.REFUND,
+      canceldto.reason,
+      appointment._id as any,
+    );
+    if (!transaction) {
+      throw new InternalServerErrorException(
+        'Không thể tạo giao dịch hoàn tiền',
+      );
+    }
     await this.patientService.refundWallet(
       appointment.patientID.toString(),
       service.price,
     );
     refundTotal = service.price;
-  }
 
-  // Cập nhật appointment status
-  const updatedStatus =
-    appointment.status === AppointmentStatus.confirmed
-      ? AppointmentStatus.refunded_by_staff
-      : AppointmentStatus.cancelled_by_staff;
+    // Cập nhật appointment status
+    const updatedStatus = AppointmentStatus.refunded_by_staff;
 
-  await this.appointmentModel.updateOne(
-    { _id: appointmentId },
-    {
-      $set: {
-        status: updatedStatus,
-        cancellationReason: 'Được huỷ bởi nhân viên',
-        canceledAt: new Date(),
-        canceledBy: { _id: user._id, email: user.email },
+    await this.appointmentModel.updateOne(
+      { _id: canceldto.appoinmentId },
+      {
+        $set: {
+          status: updatedStatus,
+          cancellationReason: 'Được huỷ bởi nhân viên',
+          canceledAt: new Date(),
+          canceledBy: { _id: user._id, email: user.email },
+        },
       },
-    },
-  );
+    );
 
-  // Cập nhật trạng thái các slot thành UNAVAILABLE
-  await this.doctorSlotService.updateManySlotStatuses(
-    slotIds as any,
-    DoctorSlotStatus.UNAVAILABLE,
-  );
+    // Cập nhật trạng thái các slot thành UNAVAILABLE
+    await this.doctorSlotService.updateManySlotStatuses(
+      slotIds as any,
+      DoctorSlotStatus.UNAVAILABLE,
+    );
 
-  // Gửi email
-  await this.mailService.sendAppointmentCanceledEmail({
-    to: patient.contactEmails[0] || 'lekhoa6a7cva@gmail.com',
-    patientName: patient.name || 'No Name',
-    appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
-    reason: 'Được huỷ bởi nhân viên',
-    shift: format(appointment.startTime, 'HH:mm'),
-    refundAmount: refundTotal,
-  });
+    // Gửi email
+    await this.mailService.sendAppointmentCanceledEmail({
+      to: patient.contactEmails[0] || 'lekhoa6a7cva@gmail.com',
+      patientName: patient.name || 'No Name',
+      appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
+      reason: 'Được huỷ bởi nhân viên',
+      shift: format(appointment.startTime, 'HH:mm'),
+      refundAmount: refundTotal,
+    });
 
-  return {
-    appointmentId,
-    slotsAffected: slotIds.length,
-    refundedAmount: refundTotal,
-    message: `Đã huỷ lịch hẹn thành công${refundTotal ? ' và hoàn tiền' : ''}.`,
+    return {
+      appointmentId: canceldto.appoinmentId,
+      slotsAffected: slotIds.length,
+      refundedAmount: refundTotal,
+      message: `Đã huỷ lịch hẹn thành công${refundTotal ? ' và hoàn tiền' : ''}.`,
+    };
   };
-};
-
 
   cancelAppointmentForHospital = async (
     canceldto: CancelByDateDto,
@@ -657,6 +701,19 @@ cancelAppointment = async (
             const patient = await this.patientService.findOne(
               appointment.patientID as any,
             );
+            const transaction =
+              await this.paymentsService.createWalletTransaction(
+                patient._id as any,
+                service.price,
+                WalletType.REFUND,
+                canceldto.reason,
+                appointment._id as any,
+              );
+            if (!transaction) {
+              throw new InternalServerErrorException(
+                'Không thể tạo giao dịch hoàn tiền',
+              );
+            }
             await this.patientService.refundWallet(
               appointment.patientID.toString(),
               service.price,
