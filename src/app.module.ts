@@ -31,6 +31,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { DoctorSchedulesModule } from './doctor_schedules/doctor_schedules.module';
 import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     FacilityInfosModule,
     DoctorSchedulesModule,
     MailModule,
+    StatisticsModule,
   ],
 
   controllers: [AppController],
