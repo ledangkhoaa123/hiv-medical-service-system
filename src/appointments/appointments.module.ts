@@ -13,6 +13,7 @@ import { DoctorsModule } from "src/doctors/doctors.module";
 import { AppointmentCronService } from "./appointment-cron.service";
 import { DoctorSchedulesModule } from "src/doctor_schedules/doctor_schedules.module";
 import { UsersModule } from "src/users/users.module";
+import { PaymentsModule } from "src/payments/payments.module";
 
 
 @Module({
@@ -21,7 +22,7 @@ import { UsersModule } from "src/users/users.module";
       { name: Appointment.name, schema: AppointmentSchema },
       { name: DoctorSlot.name, schema: DoctorSlotSchema }
     ]),
-    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule, DoctorSchedulesModule, UsersModule
+    DoctorSlotsModule,ServicesModule,ConfigModule,MailModule,PatientsModule,DoctorsModule, DoctorSchedulesModule, UsersModule, PaymentsModule
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService,AppointmentCronService],

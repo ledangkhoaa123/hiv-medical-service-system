@@ -168,7 +168,7 @@ export class AppointmentsController {
     @User() user: IUser,
   ) {
     return this.appointmentsService.cancelAppointment(
-      cancleAppointmentdto.appoinmentId as any,
+      cancleAppointmentdto,
       user,
     );
   }

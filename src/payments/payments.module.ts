@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { AppointmentsModule } from 'src/appointments/appointments.module';
@@ -13,7 +13,7 @@ import { PatientsModule } from 'src/patients/patients.module';
 
 @Module({
   imports: [
-    AppointmentsModule,
+    forwardRef(() => AppointmentsModule),
     ServicesModule,
     ConfigModule,
     PatientsModule,
@@ -23,5 +23,6 @@ import { PatientsModule } from 'src/patients/patients.module';
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService],
+  exports: [PaymentsService],
 })
 export class PaymentsModule {}
