@@ -75,4 +75,9 @@ export class PaymentsController {
     const result = await this.paymentsService.verifyIpn(query);
     return res.json(result);
   }
+  @Get('patient-transactions')
+  async getPatientTransactions(@User() user: IUser) {
+    const result = await this.paymentsService.getPatientTransactions(user);
+    return result;
+  }
 }
