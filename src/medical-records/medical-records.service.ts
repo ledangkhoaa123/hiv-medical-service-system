@@ -119,6 +119,11 @@ export class MedicalRecordsService {
         select: 'name personalID userID',
         populate: { path: 'userID', select: 'name' },
       },
+      {
+        path: 'treatmentID',
+        select: 'note prescribedRegimentID testResultID',
+        populate: { path: 'testResultID', select: 'test_type test_results' },
+      }
     ]);
     return record;
   }
