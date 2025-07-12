@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -37,6 +39,7 @@ export class PaymentsService {
   constructor(
     @InjectModel(WalletTransaction.name)
     private walletTransactionModel: SoftDeleteModel<WalletTransactionDocument>,
+    @Inject(forwardRef(() => AppointmentsService))
     private readonly appointmentsService: AppointmentsService,
     private readonly servicesService: ServicesService,
     private readonly patientsService: PatientsService,
@@ -55,7 +58,7 @@ export class PaymentsService {
   async createPaymentUrl(appointmentId: string, ip: string): Promise<string> {
     const appointment = await this.appointmentsService.findOne(appointmentId);
     if (!appointment) throw new BadRequestException('Appointment not found');
-    
+
     if (
       appointment.paymentExpireAt &&
       new Date() > appointment.paymentExpireAt
@@ -82,7 +85,7 @@ export class PaymentsService {
   }
 
   async payByWallet(appointmentId: string, user: IUser) {
-    const customer = await this.patientsService.findOneByToken(user)
+    const customer = await this.patientsService.findOneByToken(user);
     const appointment = await this.appointmentsService.findOne(appointmentId);
     if (!appointment) {
       throw new NotFoundException('Không tìm thấy appointment');
@@ -94,7 +97,9 @@ export class PaymentsService {
       throw new NotFoundException('Không tìm thấy patient');
     }
     if (patient.id != customer.id) {
-      throw new UnauthorizedException('Bạn không có quyền thanh toán cho appointment này')
+      throw new UnauthorizedException(
+        'Bạn không có quyền thanh toán cho appointment này',
+      );
     }
     const service = await this.servicesService.findOne(
       appointment.serviceID as any,
@@ -112,7 +117,10 @@ export class PaymentsService {
       patient._id as any,
       service.price,
     );
-    await this.appointmentsService.updateStatus(appointmentId, AppointmentStatus.pending)
+    await this.appointmentsService.updateStatus(
+      appointmentId,
+      AppointmentStatus.pending,
+    );
     return await this.walletTransactionModel.create({
       patientID: patient._id,
       amount: service.price,
@@ -121,7 +129,21 @@ export class PaymentsService {
       referenceAppointmentID: appointmentId,
     });
   }
-
+  async createWalletTransaction(
+    patientID: string,
+    amount: number,
+    type: WalletType,
+    reason: string,
+    referenceAppointmentID?: string,
+  ) {
+    return await this.walletTransactionModel.create({
+      patientID,
+      amount,
+      type,
+      reason,
+      referenceAppointmentID,
+    });
+  }
   async verifyReturn(query: any) {
     const result = this.vnpay.verifyReturnUrl(query as VerifyReturnUrl);
     if (result.isVerified) {
@@ -185,4 +207,14 @@ export class PaymentsService {
       return IpnUnknownError;
     }
   }
+  getPatientTransactions = async (user: IUser) => {
+    const patient = await this.patientsService.findOneByToken(user);
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy bệnh nhân');
+    }
+    return this.walletTransactionModel
+      .find({ patientID: patient._id })
+      .sort({ createdAt: -1 })
+      .populate('patientID', 'name email contactPhones contactEmails');
+  } 
 }
