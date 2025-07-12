@@ -56,6 +56,7 @@ export class PrescribedRegimentsService {
       createdBy: {
         _id: user._id,
         email: user.email,
+        name: user.name, 
       },
     });
     this.treatmentsService.updatePrescribedRegimentID(
