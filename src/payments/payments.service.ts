@@ -146,7 +146,7 @@ export class PaymentsService {
   }
   async verifyReturn(query: any) {
     const result = this.vnpay.verifyReturnUrl(query as VerifyReturnUrl);
-    if (result.isVerified) {
+    if (result.isVerified && result.vnp_ResponseCode === '00') {
       const appointment = await this.appointmentsService.findOne(
         result.vnp_TxnRef,
       );

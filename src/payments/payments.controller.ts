@@ -59,7 +59,7 @@ export class PaymentsController {
   async handleReturn(@Query() query: any, @Res() res: Response) {
     const result = await this.paymentsService.verifyReturn(query);
     const success = result.vnp_ResponseCode === '00';
-    const redirectUrl = new URL('http://localhost:5173/payments/vnpay-return');
+    const redirectUrl = success?  new URL('http://localhost:5173/payments/vnpay-return') : new URL('http://localhost:5173/payments/cancel');
 
     // Append original query params back to FE URL
     Object.keys(query).forEach((key) => {
