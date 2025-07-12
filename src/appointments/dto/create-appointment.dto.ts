@@ -60,6 +60,10 @@ export class CancelAppointmentDto {
   @IsMongoId()
   @IsNotEmpty()
   appoinmentId: mongoose.Schema.Types.ObjectId;
+
+  @IsString()
+  @IsNotEmpty()
+  reason: string;
 }
 export class CancelByDateDto {
   @IsDateString()
