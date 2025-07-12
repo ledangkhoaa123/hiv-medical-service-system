@@ -8,7 +8,7 @@ import { RolesService } from 'src/roles/roles.service';
 import { RegisterUserDto, UserLoginDto } from 'src/users/dto/create-user.dto';
 import { IUser } from 'src/users/user.interface';
 import { log } from 'console';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpgradeFromGuestDto } from 'src/patients/dto/create-patient.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 
@@ -134,10 +134,17 @@ export class AuthController {
     return this.authService.logout(response, user);
   }
 
-  @Patch(':id')
+ @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin người dùng theo ID' })
+  @ApiParam({ name: 'id', description: 'ID của người dùng cần cập nhật' })
+  @ApiBody({ type: UpdateUserDto }) 
+  @ApiResponse({ status: 200, description: 'Cập nhật thành công.' })
   @ResponseMessage("Update user by ID")
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
+  update(
+    @Param('id') id: string, 
+    @Body() updateUserDto: UpdateUserDto, 
+    @User() user: IUser
+  ) {
     return this.usersService.update(id, updateUserDto, user);
   }
 

@@ -349,7 +349,7 @@ export class AppointmentsService {
         timeZone: 'Asia/Ho_Chi_Minh',
       }),
       shift: slot.startTime.toLocaleString('vi-VN', {
-        timeZone: 'Asia/Ho_Chi_Minh',
+        timeZone: 'UTC',
       }),
       status: AppointmentStatus.confirmed,
     });

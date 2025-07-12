@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IUser } from './user.interface';
 
 @ApiTags("users")
@@ -32,10 +32,18 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
+ @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin người dùng theo ID' })
+  @ApiParam({ name: 'id', description: 'ID của người dùng cần cập nhật' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({ status: 200, description: 'Cập nhật thành công.' })
+  
   @ResponseMessage("Update user by ID")
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
+  update(
+    @Param('id') id: string, 
+    @Body() updateUserDto: UpdateUserDto, 
+    @User() user: IUser
+  ) {
     return this.usersService.update(id, updateUserDto, user);
   }
 
