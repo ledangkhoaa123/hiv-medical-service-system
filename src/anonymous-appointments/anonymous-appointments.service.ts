@@ -29,50 +29,50 @@ export class AnonymousAppointmentsService {
     private anonymousAppointmentModel: SoftDeleteModel<AnonymousAppointmentDocument>,
     private patientsService: PatientsService,
     private mailService: MailService,
-  ) {}
-async create(
-  createAnonymousAppointmentDto: CreateAnonymousAppointmentDto,
-  user: IUser,
-) {
-  const { dateString, timeString } = createAnonymousAppointmentDto;
-  const appointmentDuration = 30;
+  ) { }
+  async create(
+    createAnonymousAppointmentDto: CreateAnonymousAppointmentDto,
+    user: IUser,
+  ) {
+    const { dateString, timeString } = createAnonymousAppointmentDto;
+    const appointmentDuration = 30;
 
-  const startTime = parseVietnamTime(dateString, timeString);
-  const endTime = new Date(startTime.getTime() + appointmentDuration * 60 * 1000);
+    const startTime = parseVietnamTime(dateString, timeString);
+    const endTime = new Date(startTime.getTime() + appointmentDuration * 60 * 1000);
 
-  const existing = await this.anonymousAppointmentModel.findOne({
-    date: { $gte: startTime, $lt: endTime },
-    status: AppointmentStatus.confirmed,
-    isDeleted: { $ne: true },
-  });
+    const existing = await this.anonymousAppointmentModel.findOne({
+      date: { $gte: startTime, $lt: endTime },
+      status: AppointmentStatus.confirmed,
+      isDeleted: { $ne: true },
+    });
 
-  if (existing) {
-    throw new ConflictException(
-      `Thời gian ${timeString} ngày ${dateString} đã có người đặt. Vui lòng chọn thời gian khác.`,
-    );
+    if (existing) {
+      throw new ConflictException(
+        `Thời gian ${timeString} ngày ${dateString} đã có người đặt. Vui lòng chọn thời gian khác.`,
+      );
+    }
+
+    const patient = await this.patientsService.findOneByToken(user);
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy bệnh nhân');
+    }
+
+    const AnonymousAppointment = await this.anonymousAppointmentModel.create({
+      patientID: patient.id,
+      date: startTime,
+      rawDate: dateString,
+      rawTime: timeString,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+      },
+    });
+
+    return AnonymousAppointment.populate({
+      path: 'patientID',
+      select: 'contactEmails',
+    });
   }
-
-  const patient = await this.patientsService.findOneByToken(user);
-  if (!patient) {
-    throw new NotFoundException('Không tìm thấy bệnh nhân');
-  }
-
-  const AnonymousAppointment = await this.anonymousAppointmentModel.create({
-    patientID: patient.id,
-    date: startTime,
-    rawDate: dateString,
-    rawTime: timeString,
-    createdBy: {
-      _id: user._id,
-      email: user.email,
-    },
-  });
-
-  return AnonymousAppointment.populate({
-    path: 'patientID',
-    select: 'contactEmails',
-  });
-}
   confirm = async (appointmentId: string, user: IUser) => {
     const appointment = await this.anonymousAppointmentModel.findOne({
       _id: appointmentId,
@@ -106,6 +106,27 @@ async create(
     });
 
     return { message: `Đã xác nhận lịch ngày ${appointment.date}` };
+  };
+  getFromToken = async (user: IUser) => {
+    
+    const patient = await this.patientsService.findOneByToken(user);
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy bệnh nhân tương ứng với tài khoản');
+    }
+
+   
+    return this.anonymousAppointmentModel
+      .find({
+        patientID: patient._id,
+        isDeleted: { $ne: true },
+      })
+      .sort({ createdAt: -1 })
+      .populate([
+        {
+          path: 'serviceID',
+          select: 'name price durationMinutes',
+        },
+      ]);
   };
   findAll() {
     return this.anonymousAppointmentModel.find({
