@@ -837,4 +837,40 @@ export class AppointmentsService {
 
     return { message: `Bệnh nhân ${patientI4.name} đã đến khám` };
   }
+  checkoutAppointment = async (id: string, user: IUser) => {
+    const appointment = await this.appointmentModel.findById({
+      _id: id,
+      isDeleted: true,
+    });
+    if (!appointment) {
+      throw new BadRequestException('Không tìm thấy lịch hẹn!');
+    }
+
+    if (appointment.status !== AppointmentStatus.checkin) {
+      throw new BadRequestException('Khách hàng chưa check-in!');
+    }
+    const updateResult = await this.appointmentModel.updateOne(
+      { _id: id },
+      {
+        status: AppointmentStatus.checkout,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
+    if (updateResult.modifiedCount === 0) {
+      throw new InternalServerErrorException(
+        'Checkout thất bại, không thể cập nhật trạng thái!',
+      );
+    }
+    const patientI4 = await this.patientService.findOne(
+      appointment.patientID as any,
+    );
+    if (!patientI4) {
+      throw new NotFoundException('Không tìm thấy bệnh nhân!');
+    }
+
+    return { message: `Bệnh nhân ${patientI4.name} đã checkout` };
+  }
 }

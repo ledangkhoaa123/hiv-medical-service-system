@@ -179,4 +179,11 @@ export class AppointmentsController {
   checkinAppointment(@Param('id') id: string, @User() user: IUser) {
     return this.appointmentsService.checkinAppointment(id, user);
   }
+  @Patch(':id/checkout')
+  @ApiOperation({ summary: 'Checkout lịch hẹn' })
+  @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
+  @ResponseMessage('Checkout hẹn thành công')
+  checkoutAppointment(@Param('id') id: string, @User() user: IUser) {
+    return this.appointmentsService.checkoutAppointment(id, user);
+  }
 }

@@ -1,9 +1,7 @@
 import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, Min, IsEnum, Max } from 'class-validator';
-import { ServiceName } from 'src/enums/all_enums';
 
 export class CreateServiceDto {
- 
-    @IsEnum(ServiceName, { message: "Tên dịch vụ không hợp lệ" })
+    @IsString()
     @IsNotEmpty({ message: "Name khong được để trống" })
     name: string;
 

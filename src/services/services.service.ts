@@ -8,7 +8,6 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import { MedicalRecordsService } from 'src/medical-records/medical-records.service';
 import { TreatmentsService } from 'src/treatments/treatments.service';
-import { ServiceName } from 'src/enums/all_enums';
 
 @Injectable()
 export class ServicesService {
