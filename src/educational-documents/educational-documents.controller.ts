@@ -10,7 +10,7 @@ import {
 import { EducationalDocumentsService } from './educational-documents.service';
 import { CreateEducationalDocumentDto } from './dto/create-educational-document.dto';
 import { UpdateEducationalDocumentDto } from './dto/update-educational-document.dto';
-import { User } from 'src/decorator/customize';
+import { Public, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 
 @Controller('educationalDocuments')
@@ -31,11 +31,13 @@ export class EducationalDocumentsController {
   }
 
   @Get()
+  @Public()
   async findAll() {
     return this.educationalDocumentsService.findAll();
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string, @User() user: IUser) {
  
     return this.educationalDocumentsService.findOne(id, user);
