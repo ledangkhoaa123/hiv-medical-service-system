@@ -49,12 +49,6 @@ export enum DoctorSlotStatus {
   BOOKED = 'Đã đặt',
   UNAVAILABLE = ' Không khả dụng',
 }
-export enum ServiceName {
-  BASIC_CHECKUP = 'Kiểm tra tổng quát',
-  HIV_TREATMENT = 'Đăng Kí Điều Trị',
-  FOLLOW_UP = 'Đăng Kí Tái Khám',
-  ANNOYMOUS = 'Đăng Kí Khám Ẩn Danh'
-}
 export enum AppointmentStatus {
   pending = 'Đang xét duyệt',
   pending_payment = 'Chờ thanh toán',
@@ -65,6 +59,7 @@ export enum AppointmentStatus {
   cancelled_by_staff = 'Hủy bởi nhân viên',
   refunded_by_staff = 'Đã hủy & hoàn tiền bởi nhân viên',
   completed = 'Hoàn tất quá trình khám',
+  checkout = 'Khách hàng đã checkout',
 }
 export enum AppointmentShiftName {
   MORNING = 'morning',
