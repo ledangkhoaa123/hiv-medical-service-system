@@ -9,8 +9,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { engine } from 'express-handlebars';
 import { join } from 'path';
 import { PermissionScannerService } from './permissions/permission-scanner.service';
+import { configureDayjs } from './core/dayjs.config';
 
 async function bootstrap() {
+  configureDayjs();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(cookieParser());
   app.useGlobalPipes(
