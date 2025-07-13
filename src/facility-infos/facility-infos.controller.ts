@@ -10,7 +10,7 @@ import {
 import { FacilityInfosService } from './facility-infos.service';
 import { CreateFacilityInfoDto } from './dto/create-facility-infos.dto';
 import { UpdateFacilityInfoDto } from './dto/update-facility-infos.dto';
-import { User } from 'src/decorator/customize';
+import { Public, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 
 @Controller('facilityInfo')
@@ -26,11 +26,13 @@ export class FacilityInfosController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.facilityInfosService.findAll();
   }
 
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string, @User() user: IUser) {
     return this.facilityInfosService.findOne(id, user);
   }

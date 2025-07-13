@@ -11,7 +11,7 @@ import {
 import { BlogPostsService } from './blog-posts.service';
 import { CreateBlogPostDto } from './dto/create-blog-post.dto';
 import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
-import { User } from 'src/decorator/customize';
+import { Public, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 
 @Controller('blogPosts')
@@ -27,11 +27,13 @@ export class BlogPostsController {
   }
 
   @Get()
+  @Public()
   async findAll() {
     return this.blogPostsService.findAll();
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string, @User() user: IUser) {
     const post = await this.blogPostsService.findOne(id, user);
     if (!post) {
