@@ -19,7 +19,7 @@ import { IUser } from 'src/users/user.interface';
 export class AnonymousAppointmentsController {
   constructor(
     private readonly anonymousAppointmentService: AnonymousAppointmentsService,
-  ) {}
+  ) { }
 
   @Post()
   @ResponseMessage('Create a new AnonymousAppointment')
@@ -37,12 +37,18 @@ export class AnonymousAppointmentsController {
   findAll() {
     return this.anonymousAppointmentService.findAll();
   }
-
+  
+  @ApiOperation({ summary: 'Lấy anonymous-appointments theo token' })
+  @Get('my-anonymous-appointments')
+  getMyAnonymousAppointments(@User() user: IUser) {
+    return this.anonymousAppointmentService.getFromToken(user);
+  }
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
     return this.anonymousAppointmentService.findOne(id);
   }
+
 
   @Patch(':id')
   @Public()

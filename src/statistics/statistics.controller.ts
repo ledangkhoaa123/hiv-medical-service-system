@@ -8,7 +8,6 @@ import { Public } from 'src/decorator/customize';
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) { }
 
-  @Public()
   @Get('/appointments')
   @ApiOperation({ summary: 'Tổng số bệnh nhân đến khám theo ngày/tháng/năm' })
   @ApiQuery({ name: 'filter', enum: ['day', 'month', 'year'], required: true })
@@ -16,7 +15,6 @@ export class StatisticsController {
   async getAppointmentStats(@Query('filter') filter: 'day' | 'month' | 'year') {
     return this.statisticsService.getAppointmentStatsByDate(filter);
   }
-  @Public()
   @Get('/revenue')
   @ApiOperation({ summary: 'Doanh thu theo ngày/tháng/năm' })
   @ApiQuery({ name: 'filter', enum: ['day', 'month', 'year'], required: true })
@@ -24,7 +22,6 @@ export class StatisticsController {
   async getRevenueStats(@Query('filter') filter: 'day' | 'month' | 'year') {
     return this.statisticsService.getRevenueStatsByDate(filter);
   }
-  @Public()
   @Get('/top-services')
   @ApiOperation({ summary: 'Các dịch vụ được sử dụng nhiều nhất' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Số lượng dịch vụ trả về' })
