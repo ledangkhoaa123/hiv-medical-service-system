@@ -21,7 +21,7 @@ export class DoctorSlotsService {
     private doctorModel: SoftDeleteModel<DoctorDocument>,
     private readonly serviceService: ServicesService,
     private doctorService: DoctorsService,
-  ) {}
+  ) { }
 
   async create(createDoctorSlotDto: CreateDoctorSlotDto, user: IUser) {
     const { appointmentID } = createDoctorSlotDto;
@@ -129,6 +129,9 @@ export class DoctorSlotsService {
 
     return await this.doctorModel.find({
       _id: { $in: slots.map((s) => s.doctorID) },
+    }).populate({
+      path: 'userID',
+      select: 'name',
     });
   }
   async findSlotByService(serviceID: string, doctorID: string, date: Date) {
@@ -309,31 +312,31 @@ export class DoctorSlotsService {
     );
   }
   async updateSlotStatusesByDates(
-  from: string,
-  to: string,
-  timeSlots: { startTime: Date; endTime: Date }[],
-  newStatus: DoctorSlotStatus,
-): Promise<void> {
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
+    from: string,
+    to: string,
+    timeSlots: { startTime: Date; endTime: Date }[],
+    newStatus: DoctorSlotStatus,
+  ): Promise<void> {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
 
-  const startTimes = timeSlots.map(slot => slot.startTime);
+    const startTimes = timeSlots.map(slot => slot.startTime);
 
-  await this.doctorSlotModel.updateMany(
-    {
-      date: { $gte: fromDate, $lte: toDate },
-      startTime: { $in: startTimes },
-      isDeleted: { $ne: true },
-    },
-    {
-      $set: {
-        status: newStatus,
-        updatedAt: new Date(),
+    await this.doctorSlotModel.updateMany(
+      {
+        date: { $gte: fromDate, $lte: toDate },
+        startTime: { $in: startTimes },
+        isDeleted: { $ne: true },
       },
-    },
-  );
-}
-async updateManySlotStatuses(
+      {
+        $set: {
+          status: newStatus,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+  async updateManySlotStatuses(
     slotIds: (string)[],
     status: DoctorSlotStatus,
   ) {
