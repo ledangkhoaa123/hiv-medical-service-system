@@ -10,6 +10,7 @@ import {
   WalletTransactionSchema,
 } from './schemas/walletTransaction.schema';
 import { PatientsModule } from 'src/patients/patients.module';
+import { WalletTransactionCronService } from './payment-cron';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { PatientsModule } from 'src/patients/patients.module';
     ]),
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
+  providers: [PaymentsService, WalletTransactionCronService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

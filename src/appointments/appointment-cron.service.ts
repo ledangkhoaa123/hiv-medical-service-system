@@ -49,7 +49,5 @@ async cancelExpiredAppointments() {
       appointmentID: null
   }
   );
-
-  this.logger.log(`Đã huỷ ${result.modifiedCount} appointment quá hạn thanh toán và cập nhật lại doctor slots.`);
 }
 }

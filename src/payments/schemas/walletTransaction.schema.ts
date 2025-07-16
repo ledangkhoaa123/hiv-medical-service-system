@@ -8,7 +8,11 @@ export type WalletTransactionDocument = HydratedDocument<WalletTransaction>;
 
 @Schema({ timestamps: true })
 export class WalletTransaction {
-   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patient',
+    required: true,
+  })
   patientID: mongoose.Schema.Types.ObjectId;
 
   @Prop({ required: true })
@@ -23,6 +27,8 @@ export class WalletTransaction {
   @Prop()
   referenceAppointmentID?: mongoose.Schema.Types.ObjectId;
 
+  @Prop({ default: 'pending' })
+  status: string;
   @Prop({ type: Object })
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;
@@ -54,4 +60,5 @@ export class WalletTransaction {
   deletedAt: Date;
 }
 
-export const WalletTransactionSchema = SchemaFactory.createForClass(WalletTransaction);
+export const WalletTransactionSchema =
+  SchemaFactory.createForClass(WalletTransaction);

@@ -14,7 +14,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { Request, Response } from 'express';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
-import { CreatePaymentDto } from './dto/create-payment';
+import { CreatePaymentDto, CreateWalletPaymentDto } from './dto/create-payment';
 import { IUser } from 'src/users/user.interface';
 
 @ApiTags('payments')
@@ -54,12 +54,39 @@ export class PaymentsController {
     return url;
   }
 
+  @Post('fund-wallet')
+  @ApiOperation({ summary: 'Nạp tiền vào ví' })
+  @ApiBody({ type: CreateWalletPaymentDto })
+  @ResponseMessage('Deposit money into wallet')
+  async depositWallet(
+    @Body() createWalletPaymentDto: CreateWalletPaymentDto,
+    @User() user: IUser,
+    @Req() req: Request,
+  ) {
+    const url = await this.paymentsService.depositWallet(
+      createWalletPaymentDto.amount,
+      user,
+      req.ip,
+    );
+    return url;
+  }
+
   @Get('vnpay-return')
   @Public()
   async handleReturn(@Query() query: any, @Res() res: Response) {
     const result = await this.paymentsService.verifyReturn(query);
     const success = result.vnp_ResponseCode === '00';
-    const redirectUrl = success?  new URL('http://localhost:5173/payments/vnpay-return') : new URL('http://localhost:5173/payments/cancel');
+    const isApp = result.vnp_TxnRef.startsWith('APPT_');
+    let redirectUrl;
+    if (success) {  
+      if (isApp) {
+        redirectUrl =new URL('http://localhost:5173/payments/vnpay-return');
+      }else{
+        redirectUrl =new URL('http://localhost:5173/up-wallet-success');
+      }
+    } else {
+      redirectUrl = new URL('http://localhost:5173/payments/cancel');
+    }
 
     // Append original query params back to FE URL
     Object.keys(query).forEach((key) => {

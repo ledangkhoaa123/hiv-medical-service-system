@@ -10,3 +10,11 @@ export class CreatePaymentDto {
       })
     appointmentID: string;
 }
+export class CreateWalletPaymentDto {
+    @IsNotEmpty({ message: 'amount không được trống' })
+    @ApiProperty({
+        example: 100000,
+        description: 'Số tiền nạp vào ví',
+    })
+    amount: number;
+}
