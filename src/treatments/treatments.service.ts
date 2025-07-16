@@ -202,7 +202,7 @@ export class TreatmentsService {
       const dd = String(vietnamDate.getDate()).padStart(2, '0');
       const hh = String(vietnamDate.getHours()).padStart(2, '0');
       const min = String(vietnamDate.getMinutes()).padStart(2, '0');
-      const formatted = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+      const formatted = `${dd}/${mm}/${yyyy} `;
       await this.mailService.sendFollowUpReminderEmail({
         to: patient.contactEmails?.[0],
         patientName: patient.name || 'Quý khách',
@@ -215,5 +215,6 @@ export class TreatmentsService {
   async deleteAllByMedicalRecordId(medicalRecordId: string) {
   return this.treatmentModel.deleteMany({ medicalRecordID: medicalRecordId });
 }
+
 
 }

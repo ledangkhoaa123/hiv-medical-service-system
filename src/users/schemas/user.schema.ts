@@ -33,6 +33,11 @@ export class User {
 
   @Prop({ default: false })
   isVerified: boolean;
+  @Prop()
+  resetPasswordToken?: string;
+
+  @Prop()
+  resetPasswordExpires?: Date;
 
 
   @Prop({ type: Object })
