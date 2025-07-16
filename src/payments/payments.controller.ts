@@ -81,8 +81,10 @@ export class PaymentsController {
     if (success) {  
       if (isApp) {
         redirectUrl =new URL('http://localhost:5173/payments/vnpay-return');
+        query.vnp_TxnRef = query.vnp_TxnRef.replace('APPT_', '');
       }else{
         redirectUrl =new URL('http://localhost:5173/up-wallet-success');
+        query.vnp_TxnRef = query.vnp_TxnRef.replace('WALLET_', '');
       }
     } else {
       redirectUrl = new URL('http://localhost:5173/payments/cancel');
