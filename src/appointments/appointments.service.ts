@@ -368,7 +368,35 @@ export class AppointmentsService {
       .find({
         doctorID: doctor._id,
         status: {
-          $in: [AppointmentStatus.checkin, AppointmentStatus.completed],
+          $in: [AppointmentStatus.checkin],
+        },
+      })
+      .sort({ createdAt: -1 })
+      .populate([
+        {
+          path: 'serviceID',
+          select: 'name price durationMinutes',
+        },
+        {
+          path: 'patientID',
+          select: 'name personalID userID',
+          populate: { path: 'userID', select: 'name' },
+        },
+      ]);
+  };
+  getFromTokenDone = async (user: IUser) => {
+    const doctor = await this.doctorsService.findByUserID(user._id);
+    if (!doctor) {
+      throw new BadRequestException(
+        'Không tìm thấy doctor bằng userID ở Token',
+      );
+    }
+
+    return await this.appointmentModel
+      .find({
+        doctorID: doctor._id,
+        status: {
+          $in: [AppointmentStatus.completed],
         },
       })
       .sort({ createdAt: -1 })
@@ -852,7 +880,7 @@ export class AppointmentsService {
     const updateResult = await this.appointmentModel.updateOne(
       { _id: id },
       {
-        status: AppointmentStatus.checkout,
+        status: AppointmentStatus.completed,
         updatedBy: {
           _id: user._id,
           email: user.email,

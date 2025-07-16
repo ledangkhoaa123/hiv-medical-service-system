@@ -124,6 +124,12 @@ export class AppointmentsController {
   getAppointByToken(@User() user: IUser) {
     return this.appointmentsService.getFromToken(user);
   }
+  @ApiOperation({ summary: 'Lấy Appointment đã hoàn tất theo token' })
+  @ResponseMessage('Get Appointment already done from Access Token')
+  @Post('token/done')
+  getAppointDoneByToken(@User() user: IUser) {
+    return this.appointmentsService.getFromTokenDone(user);
+  }
   @ApiOperation({ summary: 'Lấy Appointment theo patient token' })
   @ResponseMessage('Get Appointment from Access Token')
   @Get('patienttoken')
