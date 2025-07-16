@@ -173,7 +173,7 @@ export class PaymentsService {
     if (result.isVerified && result.vnp_ResponseCode === '00') {
       if (result.vnp_TxnRef.startsWith('APPT_')) {
         const appointment = await this.appointmentsService.findOne(
-          result.vnp_TxnRef,
+          result.vnp_TxnRef.replace('APPT_', ''),
         );
         if (appointment) {
           const service = await this.servicesService.findOne(
