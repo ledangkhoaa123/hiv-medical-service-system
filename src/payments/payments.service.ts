@@ -78,11 +78,34 @@ export class PaymentsService {
       vnp_IpAddr: ip,
       vnp_OrderInfo: `Thanh toan lich kham ${appointmentId}`,
       vnp_ReturnUrl: this.configService.get<string>('VNPAY_RETURN_URL'),
-      vnp_TxnRef: appointmentId, // Dùng appointmentId làm txnRef
+      vnp_TxnRef: `APPT_${appointmentId}`, // Dùng appointmentId làm txnRef
     };
 
     return this.vnpay.buildPaymentUrl(data);
   }
+  depositWallet = async (amount: number, user: IUser, ip: string) => {
+    const patient = await this.patientsService.findOneByToken(user);
+    if (!patient) throw new BadRequestException('Patient not found');
+
+    if (!patient.wallet) {
+      throw new BadRequestException('Lỗi ví chưa kích hoạt');
+    }
+    const payment = await this.createWalletTransaction(
+      patient.id,
+      amount,
+      WalletType.DEPOSIT,
+      '',
+    );
+    const data: BuildPaymentUrl = {
+      vnp_Amount: amount,
+      vnp_IpAddr: ip,
+      vnp_OrderInfo: `Nap tiền vào ví ${patient.name}`,
+      vnp_ReturnUrl: this.configService.get<string>('VNPAY_RETURN_URL'),
+      vnp_TxnRef: `WALLET_${payment.id}`,
+    };
+
+    return this.vnpay.buildPaymentUrl(data);
+  };
 
   async payByWallet(appointmentId: string, user: IUser) {
     const customer = await this.patientsService.findOneByToken(user);
@@ -146,24 +169,41 @@ export class PaymentsService {
   }
   async verifyReturn(query: any) {
     const result = this.vnpay.verifyReturnUrl(query as VerifyReturnUrl);
+
     if (result.isVerified && result.vnp_ResponseCode === '00') {
-      const appointment = await this.appointmentsService.findOne(
-        result.vnp_TxnRef,
-      );
-      if (appointment) {
-        const service = await this.servicesService.findOne(
-          appointment.serviceID as any,
+      if (result.vnp_TxnRef.startsWith('APPT_')) {
+        const appointment = await this.appointmentsService.findOne(
+          result.vnp_TxnRef,
         );
-        if (service) {
-          if (result.vnp_Amount == service.price) {
-            if (appointment.status !== AppointmentStatus.pending) {
-              await this.appointmentsService.updateStatus(
-                appointment._id as any,
-                AppointmentStatus.pending,
-              );
+        if (appointment) {
+          const service = await this.servicesService.findOne(
+            appointment.serviceID as any,
+          );
+          if (service) {
+            if (result.vnp_Amount == service.price) {
+              if (appointment.status !== AppointmentStatus.pending) {
+                await this.appointmentsService.updateStatus(
+                  appointment._id as any,
+                  AppointmentStatus.pending,
+                );
+              }
             }
           }
         }
+      } else if (result.vnp_TxnRef.startsWith('WALLET_')) {
+        const transactionId = result.vnp_TxnRef.replace('WALLET_', '');
+      const transaction = await this.walletTransactionModel.findById(transactionId);
+      if (!transaction) throw new NotFoundException('Giao dịch không tồn tại');
+
+      const patient = await this.patientsService.findOne(transaction.patientID as any);
+      if (!patient) throw new NotFoundException('Bệnh nhân không tồn tại');
+
+      // Chỉ cộng tiền nếu chưa được xác nhận
+      if (transaction.status !== 'completed') {
+        await this.patientsService.refundWallet(patient._id as any, transaction.amount);
+        transaction.status = 'completed';
+        await transaction.save();
+      }
       }
     }
     return {
@@ -216,5 +256,5 @@ export class PaymentsService {
       .find({ patientID: patient._id })
       .sort({ createdAt: -1 })
       .populate('patientID', 'name email contactPhones contactEmails');
-  } 
+  };
 }

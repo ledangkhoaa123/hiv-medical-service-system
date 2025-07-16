@@ -52,7 +52,7 @@ export enum DoctorSlotStatus {
 export enum AppointmentStatus {
   pending = 'Đang xét duyệt',
   pending_payment = 'Chờ thanh toán',
-  confirmed = 'Hoàn tất đặt lịch',
+  confirmed = 'Đã đặt lịch và đã được duyệt',
   checkin = 'Khách hàng đã checkin',
   payment_failed = 'Thanh toán thất bại',
   cancelled_by_user = 'Hủy bởi người khách hàng',
@@ -76,7 +76,8 @@ export enum RoleName {
 }
 export enum WalletType {
   REFUND = 'Giao dịch hoàn trả',
-  PAYMENT = 'Giao dịch thanh toán'
+  PAYMENT = 'Giao dịch thanh toán',
+  DEPOSIT = 'Nạp tiền vào ví'
 }
 export enum Operator {
   ANY = 'any',
