@@ -178,13 +178,13 @@ async suggestRegiment(treatmentID: string) {
     return false;
   }
 
-  return baseRegiments.filter(regiment =>
+  return baseRegiments.find(regiment =>
     regiment.criteria.every(cri => {
       const matchedTest = testResults.find(t => t.test_type === cri.test_type);
       if (!matchedTest) return false;
       return compare(matchedTest.test_results, cri.operator, cri.value);
     })
-  );
+  ) || [];
 }
 
 

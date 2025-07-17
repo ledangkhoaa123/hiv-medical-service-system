@@ -6,6 +6,7 @@ import { DoctorsModule } from 'src/doctors/doctors.module';
 import { DoctorSlotsController } from './doctor_slots.controller';
 import { ServicesModule } from 'src/services/services.module';
 import { Doctor, DoctorSchema } from 'src/doctors/schemas/doctor.schema';
+import { DoctorSlotCronService } from './doctor-slot-cron.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { Doctor, DoctorSchema } from 'src/doctors/schemas/doctor.schema';
     ])
   ,DoctorsModule,ServicesModule],
   controllers:[DoctorSlotsController],
-  providers: [DoctorSlotsService],
+  providers: [DoctorSlotsService, DoctorSlotCronService],
   exports: [DoctorSlotsService, MongooseModule]
 })
 export class DoctorSlotsModule {}
