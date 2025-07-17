@@ -259,6 +259,7 @@ export class AppointmentsService {
     );
     return updated;
   }
+  
   updateStatus = async (id: string, newStatus: AppointmentStatus) => {
     const existedAppointment = await this.findOne(id);
 
