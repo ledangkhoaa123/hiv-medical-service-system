@@ -41,16 +41,16 @@ export class PatientsService {
     private arvDrugModel: Model<ArvDrugDocument>,
     private readonly mailService: MailService,
     private configService: ConfigService,
-  ) { 
-     const cronTime = this.configService.get<string>('TIME_SEND_MAIL_FOLLOWUP');
-        const job = new CronJob(
-          cronTime,
-          () => this.sendMedicationReminders(),
-          null,
-          true,
-          'Asia/Ho_Chi_Minh',
-        );
-        job.start();
+  ) {
+    const cronTime = this.configService.get<string>('TIME_REMIND_MEDICATION');
+    const job = new CronJob(
+      cronTime,
+      () => this.sendMedicationReminders(),
+      null,
+      true,
+      'Asia/Ho_Chi_Minh',
+    );
+    job.start();
   }
   async createCustomer(createPatientDto: CreatePatientDto) {
     const IsExist = await this.userModel.findOne({
@@ -231,7 +231,7 @@ export class PatientsService {
     }
     return this.patientModel.updateOne(
       { _id: id },
-      { $addToSet: { medicalRecordID: newMedicalRecordID } }, // dùng $push nếu muốn cho phép trùng lặp
+      { $addToSet: { medicalRecordID: newMedicalRecordID } }, 
     );
   };
   updateUserID = async (
@@ -317,38 +317,48 @@ export class PatientsService {
 
     for (const patient of patients) {
       if (!patient.userID) {
-        continue; 
+        console.log(`Bệnh nhân ${patient.personalID} không có thông tin người dùng để gửi email.`);
+        continue;
+
       }
       const user = patient.userID as User;
-      const lastMedicalRecordId = patient.medicalRecordID[patient.medicalRecordID.length - 1];
+      const lastMedicalRecordId = patient.medicalRecordID[0];
 
       const medicalRecord = await this.medicalRecordModel.findOne({ _id: lastMedicalRecordId, isDeleted: false });
       if (!medicalRecord) {
-        continue; 
+        console.log(`Không tìm thấy hồ sơ y tế cho bệnh nhân ${patient.personalID}`);
+        continue;
+
       }
       const treatments = await this.treatmentModel.find({ _id: { $in: medicalRecord.treatmentID }, isDeleted: false });
-      
+
       if (treatments.length === 0) {
-        continue; 
+        console.log(`Không có phương pháp điều trị nào cho bệnh nhân ${patient.personalID}`);
+
+        continue;
       }
-      const treatment = treatments[0];
+      const treatment = treatments[treatments.length - 1]; // Lấy phương pháp điều trị mới nhất
       let drugsForEmail: { drugName: string; dosage: string; frequency: string }[] = [];
 
-     
-        const prescribedRegiment = await this.prescribedRegimentModel
-          .findById(treatment.prescribedRegimentID)
-        if (!prescribedRegiment) {
-          continue; 
-        }
-        const baseArv = await this.arvRegimentModel.find({ _id: prescribedRegiment.baseRegimentID })
-        const baseDrugs = baseArv.map(arv => arv.drugs).flat();
-        const customDrugs = prescribedRegiment.customDrugs || [];
 
-        const allDrugs = [...baseDrugs, ...customDrugs];
-        for (const drug of allDrugs) {
-          const drugInfo = await this.arvDrugModel.findById(drug.drugId);
-          drugsForEmail.push({ drugName: drugInfo.genericName, dosage: drug.dosage, frequency: drug.frequency[0] });
-        }
+      const prescribedRegiment = await this.prescribedRegimentModel
+        .findById(treatment.prescribedRegimentID)
+      if (!prescribedRegiment) {
+        console.log(`Không tìm thấy phác đồ điều trị cho bệnh nhân ${patient.personalID}`);
+        continue;
+
+      }
+      const baseArv = await this.arvRegimentModel.find({ _id: prescribedRegiment.baseRegimentID })
+      const baseDrugs = baseArv.map(arv => arv.drugs).flat();
+      const customDrugs = prescribedRegiment.customDrugs || [];
+      let allDrugs = baseDrugs;
+      if (customDrugs.length > 0) {
+        allDrugs = customDrugs;
+      }
+      for (const drug of allDrugs) {
+        const drugInfo = await this.arvDrugModel.findById(drug.drugId);
+        drugsForEmail.push({ drugName: drugInfo.genericName, dosage: drug.dosage, frequency: drug.frequency[0] });
+      }
       if (drugsForEmail.length > 0) {
         await this.mailService.sendRemindMedicalEmail({
           to: user.email,
@@ -360,3 +370,4 @@ export class PatientsService {
     }
   }
 }
+
