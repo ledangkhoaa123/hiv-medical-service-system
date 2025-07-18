@@ -4,7 +4,7 @@ import { verify } from 'crypto';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly mailerService: MailerService) { }
   async sendAnonymousAppointmentCreatedEmail(data: {
     to: string;
     patientName: string;
@@ -96,13 +96,32 @@ export class MailService {
     await this.mailerService.sendMail({
       to: data.to,
       subject: 'Thông báo huỷ lịch hẹn',
-      template: 'cancelAppointment', // bạn sẽ cần template tương ứng
+      template: 'cancelAppointment',
       context: {
         patientName: data.patientName,
         appointmentDate: data.appointmentDate,
         shift: data.shift,
         refundAmount: data.refundAmount,
         reason: data.reason,
+      },
+    });
+  }
+  async sendRemindMedicalEmail({
+    to,
+    patientName,
+    drugs
+  }: {
+    to: string;
+    patientName: string;
+    drugs: { drugName: string; dosage: string; frequency: string }[]; 
+  }) {
+    await this.mailerService.sendMail({
+      to: to,
+      subject: 'Nhắc nhở uống thuốc ARV hằng ngày',
+      template: 'remindMedical',
+      context: {
+        patientName: patientName,
+        drugs,
       },
     });
   }

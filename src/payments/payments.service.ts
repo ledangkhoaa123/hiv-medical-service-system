@@ -87,7 +87,7 @@ export class PaymentsService {
     const patient = await this.patientsService.findOneByToken(user);
     if (!patient) throw new BadRequestException('Patient not found');
 
-    if (!patient.wallet) {
+    if (patient.wallet==null) {
       throw new BadRequestException('Lỗi ví chưa kích hoạt');
     }
     const payment = await this.createWalletTransaction(
