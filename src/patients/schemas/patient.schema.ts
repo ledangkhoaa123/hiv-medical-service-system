@@ -18,7 +18,7 @@ export class Patient {
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,
   })
-  userID: User | mongoose.Schema.Types.ObjectId;
+  userID: User ;
 
   @Prop({ required: true, default: false })
   isRegistered: boolean;

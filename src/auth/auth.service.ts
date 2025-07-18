@@ -165,11 +165,11 @@ export class AuthService {
 
     user.resetPasswordToken = token;
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
-    await this.userModel.updateOne({_id:user._id}, user); 
+    await this.userModel.updateOne({ _id: user._id }, user);
 
-    const port = this.configService.get<string>('PORT_WEB') || '5173';
-    const resetLink = `http://localhost:${port}/reset-password?token=${token}`;
-    await this.mailService.sendResetPasswordEmail({ to: email, resetLink });
+    const port = this.configService.get<string>('PORT') || process.env.PORT_WEB || '5173';
+    const baseUrl = this.configService.get<string>('WEB_BASE_URL') || process.env.WEB_BASE_URL || 'http://localhost';
+    const resetLink = `${baseUrl}:${port}/reset-password?token=${token}`;
 
     return { message: 'Đã gửi email đặt lại mật khẩu!' };
   }
@@ -191,10 +191,10 @@ export class AuthService {
       throw new BadRequestException('Thời gian đặt lại mật khẩu đã hết hạn');
     }
 
-    user.password = await bcrypt.hash(newPassword,10); 
-    user.resetPasswordToken = undefined; 
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    await this.userModel.updateOne({_id:user._id}, user);
+    await this.userModel.updateOne({ _id: user._id }, user);
 
     return { message: 'Đặt lại mật khẩu thành công!' };
   }

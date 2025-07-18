@@ -139,10 +139,11 @@ export class UsersService {
       await this.patientService.createCustomer(patient);
       const token = this.jwtService.sign(
         { userId: user._id },
-        { expiresIn: '15m' }
+        { expiresIn: this.configService.get<string>('VERIFICATION_EXPIRES_IN') }
       );
       const port = this.configService.get<string>('PORT')
-      const verifyLink = `http://localhost:${port}/auth/verify-email?token=${token}`;
+      const baseUrl = this.configService.get<string>('WEB_BASE_URL') 
+      const verifyLink = `${baseUrl}:${port}/auth/verify-email?token=${token}`;
 
       await this.mailService.sendVerifyEmail({ to: user.email, verifyLink });
 
