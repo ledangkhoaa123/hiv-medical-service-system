@@ -534,7 +534,9 @@ export class AppointmentsService {
               patientName: patient.name || 'No Name',
               appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
               reason: canceldto.reason,
-              shift: format(appointment.startTime, 'HH:mm'),
+              shift: appointment.startTime.toLocaleString('vi-VN', {
+                timeZone: 'UTC',
+              }),
               refundAmount: service.price,
             });
           } else {
@@ -656,7 +658,9 @@ export class AppointmentsService {
       patientName: patient.name || 'No Name',
       appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
       reason: 'Được huỷ bởi nhân viên',
-      shift: format(appointment.startTime, 'HH:mm'),
+      shift: appointment.startTime.toLocaleString('vi-VN', {
+        timeZone: 'UTC',
+      }),
       refundAmount: refundTotal,
     });
 
@@ -765,7 +769,9 @@ export class AppointmentsService {
               patientName: patient.name || 'No Name',
               appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
               reason: canceldto.reason,
-              shift: format(appointment.startTime, 'HH:mm'),
+              shift: appointment.startTime.toLocaleString('vi-VN', {
+                timeZone: 'UTC',
+              }),
               refundAmount: service.price,
             });
           } else {
@@ -901,5 +907,5 @@ export class AppointmentsService {
     }
 
     return { message: `Bệnh nhân ${patientI4.name} đã checkout` };
-  }
+  };
 }
