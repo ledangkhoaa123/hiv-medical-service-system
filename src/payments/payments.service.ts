@@ -31,6 +31,7 @@ import {
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class PaymentsService {
@@ -87,7 +88,7 @@ export class PaymentsService {
     const patient = await this.patientsService.findOneByToken(user);
     if (!patient) throw new BadRequestException('Patient not found');
 
-    if (patient.wallet==null) {
+    if (patient.wallet == null) {
       throw new BadRequestException('Lỗi ví chưa kích hoạt');
     }
     const payment = await this.createWalletTransaction(
@@ -95,6 +96,8 @@ export class PaymentsService {
       amount,
       WalletType.DEPOSIT,
       '',
+      '',
+      'pending',
     );
     const data: BuildPaymentUrl = {
       vnp_Amount: amount,
@@ -150,6 +153,7 @@ export class PaymentsService {
       type: WalletType.PAYMENT,
       reason: 'Thanh toán lịch hẹn',
       referenceAppointmentID: appointmentId,
+      status: 'completed',
     });
   }
   async createWalletTransaction(
@@ -158,14 +162,22 @@ export class PaymentsService {
     type: WalletType,
     reason: string,
     referenceAppointmentID?: string,
+    status?: string,
   ) {
-    return await this.walletTransactionModel.create({
+    const payload: any = {
       patientID,
       amount,
       type,
       reason,
-      referenceAppointmentID,
-    });
+      status,
+    };
+
+    // Chỉ thêm nếu referenceAppointmentID có giá trị hợp lệ
+    if (mongoose.Types.ObjectId.isValid(referenceAppointmentID)) {
+      payload.referenceAppointmentID = referenceAppointmentID;
+    }
+
+    return await this.walletTransactionModel.create(payload);
   }
   async verifyReturn(query: any) {
     const result = this.vnpay.verifyReturnUrl(query as VerifyReturnUrl);
@@ -192,18 +204,25 @@ export class PaymentsService {
         }
       } else if (result.vnp_TxnRef.startsWith('WALLET_')) {
         const transactionId = result.vnp_TxnRef.replace('WALLET_', '');
-      const transaction = await this.walletTransactionModel.findById(transactionId);
-      if (!transaction) throw new NotFoundException('Giao dịch không tồn tại');
-
-      const patient = await this.patientsService.findOne(transaction.patientID as any);
-      if (!patient) throw new NotFoundException('Bệnh nhân không tồn tại');
-
-      // Chỉ cộng tiền nếu chưa được xác nhận
-      if (transaction.status !== 'completed') {
-        await this.patientsService.refundWallet(patient._id as any, transaction.amount);
-        transaction.status = 'completed';
-        await transaction.save();
-      }
+        const transaction =
+          await this.walletTransactionModel.findById(transactionId);
+        if (!transaction)
+          throw new NotFoundException('Giao dịch không tồn tại');
+        
+        const patient = await this.patientsService.findOne(
+          transaction.patientID as any,
+        );
+        if (!patient) throw new NotFoundException('Bệnh nhân không tồn tại');
+        await this.walletTransactionModel.updateOne({_id: transaction.id}, {status: 'completed'})
+        // Chỉ cộng tiền nếu chưa được xác nhận
+        if (transaction.status !== 'completed') {
+          await this.patientsService.refundWallet(
+            patient._id as any,
+            transaction.amount,
+          );
+          transaction.status = 'completed';
+          await transaction.save();
+        }
       }
     }
     return {

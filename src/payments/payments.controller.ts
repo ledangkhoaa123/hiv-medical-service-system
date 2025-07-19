@@ -16,11 +16,15 @@ import { Request, Response } from 'express';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { CreatePaymentDto, CreateWalletPaymentDto } from './dto/create-payment';
 import { IUser } from 'src/users/user.interface';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('payments')
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private configService: ConfigService
+  ) {}
 
   @Post('vnpay-url')
   @ApiOperation({ summary: 'Lấy URL thanh toán' })
@@ -40,9 +44,9 @@ export class PaymentsController {
   }
 
   @Post('wallet')
-  @ApiOperation({ summary: 'Lấy URL thanh toán' })
+  @ApiOperation({ summary: 'Thanh toán bằng ví' })
   @ApiBody({ type: CreatePaymentDto })
-  @ResponseMessage('Get URL for Payment')
+  @ResponseMessage('Pay by Wallet')
   async createWalletPayment(
     @Body() createPaymentDto: CreatePaymentDto,
     @User() user: IUser,
@@ -77,18 +81,21 @@ export class PaymentsController {
     const result = await this.paymentsService.verifyReturn(query);
     const success = result.vnp_ResponseCode === '00';
     const isApp = result.vnp_TxnRef.startsWith('APPT_');
-    let redirectUrl;
-    if (success) {  
+    const feUrl = this.configService.get<string>('FE_URL'); // lấy FE_URL từ .env
+    let redirectUrl: URL;
+
+    if (success) {
       if (isApp) {
-        redirectUrl =new URL('http://localhost:5173/payments/vnpay-return');
+        redirectUrl = new URL(`${feUrl}/payments/vnpay-return`);
         query.vnp_TxnRef = query.vnp_TxnRef.replace('APPT_', '');
-      }else{
-        redirectUrl =new URL('http://localhost:5173/up-wallet-success');
+      } else {
+        redirectUrl = new URL(`${feUrl}/up-wallet-success`);
         query.vnp_TxnRef = query.vnp_TxnRef.replace('WALLET_', '');
       }
     } else {
-      redirectUrl = new URL('http://localhost:5173/payments/cancel');
+      redirectUrl = new URL(`${feUrl}/payments/cancel`);
     }
+
 
     // Append original query params back to FE URL
     Object.keys(query).forEach((key) => {
