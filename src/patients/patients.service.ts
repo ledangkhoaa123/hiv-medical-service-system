@@ -10,10 +10,18 @@ import {
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Patient, PatientDocument } from './schemas/patient.schema';
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { IUser } from 'src/users/user.interface';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { PrescribedRegiment } from 'src/prescribed_regiments/schemas/prescribed_regiment.schema';
+import { ArvRegiment } from 'src/arv_regiments/schemas/arv_regiment.schema';
+import { MedicalRecord, MedicalRecordDocument } from 'src/medical-records/schemas/medical-record.schema';
+import { Treatment, TreatmentDocument } from 'src/treatments/schemas/treatment.schema';
+import { ArvDrug, ArvDrugDocument } from 'src/arv_drugs/schemas/arv_drug.schema';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
+import { CronJob } from 'cron';
 @Injectable()
 export class PatientsService {
   constructor(
@@ -21,7 +29,29 @@ export class PatientsService {
     private patientModel: SoftDeleteModel<PatientDocument>,
     @InjectModel(User.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
-  ) {}
+    @InjectModel(PrescribedRegiment.name)
+    private readonly prescribedRegimentModel: Model<PrescribedRegiment>,
+    @InjectModel(ArvRegiment.name)
+    private readonly arvRegimentModel: Model<ArvRegiment>,
+    @InjectModel(MedicalRecord.name)
+    private medicalRecordModel: Model<MedicalRecordDocument>,
+    @InjectModel(Treatment.name)
+    private treatmentModel: Model<TreatmentDocument>,
+    @InjectModel(ArvDrug.name)
+    private arvDrugModel: Model<ArvDrugDocument>,
+    private readonly mailService: MailService,
+    private configService: ConfigService,
+  ) {
+    const cronTime = this.configService.get<string>('TIME_REMIND_MEDICATION');
+    const job = new CronJob(
+      cronTime,
+      () => this.sendMedicationReminders(),
+      null,
+      true,
+      'Asia/Ho_Chi_Minh',
+    );
+    job.start();
+  }
   async createCustomer(createPatientDto: CreatePatientDto) {
     const IsExist = await this.userModel.findOne({
       _id: createPatientDto.userID,
@@ -201,7 +231,7 @@ export class PatientsService {
     }
     return this.patientModel.updateOne(
       { _id: id },
-      { $addToSet: { medicalRecordID: newMedicalRecordID } }, // dùng $push nếu muốn cho phép trùng lặp
+      { $addToSet: { medicalRecordID: newMedicalRecordID } }, 
     );
   };
   updateUserID = async (
@@ -251,10 +281,10 @@ export class PatientsService {
     );
   };
   async findOneByContactEmail(email: string) {
-  return await this.patientModel.findOne({
-    contactEmails: email
-  });
-}
+    return await this.patientModel.findOne({
+      contactEmails: email
+    });
+  }
 
   refundWallet = async (id: string, amount: number) => {
     const patient = await this.findOne(id);
@@ -273,10 +303,71 @@ export class PatientsService {
     );
   };
   async removeMedicalRecordFromPatient(patientId: string, medicalRecordId: string) {
-  return await this.patientModel.updateOne(
-    { _id: patientId },
-    { $pull: { medicalRecordID: medicalRecordId } },
-  );
+    return await this.patientModel.updateOne(
+      { _id: patientId },
+      { $pull: { medicalRecordID: medicalRecordId } },
+    );
+  }
+  async sendMedicationReminders() {
+    const patients = await this.patientModel.find({ isDeleted: false, medicalRecordID: { $exists: true, $not: { $size: 0 } } }).
+      populate({
+        path: 'userID',
+        select: 'email name',
+      });
+
+    for (const patient of patients) {
+      if (!patient.userID) {
+        console.log(`Bệnh nhân ${patient.personalID} không có thông tin người dùng để gửi email.`);
+        continue;
+
+      }
+      const user = patient.userID as User;
+      const lastMedicalRecordId = patient.medicalRecordID[0];
+
+      const medicalRecord = await this.medicalRecordModel.findOne({ _id: lastMedicalRecordId, isDeleted: false });
+      if (!medicalRecord) {
+        console.log(`Không tìm thấy hồ sơ y tế cho bệnh nhân ${patient.personalID}`);
+        continue;
+
+      }
+      const treatments = await this.treatmentModel.find({ _id: { $in: medicalRecord.treatmentID }, isDeleted: false });
+
+      if (treatments.length === 0) {
+        console.log(`Không có phương pháp điều trị nào cho bệnh nhân ${patient.personalID}`);
+
+        continue;
+      }
+      const treatment = treatments[treatments.length - 1]; // Lấy phương pháp điều trị mới nhất
+      let drugsForEmail: { drugName: string; dosage: string; frequency: string }[] = [];
+
+
+      const prescribedRegiment = await this.prescribedRegimentModel
+        .findById(treatment.prescribedRegimentID)
+      if (!prescribedRegiment) {
+        console.log(`Không tìm thấy phác đồ điều trị cho bệnh nhân ${patient.personalID}`);
+        continue;
+
+      }
+      const baseArv = await this.arvRegimentModel.find({ _id: prescribedRegiment.baseRegimentID })
+      const baseDrugs = baseArv.map(arv => arv.drugs).flat();
+      const customDrugs = prescribedRegiment.customDrugs || [];
+      let allDrugs = baseDrugs;
+      if (customDrugs.length > 0) {
+        allDrugs = customDrugs;
+      }
+      for (const drug of allDrugs) {
+        const drugInfo = await this.arvDrugModel.findById(drug.drugId);
+        drugsForEmail.push({ drugName: drugInfo.genericName, dosage: drug.dosage, frequency: drug.frequency[0] });
+      }
+      if (drugsForEmail.length > 0) {
+        await this.mailService.sendRemindMedicalEmail({
+          to: user.email,
+          patientName: user.name,
+          drugs: drugsForEmail
+        });
+        console.log(`Gửi nhắc nhở đến ${user.name} (${user.email}) với ${drugsForEmail.length} loại thuốc`);
+      }
+    }
+  }
 }
 
-}

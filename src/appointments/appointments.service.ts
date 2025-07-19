@@ -52,7 +52,7 @@ export class AppointmentsService {
     private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
     private paymentsService: PaymentsService,
-  ) {}
+  ) { }
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
@@ -259,6 +259,7 @@ export class AppointmentsService {
     );
     return updated;
   }
+
   updateStatus = async (id: string, newStatus: AppointmentStatus) => {
     const existedAppointment = await this.findOne(id);
 

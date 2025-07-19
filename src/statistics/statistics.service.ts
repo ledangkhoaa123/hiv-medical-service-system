@@ -62,7 +62,7 @@ export class StatisticsService {
         totalRevenue: { $sum: '$service.price' },
         totalAppointments: { $sum: 1 },
       },
-    },
+    },      
     { $sort: { _id: 1 } },
   ]);
 }

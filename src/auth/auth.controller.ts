@@ -11,6 +11,7 @@ import { log } from 'console';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpgradeFromGuestDto } from 'src/patients/dto/create-patient.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags("auth")
 @Controller('auth')
@@ -19,6 +20,7 @@ export class AuthController {
     private authService: AuthService,
     private readonly usersService: UsersService,
     private rolesService: RolesService,
+    private readonly configService: ConfigService
   ) { }
 
   @Public()
@@ -72,7 +74,8 @@ export class AuthController {
   ) {
     try {
       await this.authService.verifyEmail(token);
-      return res.redirect('http://localhost:5173/verification');
+      const link = this.configService.get<string>('Link_VERIFICATION') ;
+      return res.redirect(link);
     } catch (error) {
       return res.status(400).send('Token không hợp lệ hoặc đã hết hạn');
     }

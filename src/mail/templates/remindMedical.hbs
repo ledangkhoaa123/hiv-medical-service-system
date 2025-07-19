@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhắc nhở uống thuốc</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .email-header {
+      background-color: #007bff;
+      color: #ffffff;
+      padding: 25px;
+      text-align: center;
+    }
+    .email-header img {
+      max-height: 60px;
+      margin-bottom: 10px;
+    }
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .email-content {
+      padding: 30px;
+      line-height: 1.6;
+    }
+    .email-content .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .medication-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .medication-table th, .medication-table td {
+      border: 1px solid #dddddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .medication-table th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+    }
+    .email-footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #777777;
+      background-color: #f8f9fa;
+      border-top: 1px solid #dddddd;
+    }
+    .signature {
+        margin-top: 25px;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <img src="https://i.postimg.cc/K8TQ2RZx/Gemini-Generated-Image-jj2pgwjj2pgwjj2p.png" alt="HIV System Logo" />
+      <h1>Nhắc Nhở Uống Thuốc Hằng Ngày</h1>
+    </div>
+    <div class="email-content">
+      <p class="greeting">Chào {{patientName}},</p>
+      <p>Hệ thống gửi đến bạn lời nhắc về các loại thuốc cần sử dụng hôm nay. Việc tuân thủ đúng liệu trình là vô cùng quan trọng cho sức khỏe của bạn.</p>
+      
+      <table class="medication-table">
+        <thead>
+          <tr>
+            <th>Tên thuốc</th>
+            <th>Liều lượng</th>
+            <th>Tần suất</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each drugs}}
+            <tr>
+              <td>{{this.drugName}}</td>
+              <td>{{this.dosage}}</td>
+              <td>{{this.frequency}}</td>
+            </tr>
+          {{/each}}
+          {{#unless drugs}}
+            <tr>
+              <td colspan="3" style="text-align: center;">Không có thuốc cần nhắc nhở trong hôm nay.</td>
+            </tr>
+          {{/unless}}
+        </tbody>
+      </table>
+
+      <p class="signature">Trân trọng,<br>Hệ thống Hỗ trợ Điều trị HIV</p>
+    </div>
+    <div class="email-footer">
+      <p>Đây là email được gửi tự động. Vui lòng không trả lời thư này.</p>
+    </div>
+  </div>
+</body>
+</html>
