@@ -128,7 +128,7 @@ export class AuthService {
             email,
             name,
             role: userRole as any,
-            permissions: tempRole?. permissions ?? []
+            permissions: tempRole?.permissions ?? []
           },
         };
       } else {
@@ -157,28 +157,46 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new BadRequestException('Email không tồn tại');
+
     const token = this.jwtService.sign(
       { userId: user._id },
       { expiresIn: '15m' }
     );
-    const port = this.configService.get<string>('PORT_WEB') || '5173';
-    const resetLink = `http://localhost:${port}/reset-password?token=${token}`;
-    await this.mailService.sendResetPasswordEmail({ to: email, resetLink });
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
+    await this.userModel.updateOne({ _id: user._id }, user);
+
+    const port = this.configService.get<string>('PORT') || process.env.PORT_WEB || '5173';
+    const baseUrl = this.configService.get<string>('WEB_BASE_URL') || process.env.WEB_BASE_URL || 'http://localhost';
+    const resetLink = `${baseUrl}:${port}/reset-password?token=${token}`;
+
     return { message: 'Đã gửi email đặt lại mật khẩu!' };
   }
 
   async resetPassword(token: string, newPassword: string) {
+    let payload: { userId: string };
     try {
-      const payload = this.jwtService.verify(token);
-      const hashPassword = this.usersService.getHashPassword(newPassword);
-      await this.userModel.updateOne(
-        { _id: payload.userId },
-        { password: hashPassword }
-      );
-      return { message: 'Đặt lại mật khẩu thành công!' };
-    } catch (e) {
-      throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn');
+      payload = this.jwtService.verify(token);
+    } catch (err) {
+      throw new BadRequestException('Mã xác thực không hợp lệ hoặc đã hết hạn');
     }
+
+    const user = await this.userModel.findById(payload.userId);
+    if (!user || user.resetPasswordToken !== token) {
+      throw new BadRequestException('Mã xác nhận đã sử dụng rồi hoặc đã cũ. Vui lòng lấy link đặt lại mật khẩu mới nhất');
+    }
+
+    if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+      throw new BadRequestException('Thời gian đặt lại mật khẩu đã hết hạn');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await this.userModel.updateOne({ _id: user._id }, user);
+
+    return { message: 'Đặt lại mật khẩu thành công!' };
   }
   async changePassword(users: IUser, oldPassword: string, newPassword: string) {
     const user = await this.usersService.findByEmail(users.email);

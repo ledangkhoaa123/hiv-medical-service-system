@@ -111,6 +111,7 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.update(id, updateappointmentDto, user);
   }
+ 
   @ResponseMessage('Xóa lịch hẹn')
   @ApiOperation({ summary: 'Xóa lịch hẹn' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })
