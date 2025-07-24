@@ -46,6 +46,7 @@ export class UsersService {
     const isExist = await this.userModel.findOne({
       email: createUserDto.email,
     });
+    const isVerified = true;
     if (isExist) {
       throw new BadRequestException('Email đã tồn tại!');
     }
@@ -67,6 +68,7 @@ export class UsersService {
         address,
         createdBy,
         role,
+        isVerified
       });
       return {
         user: {
