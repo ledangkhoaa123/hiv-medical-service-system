@@ -31,6 +31,9 @@ export class CreateUserDto {
   @IsOptional()
   @IsMongoId({ message: 'Role có định dạng là MongoID' })
   role: mongoose.Schema.Types.ObjectId;
+  @IsOptional()
+  @IsString({ message: 'avatarURL phải là chuỗi' })
+  avatarURL: string;
 }
 export class RegisterUserDto {
   @IsNotEmpty({ message: 'Name không đưọc trống' })
