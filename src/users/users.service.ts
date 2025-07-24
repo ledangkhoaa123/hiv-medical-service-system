@@ -53,7 +53,7 @@ export class UsersService {
     if (!(await this.roleModel.findOne({ _id: createUserDto.role })) || !createUserDto.role) {
       throw new NotFoundException("Không tìm thấy role")
     }
-    const { email, password, dob, gender, name, phone, address, role } =
+    const { email, password, dob, gender, name, phone, address, role, avatarURL } =
       createUserDto;
     const hashPassword = this.getHashPassword(password);
     const createdBy = pick(user, ['email', 'name']);
@@ -68,7 +68,8 @@ export class UsersService {
         address,
         createdBy,
         role,
-        isVerified
+        isVerified,
+        avatarURL
       });
       return {
         user: {
