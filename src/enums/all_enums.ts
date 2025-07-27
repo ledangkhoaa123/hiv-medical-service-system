@@ -61,6 +61,7 @@ export enum AppointmentStatus {
   completed = 'Hoàn tất quá trình khám',
   checkout = 'Khách hàng đã checkout',
   no_show = 'Không đến khám',
+  canceled_by_customer = 'Khách hàng hủy lịch hẹn'
 }
 export enum AppointmentShiftName {
   MORNING = 'morning',

@@ -21,6 +21,7 @@ import { CronJob } from 'cron';
 import { DoctorsService } from 'src/doctors/doctors.service';
 import { ConfigService } from '@nestjs/config';
 import { TestResultsService } from 'src/test-results/test-results.service';
+import { startOfDay } from 'date-fns';
 @Injectable()
 export class TreatmentsService {
   constructor(
@@ -31,8 +32,8 @@ export class TreatmentsService {
     private readonly mailService: MailService,
     private doctorsService: DoctorsService,
     private readonly configService: ConfigService,
-    
-    private testResultService: TestResultsService
+
+    private testResultService: TestResultsService,
   ) {
     const cronTime = this.configService.get<string>('TIME_SEND_MAIL_FOLLOWUP');
     const job = new CronJob(
@@ -58,7 +59,7 @@ export class TreatmentsService {
         `Không tồn tại MedicalRecord với ID ${createTreatmentDto.medicalRecordID}`,
       );
     }
-    const {testResults} = createTreatmentDto;
+    const { testResults } = createTreatmentDto;
     const treatment = await this.treatmentModel.create({
       ...createTreatmentDto,
       doctorID: doctor.id,
@@ -69,13 +70,13 @@ export class TreatmentsService {
       treatment._id as any,
     );
     if (testResults?.length) {
-    for (const tr of testResults) {
-      await this.testResultService.create(
-        { ...tr, treatmentID: treatment._id as any },
-        user,
-      );
+      for (const tr of testResults) {
+        await this.testResultService.create(
+          { ...tr, treatmentID: treatment._id as any },
+          user,
+        );
+      }
     }
-  }
     return treatment;
   }
   async findAll() {
@@ -109,8 +110,19 @@ export class TreatmentsService {
     updateTreatmentDto: UpdateTreatmentDto,
     user: IUser,
   ) {
-    if (!(await this.findOne(id))) {
+    const treatment = await this.treatmentModel.findById(id);
+    if (!treatment) {
       throw new BadRequestException(`Không tìm thấy điều trị với id=${id}`);
+    }
+
+    // Nếu có followUpDate thì kiểm tra phải sau treatmentDate (so sánh theo ngày)
+    if (updateTreatmentDto.followUpDate) {
+      const followUp = startOfDay(new Date(updateTreatmentDto.followUpDate));
+      const treatmentDay = startOfDay(new Date(treatment.treatmentDate));
+
+      if (followUp <= treatmentDay) {
+        throw new BadRequestException('Ngày tái khám phải sau ngày điều trị.');
+      }
     }
 
     return this.treatmentModel.updateOne(
@@ -213,8 +225,6 @@ export class TreatmentsService {
     }
   }
   async deleteAllByMedicalRecordId(medicalRecordId: string) {
-  return this.treatmentModel.deleteMany({ medicalRecordID: medicalRecordId });
-}
-
-
+    return this.treatmentModel.deleteMany({ medicalRecordID: medicalRecordId });
+  }
 }
