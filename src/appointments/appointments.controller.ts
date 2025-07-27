@@ -179,6 +179,18 @@ export class AppointmentsController {
       user,
     );
   }
+  @ApiOperation({ summary: 'Hủy lịch hẹn của bệnh nhân' })
+  @ResponseMessage('Cancle appointment for patient')
+  @Post('cancle/appointment/patient')
+  cancelAppointmentPatient(
+    @Body() cancleAppointmentdto: CancelAppointmentDto,
+    @User() user: IUser,
+  ) {
+    return this.appointmentsService.cancelAppointmentPatient(
+      cancleAppointmentdto,
+      user,
+    );
+  }
   @Patch(':id/checkin')
   @ApiOperation({ summary: 'Checkin lịch hẹn' })
   @ApiParam({ name: 'id', required: true, description: 'ID lịch hẹn' })

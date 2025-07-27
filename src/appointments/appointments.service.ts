@@ -1,6 +1,7 @@
 /* eslint-disable prefer-const */
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -52,7 +53,7 @@ export class AppointmentsService {
     private doctorScheduleService: DoctorSchedulesService,
     private doctorsService: DoctorsService,
     private paymentsService: PaymentsService,
-  ) { }
+  ) {}
   async create(createAppointmentDto: CreateAppointmentDto) {
     const { doctorSlotID, patientID, serviceID, treatmentID } =
       createAppointmentDto;
@@ -669,6 +670,116 @@ export class AppointmentsService {
       slotsAffected: slotIds.length,
       refundedAmount: refundTotal,
       message: `Đã huỷ lịch hẹn thành công${refundTotal ? ' và hoàn tiền' : ''}.`,
+    };
+  };
+  cancelAppointmentPatient = async (
+    canceldto: CancelAppointmentDto,
+    user: IUser,
+  ) => {
+    const appointment = await this.appointmentModel.findById(
+      canceldto.appoinmentId,
+    );
+
+    if (!appointment) {
+      throw new NotFoundException('Không tìm thấy lịch hẹn');
+    }
+    const patient = await this.patientService.findOne(
+      appointment.patientID as any,
+    );
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy thông tin bệnh nhân');
+    }
+    console.log(patient.userID.toString())
+    // Kiểm tra quyền hủy: chỉ bệnh nhân sở hữu lịch mới được hủy
+    if (patient.userID.email !== user.email) {
+      throw new ForbiddenException('Bạn không có quyền hủy lịch này');
+    }
+
+    if (
+      ![AppointmentStatus.pending, AppointmentStatus.confirmed].includes(
+        appointment.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'Chỉ được huỷ lịch đã thanh toán đang chờ xét duyệt hoặc là lịch đã được xét duyệt',
+      );
+    }
+
+    const slotIds = appointment.doctorSlotID;
+    if (!slotIds || slotIds.length === 0) {
+      throw new NotFoundException('Không tìm thấy các slot trong lịch hẹn');
+    }
+
+    const service = await this.serviceService.findOne(
+      appointment.serviceID as any,
+    );
+
+    if (!service) {
+      throw new NotFoundException('Không tìm thấy thông tin dịch vụ');
+    }
+
+    let refundTotal = 0;
+
+    if (appointment.status === AppointmentStatus.pending) {
+      const refundAmount = Math.round(service.price * 0.8);
+
+      const transaction = await this.paymentsService.createWalletTransaction(
+        patient._id as any,
+        refundAmount,
+        WalletType.REFUND,
+        canceldto.reason,
+        appointment._id as any,
+      );
+      if (!transaction) {
+        throw new InternalServerErrorException(
+          'Không thể tạo giao dịch hoàn tiền',
+        );
+      }
+
+      await this.patientService.refundWallet(
+        appointment.patientID.toString(),
+        refundAmount,
+      );
+
+      refundTotal = refundAmount;
+    }
+
+    // Cập nhật trạng thái lịch hẹn
+    await this.appointmentModel.updateOne(
+      { _id: canceldto.appoinmentId },
+      {
+        $set: {
+          status: AppointmentStatus.canceled_by_customer,
+          cancellationReason: canceldto.reason,
+          canceledAt: new Date(),
+          canceledBy: { _id: user._id, email: user.email },
+        },
+      },
+    );
+
+    // Cập nhật lại trạng thái các slot thành AVAILABLE
+    await this.doctorSlotService.updateManySlotStatuses(
+      slotIds as any,
+      DoctorSlotStatus.AVAILABLE,
+    );
+
+    // Gửi email thông báo
+    await this.mailService.sendAppointmentCanceledEmail({
+      to: patient.contactEmails[0] || 'lekhoa6a7cva@gmail.com',
+      patientName: patient.name || 'No Name',
+      appointmentDate: format(appointment.startTime, 'dd/MM/yyyy'),
+      reason: canceldto.reason,
+      shift: appointment.startTime.toLocaleString('vi-VN', {
+        timeZone: 'UTC',
+      }),
+      refundAmount: refundTotal,
+    });
+
+    return {
+      appointmentId: canceldto.appoinmentId,
+      slotsAffected: slotIds.length,
+      refundedAmount: refundTotal,
+      message: `Đã huỷ lịch hẹn thành công${refundTotal ? ` và hoàn ${refundTotal}đ` : ' (không hoàn tiền)'}.`,
     };
   };
 
