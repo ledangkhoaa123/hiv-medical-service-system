@@ -254,7 +254,7 @@ export class DoctorSlotsService {
   async findSlotbyPrevious(slotID: string) {
     const slot = await this.findOne(slotID);
     const time = slot.endTime;
-    return this.doctorSlotModel.findOne({ startTime: time });
+    return this.doctorSlotModel.findOne({ startTime: time, doctorID: slot.doctorID });
   }
   async findBookedSlotsByStartTimesByDoctor(
     doctorID: string,
