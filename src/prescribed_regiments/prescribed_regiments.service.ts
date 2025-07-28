@@ -103,7 +103,11 @@ export class PrescribedRegimentsService {
       .populate({
         path: 'customDrugs.drugId',
         select: { genericName: 1, group: 1 },
-      });
+      })
+      .populate({
+      path: 'treatmentID',
+      select: { _id: 1, followUpDate: 1 },
+    });
   }
   async update(
     id: string,
