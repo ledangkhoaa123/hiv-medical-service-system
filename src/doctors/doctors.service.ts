@@ -1,13 +1,12 @@
+import { Doctor } from 'src/doctors/schemas/doctor.schema';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
-import { Doctor, DoctorDocument } from './schemas/doctor.schema';
+import {  DoctorDocument } from './schemas/doctor.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';
-import { pick } from 'lodash';
-import path from 'path';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/users.service';
 import { RolesService } from 'src/roles/roles.service';
@@ -33,8 +32,9 @@ export class DoctorsService {
       throw new NotFoundException("Không tìm thấy role Doctor")
     }
     const hashPassword = this.usersService.getHashPassword(password);
+    const isVeryfied = true;
     try {
-      const doctorUser = await this.userModel.create({ name, email, password: hashPassword, phone, dob, address, gender, role });
+      const doctorUser = await this.userModel.create({ name, email, password: hashPassword, phone, dob, address, gender, role, isVerified: isVeryfied });
       if (!doctorUser) {
         throw new BadRequestException("Khởi tạo User của doctor không thành công")
       }
@@ -102,8 +102,12 @@ export class DoctorsService {
 
 
   async update(id: string, updateDoctorDto: UpdateDoctorDto, user: IUser) {
-    if (!(await this.findOne(id))) {
+    const doctor = await this.findOne(id);
+    if (!doctor) {
       throw new BadRequestException(`Not found Doctor with id=${id}`);
+    }
+    if(updateDoctorDto.name){
+      await this.userModel.updateOne({_id: doctor.userID}, {name: updateDoctorDto.name})
     }
 
     return await this.doctorModel.updateOne(

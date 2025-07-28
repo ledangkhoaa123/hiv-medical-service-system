@@ -15,9 +15,12 @@ export class UpdateDoctorDto {
   experiences: string[];
 
   @IsOptional()
-  @IsString({ message: 'specializations phải là chuỗi' })
+  @IsString({ message: 'degrees phải là chuỗi' })
   degrees: string;
   @IsOptional()
   @IsString({ message: 'specializations phải là chuỗi' })
   specializations: string;
+  @IsOptional()
+  @IsString({ message: 'name phải là chuỗi' })
+  name: string;
 }
