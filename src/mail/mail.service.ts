@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { verify } from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(
+    private readonly mailerService: MailerService,
+    private configService: ConfigService,
+
+  ) { }
   async sendAnonymousAppointmentCreatedEmail(data: {
     to: string;
     patientName: string;
@@ -53,6 +58,7 @@ export class MailService {
     doctorName: string;
     room: string;
     followUpDate: string;
+    homePage: string;
   }) {
     await this.mailerService.sendMail({
       to: data.to,
@@ -63,6 +69,7 @@ export class MailService {
         followUpDate: data.followUpDate,
         doctorName: data.doctorName,
         room: data.room,
+        homePage: data.homePage,
       },
     });
   }
@@ -113,7 +120,7 @@ export class MailService {
   }: {
     to: string;
     patientName: string;
-    drugs: { drugName: string; dosage: string; frequency: string }[]; 
+    drugs: { drugName: string; dosage: string; frequency: string }[];
   }) {
     await this.mailerService.sendMail({
       to: to,
