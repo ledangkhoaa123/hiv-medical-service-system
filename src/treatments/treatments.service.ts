@@ -209,6 +209,7 @@ export class TreatmentsService {
         doctorName: doctor?.userID?.name || '',
         room: doctor?.room || '',
         followUpDate: formatted,
+        homePage: this.configService.get<string>('FE_URL'),
       });
     }
   }
