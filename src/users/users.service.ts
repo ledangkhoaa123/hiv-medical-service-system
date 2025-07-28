@@ -334,7 +334,7 @@ export class UsersService {
     });
   }
   async findByEmail(email: string) {
-    return await this.userModel.findOne({ email: email }).populate({
+    return await this.userModel.findOne({ email: email, isDeleted: false }).populate({
       path: 'role',
       select: { name: 1 },
     });
