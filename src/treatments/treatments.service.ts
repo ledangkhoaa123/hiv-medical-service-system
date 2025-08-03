@@ -223,6 +223,7 @@ export class TreatmentsService {
         followUpDate: formatted,
         homePage: this.configService.get<string>('FE_URL'),
       });
+      console.log(`Đã gửi email nhắc lịch tái khám cho bệnh nhân ${patient.name} vào ngày ${formatted}`);
     }
   }
   async deleteAllByMedicalRecordId(medicalRecordId: string) {
